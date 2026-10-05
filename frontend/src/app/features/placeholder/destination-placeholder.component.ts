@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-candidate-home-placeholder',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   template: `
     <div class="destination-page">
       <div class="destination-card">
@@ -19,7 +20,10 @@ import { AuthService } from '../../core/services/auth.service';
           <div><strong>User ID:</strong> {{ authService.getUserId() }}</div>
           <div><strong>Token in localStorage:</strong> {{ !!authService.getToken() ? 'Stored' : 'Missing' }}</div>
         </div>
-        <button class="logout-btn" (click)="authService.logout()">Sign Out</button>
+        <div class="actions-row">
+          <a routerLink="/candidate/profile" class="profile-btn">Edit Candidate Profile</a>
+          <button class="logout-btn" (click)="authService.logout()">Sign Out</button>
+        </div>
       </div>
     </div>
   `,
@@ -81,17 +85,39 @@ import { AuthService } from '../../core/services/auth.service';
       flex-direction: column;
       gap: 0.5rem;
     }
-    .logout-btn {
+    .actions-row {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .profile-btn {
+      display: inline-flex;
+      align-items: center;
       background: #0d9488;
       color: white;
-      border: none;
+      text-decoration: none;
       padding: 0.625rem 1.25rem;
       border-radius: 8px;
       font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .profile-btn:hover {
+      background: #0f766e;
+    }
+    .logout-btn {
+      background: transparent;
+      color: #1e293b;
+      border: 1px solid #cbd5e1;
+      padding: 0.625rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.875rem;
       cursor: pointer;
     }
     .logout-btn:hover {
-      background: #0f766e;
+      background: #f1f5f9;
     }
   `],
 })
