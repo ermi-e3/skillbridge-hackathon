@@ -34,4 +34,12 @@ export class ApplicationsService {
   getApplicationById(id: number): Observable<ApplicationDto> {
     return this.http.get<ApplicationDto>(`${this.baseUrl}/applications/${id}`);
   }
+
+  /**
+   * Withdraw an application in Received status
+   * PATCH /api/applications/{id}/withdraw
+   */
+  withdraw(id: number): Observable<ApplicationDto> {
+    return this.http.patch<ApplicationDto>(`${this.baseUrl}/applications/${id}/withdraw`, {});
+  }
 }

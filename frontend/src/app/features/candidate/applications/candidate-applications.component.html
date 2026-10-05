@@ -1,0 +1,269 @@
+<div class="applications-page">
+  <!-- Success Toast -->
+  @if (successToast()) {
+    <div class="toast-container" role="status" aria-live="polite">
+      <div class="success-toast">
+        <div class="toast-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <div class="toast-content">
+          <span class="toast-title">Notification</span>
+          <span class="toast-message">{{ successToast() }}</span>
+        </div>
+        <button
+          type="button"
+          class="toast-close-btn"
+          aria-label="Dismiss toast"
+          (click)="dismissToast()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Confirmation Modal for Withdraw -->
+  @if (pendingWithdrawApp(); as appToWithdraw) {
+    <div class="modal-backdrop" (click)="cancelWithdraw()">
+      <div class="modal-card" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-header">
+          <div class="modal-warning-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </div>
+          <h3 id="modal-title" class="modal-title">Withdraw Application</h3>
+        </div>
+
+        <div class="modal-body">
+          <p>
+            Are you sure you want to withdraw your application for <strong>{{ appToWithdraw.jobTitle }}</strong>?
+          </p>
+          <p class="modal-subtext">
+            ⚠️ Note: Once withdrawn, you cannot reapply to this opening per platform rules.
+          </p>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cancelWithdraw()" [disabled]="isWithdrawingId() !== null">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn-confirm-withdraw"
+            (click)="confirmWithdraw()"
+            [disabled]="isWithdrawingId() !== null"
+          >
+            @if (isWithdrawingId() !== null) {
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Withdrawing...</span>
+            } @else {
+              <span>Confirm Withdrawal</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="applications-container">
+    <!-- Header with Breadcrumbs & Metrics -->
+    <header class="page-header">
+      <div class="header-text-group">
+        <div class="brand-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <span>Candidate Tracking</span>
+        </div>
+        <h1 class="page-title">My Applications</h1>
+        <p class="page-subtitle">Track status updates for your submitted applications in real time.</p>
+      </div>
+
+      <div class="header-actions">
+        <a routerLink="/jobs" class="nav-action-btn primary-action">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+          <span>Browse More Jobs</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Error Alert Banner -->
+    @if (errorMessage()) {
+      <div class="alert-banner" role="alert" aria-live="assertive">
+        <div class="alert-content">
+          <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span class="alert-text">{{ errorMessage() }}</span>
+        </div>
+        <button
+          type="button"
+          class="alert-close-btn"
+          aria-label="Dismiss error"
+          (click)="dismissAlert()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    }
+
+    <!-- Summary Metrics Cards -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="metric-number">{{ totalCount() }}</span>
+        <span class="metric-label">Total Applied</span>
+      </div>
+      <div class="metric-card received-metric">
+        <span class="metric-number">{{ receivedCount() }}</span>
+        <span class="metric-label">Under Review (Received)</span>
+      </div>
+      <div class="metric-card shortlisted-metric">
+        <span class="metric-number">{{ shortlistedCount() }}</span>
+        <span class="metric-label">Shortlisted</span>
+      </div>
+      <div class="metric-card rejected-metric">
+        <span class="metric-number">{{ rejectedCount() }}</span>
+        <span class="metric-label">Rejected</span>
+      </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-card">
+      @if (isLoading()) {
+        <!-- Skeleton Loading Table -->
+        <div class="skeleton-table" aria-busy="true" aria-label="Loading submitted applications">
+          @for (i of [1, 2, 3, 4]; track i) {
+            <div class="skeleton-row">
+              <div class="skel-cell skel-w35"></div>
+              <div class="skel-cell skel-w20"></div>
+              <div class="skel-cell skel-w15"></div>
+              <div class="skel-cell skel-w15"></div>
+              <div class="skel-cell skel-w15"></div>
+            </div>
+          }
+        </div>
+      } @else if (sortedApplications().length > 0) {
+        <div class="table-responsive">
+          <table class="applications-table" aria-label="Candidate applications table">
+            <thead>
+              <tr>
+                <th scope="col" class="th-job">Job Title</th>
+                <th scope="col" class="th-date">Applied Date</th>
+                <th scope="col" class="th-match">Match %</th>
+                <th scope="col" class="th-status">Status</th>
+                <th scope="col" class="th-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (app of sortedApplications(); track app.id) {
+                <tr class="app-row" [class.withdrawn-row]="app.status === 'Withdrawn'">
+                  <!-- Job Title & Company -->
+                  <td class="td-job">
+                    <a [routerLink]="['/jobs', app.jobId]" class="job-link">
+                      {{ app.jobTitle }}
+                    </a>
+                    @if (app.companyName) {
+                      <span class="company-sub">{{ app.companyName }}</span>
+                    }
+                  </td>
+
+                  <!-- Applied Date -->
+                  <td class="td-date">
+                    <span class="date-text">{{ app.appliedAt | date: 'mediumDate' }}</span>
+                    <span class="time-sub">{{ app.appliedAt | date: 'shortTime' }}</span>
+                  </td>
+
+                  <!-- Match % Chip & Bar -->
+                  <td class="td-match">
+                    <div class="match-cell-group">
+                      <span
+                        class="match-badge"
+                        [ngClass]="getMatchClass(getMatchPercent(app))"
+                      >
+                        {{ getMatchPercent(app) }}%
+                      </span>
+                      <div class="match-mini-bar-track">
+                        <div
+                          class="match-mini-bar-fill"
+                          [ngClass]="getMatchClass(getMatchPercent(app))"
+                          [style.width.%]="getMatchPercent(app)"
+                        ></div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Status Badge (Received = Blue, Shortlisted = Green, Rejected = Red, Withdrawn = Gray) -->
+                  <td class="td-status">
+                    <span class="status-badge" [ngClass]="getStatusBadgeClass(app.status)">
+                      <span class="status-dot"></span>
+                      <span>{{ app.status }}</span>
+                    </span>
+                  </td>
+
+                  <!-- Actions -->
+                  <td class="td-actions">
+                    <div class="actions-cell">
+                      <a [routerLink]="['/jobs', app.jobId]" class="action-btn-view" title="View Job Details">
+                        View
+                      </a>
+
+                      <!-- "Withdraw" button shown ONLY when status === 'Received' -->
+                      @if (app.status === 'Received') {
+                        <button
+                          type="button"
+                          class="action-btn-withdraw"
+                          (click)="promptWithdraw(app)"
+                          title="Withdraw Application"
+                        >
+                          Withdraw
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <!-- Empty State -->
+        <div class="empty-state-box">
+          <div class="empty-icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="9" y1="15" x2="15" y2="15"></line>
+            </svg>
+          </div>
+          <h3 class="empty-title">You haven't applied to any jobs yet</h3>
+          <p class="empty-desc">
+            Browse open developer and tech roles tailored for Ethiopian talent, and apply with your verified skills profile.
+          </p>
+          <a routerLink="/jobs" class="empty-action-btn">
+            Explore Open Jobs
+          </a>
+        </div>
+      }
+    </div>
+  </div>
+</div>

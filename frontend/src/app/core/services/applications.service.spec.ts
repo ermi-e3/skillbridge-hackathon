@@ -70,4 +70,17 @@ describe('ApplicationsService', () => {
     expect(req.request.method).toBe('GET');
     req.flush(mockApplication);
   });
+
+  it('should send PATCH /api/applications/{id}/withdraw', () => {
+    const withdrawnResponse: ApplicationDto = { ...mockApplication, status: 'Withdrawn' };
+
+    service.withdraw(31).subscribe((res) => {
+      expect(res.status).toBe('Withdrawn');
+    });
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/applications/31/withdraw`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({});
+    req.flush(withdrawnResponse);
+  });
 });
