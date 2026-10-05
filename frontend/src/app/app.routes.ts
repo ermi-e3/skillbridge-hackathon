@@ -47,6 +47,19 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    path: 'my-applications',
+    //canActivate: [authGuard, roleGuard('Candidate')],
+    loadComponent: () =>
+      import('./features/candidate/applications/candidate-applications.component').then(
+        (m) => m.CandidateApplicationsComponent
+      ),
+  },
+  {
+    path: 'candidate/applications',
+    redirectTo: 'my-applications',
+    pathMatch: 'full',
+  },
+  {
     path: 'employer/jobs',
     //canActivate: [authGuard, roleGuard('Employer')],
     loadComponent: () =>
