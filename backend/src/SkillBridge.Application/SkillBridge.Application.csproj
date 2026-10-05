@@ -4,6 +4,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- DbSet<T> and async LINQ (ToListAsync, AnyAsync) for services. -->
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
   </ItemGroup>
 </Project>
