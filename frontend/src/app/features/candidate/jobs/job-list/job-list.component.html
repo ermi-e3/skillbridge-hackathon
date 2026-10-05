@@ -1,0 +1,313 @@
+<div class="jobs-page">
+  <div class="jobs-container">
+    <!-- Page Header & Top Nav -->
+    <header class="catalog-header">
+      <div class="header-main">
+        <div class="brand-sub-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="badge-icon">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+          <span>Candidate Job Catalog</span>
+        </div>
+        <h1 class="catalog-title">Explore Tech Opportunities</h1>
+        <p class="catalog-subtitle">
+          Browse vetted tech openings in Ethiopia. Match scores are computed automatically against your candidate skill profile.
+        </p>
+      </div>
+
+      <nav class="header-nav-actions" aria-label="Candidate Navigation">
+        <a routerLink="/candidate/profile" class="nav-btn profile-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>My Profile & Skills</span>
+        </a>
+        <button type="button" class="nav-btn logout-link" (click)="authService.logout()">
+          <span>Sign Out</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- Error Alert Banner -->
+    @if (errorMessage()) {
+      <div class="alert-banner" role="alert" aria-live="assertive">
+        <div class="alert-content">
+          <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span class="alert-text">{{ errorMessage() }}</span>
+        </div>
+        <button
+          type="button"
+          class="alert-close-btn"
+          aria-label="Dismiss error"
+          (click)="dismissAlert()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    }
+
+    <!-- Top Bar: Skill Filter Bar -->
+    <section class="filter-section" aria-label="Skills Filter Bar">
+      <div class="filter-header-row">
+        <div class="filter-title-group">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="filter-icon">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+          <span class="filter-label">Filter by Skills</span>
+          @if (selectedCount() > 0) {
+            <span class="filter-count-badge">{{ selectedCount() }} selected</span>
+          }
+        </div>
+
+        <div class="filter-controls-right">
+          <!-- Skill Search Filter -->
+          <div class="chip-search-wrapper">
+            <svg class="chip-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="text"
+              [value]="skillFilterSearch()"
+              (input)="onSkillSearchInput($event)"
+              placeholder="Find skill..."
+              class="chip-search-input"
+            />
+            @if (skillFilterSearch()) {
+              <button type="button" class="clear-search-btn" (click)="clearSkillSearch()" aria-label="Clear filter search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            }
+          </div>
+
+          @if (selectedCount() > 0) {
+            <button type="button" class="clear-all-filters-btn" (click)="clearSkillFilters()">
+              Clear filters
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Skill Chips Container -->
+      <div class="skill-chips-row" role="group" aria-label="Skill filter chips">
+        @if (isLoadingSkills()) {
+          <div class="chips-skeleton">
+            <span class="skeleton-chip"></span>
+            <span class="skeleton-chip"></span>
+            <span class="skeleton-chip"></span>
+            <span class="skeleton-chip"></span>
+            <span class="skeleton-chip"></span>
+          </div>
+        } @else {
+          @for (skill of visibleSkills(); track skill.id) {
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="isSkillSelected(skill.id)"
+              (click)="toggleSkillFilter(skill.id)"
+              [attr.aria-pressed]="isSkillSelected(skill.id)"
+            >
+              @if (isSkillSelected(skill.id)) {
+                <svg class="chip-icon check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              } @else {
+                <svg class="chip-icon plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              }
+              <span>{{ skill.name }}</span>
+            </button>
+          }
+
+          @if (visibleSkills().length === 0) {
+            <span class="no-filter-match">No skills match "{{ skillFilterSearch() }}"</span>
+          }
+        }
+      </div>
+    </section>
+
+    <!-- Results Count Bar -->
+    <div class="results-meta-bar">
+      <span class="results-count">
+        @if (isLoadingJobs()) {
+          <span>Loading open roles...</span>
+        } @else {
+          <strong>{{ jobs().length }}</strong> open position{{ jobs().length === 1 ? '' : 's' }}
+          @if (selectedCount() > 0) {
+            <span> matching selected skill filter{{ selectedCount() === 1 ? '' : 's' }}</span>
+          }
+        }
+      </span>
+    </div>
+
+    <!-- Loading Skeleton Cards -->
+    @if (isLoadingJobs()) {
+      <div class="jobs-grid">
+        @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+          <div class="job-card-skeleton">
+            <div class="skeleton-header">
+              <div class="skeleton-line skel-pill"></div>
+              <div class="skeleton-line skel-badge"></div>
+            </div>
+            <div class="skeleton-line skel-title"></div>
+            <div class="skeleton-line skel-company"></div>
+            <div class="skeleton-line skel-meta"></div>
+            <div class="skeleton-chips">
+              <span class="skel-tag"></span>
+              <span class="skel-tag"></span>
+              <span class="skel-tag"></span>
+            </div>
+            <div class="skeleton-line skel-btn"></div>
+          </div>
+        }
+      </div>
+    } @else if (jobs().length > 0) {
+      <!-- Responsive Job Card Grid -->
+      <div class="jobs-grid">
+        @for (job of jobs(); track job.id) {
+          <article class="job-card" [class.has-applied-card]="job.hasApplied">
+            <!-- Card Top Bar: Applied Badge & Match % Badge -->
+            <div class="card-top-bar">
+              <div class="badges-left">
+                @if (job.hasApplied) {
+                  <span class="applied-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Applied</span>
+                  </span>
+                }
+              </div>
+
+              <!-- Color-coded Match Badge (Green >= 75%, Yellow 50-74%, Red < 50%) -->
+              <div class="badges-right">
+                @if (getMatchPercent(job); as matchScore) {
+                  <div
+                    class="match-badge"
+                    [ngClass]="getMatchClass(matchScore)"
+                    [title]="'Your skills match ' + matchScore + '% of this job\'s requirements'"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="match-icon">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="m10 15 5-3-5-3v6Z"></path>
+                    </svg>
+                    <span class="match-text"><strong>{{ matchScore }}%</strong> Match</span>
+                  </div>
+                } @else {
+                  <div class="match-badge match-none" title="Match score is computed once skills are added to your profile">
+                    <span class="match-text">Match N/A</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Job Title -->
+            <h2 class="job-title">{{ job.title }}</h2>
+
+            <!-- Company & Location Meta Row -->
+            <div class="job-meta-row">
+              <div class="meta-item company-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+                <span class="company-name">{{ job.companyName }}</span>
+              </div>
+
+              @if (job.location) {
+                <div class="meta-item location-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                  <span>{{ job.location }}</span>
+                </div>
+              }
+
+              <div class="meta-item date-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>{{ job.createdAt | date: 'mediumDate' }}</span>
+              </div>
+            </div>
+
+            <!-- Job Description Snippet -->
+            <p class="job-description-preview">
+              {{ job.description }}
+            </p>
+
+            <!-- Required Skill Tags -->
+            <div class="skills-tag-group">
+              <span class="skills-label">Required Skills:</span>
+              <div class="skill-tags-list">
+                @for (skill of job.requiredSkills; track skill.id) {
+                  <span
+                    class="required-skill-tag"
+                    [class.highlight-match]="isSkillSelected(skill.id)"
+                  >
+                    {{ skill.name }}
+                  </span>
+                }
+              </div>
+            </div>
+
+            <!-- Card Action Footer -->
+            <div class="card-footer">
+              <a
+                [routerLink]="['/jobs', job.id]"
+                class="view-job-btn"
+                [attr.aria-label]="'View details for ' + job.title + ' at ' + job.companyName"
+              >
+                <span>View Job</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="arrow-icon">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </a>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <!-- Edge State: Empty State Placeholder -->
+      <div class="empty-state-card" role="status">
+        <div class="empty-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <line x1="8" y1="11" x2="14" y2="11"></line>
+          </svg>
+        </div>
+        <h3 class="empty-title">No jobs match your filter criteria</h3>
+        <p class="empty-desc">
+          We couldn't find any openings requiring all the selected skills. Try deselecting some chips or clear the filter to view all available tech positions.
+        </p>
+        <button
+          type="button"
+          class="reset-filters-btn"
+          (click)="clearSkillFilters()"
+        >
+          Clear All Filters
+        </button>
+      </div>
+    }
+  </div>
+</div>
