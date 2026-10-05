@@ -1,6 +1,6 @@
 # SkillBridge authentication and authorization
 
-The backend implements registration, login, eight-hour JWT access tokens, the current-user endpoint, and Candidate/Employer role authorization. Authentication remains the scope of this change; business features are not implemented here. Nothing has been committed or pushed.
+The backend implements registration, login, eight-hour JWT access tokens, the current-user endpoint, and Candidate/Employer role authorization. This guide covers authentication. Candidate profile endpoints are documented in [CANDIDATE-PROFILE.md](CANDIDATE-PROFILE.md).
 
 The referenced solution blueprint and API contract were unavailable in `docs/`. The supplied “Authentication & Authorization First” prompt was used as the implementation contract.
 

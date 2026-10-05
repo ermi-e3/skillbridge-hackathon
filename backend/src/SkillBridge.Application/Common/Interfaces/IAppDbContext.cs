@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using SkillBridge.Domain.Entities;
+
 namespace SkillBridge.Application.Common.Interfaces;
 
 /// <summary>
@@ -6,5 +9,8 @@ namespace SkillBridge.Application.Common.Interfaces;
 /// </summary>
 public interface IAppDbContext
 {
+    DbSet<CandidateProfile> CandidateProfiles { get; }
+    DbSet<Skill> Skills { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

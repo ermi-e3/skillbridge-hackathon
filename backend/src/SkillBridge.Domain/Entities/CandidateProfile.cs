@@ -25,33 +25,37 @@ public class CandidateProfile
     public string? GitHubUrl { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
 
-    //public AppUser User { get; private set; } = null!;
     public IReadOnlyCollection<CandidateSkill> Skills => _skills;
 
     public bool HasSkills => _skills.Count > 0;
 
-    
-    //public void Update(string headline, string? bio, string? gitHubUrl, IEnumerable<int> skillIds, DateTime nowUtc)
-    //{
-    //    Headline = headline.Trim();
-    //    Bio = string.IsNullOrWhiteSpace(bio) ? null : bio.Trim();
-    //    GitHubUrl = string.IsNullOrWhiteSpace(gitHubUrl) ? null : gitHubUrl.Trim();
-    //    ReplaceSkills(skillIds);
-    //    UpdatedAt = nowUtc;
-    //}
+    public void Update(
+        string headline, string? bio, string? gitHubUrl, IEnumerable<int> skillIds, DateTime nowUtc)
+    {
+        ReplaceSkills(skillIds);
+        Headline = headline.Trim();
+        Bio = string.IsNullOrWhiteSpace(bio) ? null : bio.Trim();
+        GitHubUrl = string.IsNullOrWhiteSpace(gitHubUrl) ? null : gitHubUrl.Trim();
+        UpdatedAt = nowUtc;
+    }
 
-    //private void ReplaceSkills(IEnumerable<int> skillIds)
-    //{
-    //    var wanted = skillIds.ToHashSet();
-    //    if (wanted.Count is < 1 or > MaxSkills)
-    //        throw new BusinessRuleException(ErrorCodes.Validation, "Invalid skills",
-    //            $"Pick between 1 and {MaxSkills} skills.");
+    private void ReplaceSkills(IEnumerable<int> skillIds)
+    {
+        var wanted = skillIds.ToHashSet();
+        if (wanted.Count is < 1 or > MaxSkills || wanted.Any(id => id <= 0))
+        {
+            throw new BusinessRuleException("validation.failed", "Invalid skills",
+                $"Pick between 1 and {MaxSkills} valid skills.");
+        }
 
-    //    // Removed rows become orphans of a required relationship, so EF deletes them on save.
-    //    _skills.RemoveAll(s => !wanted.Contains(s.SkillId));
+        // Preserve existing joins so EF never tracks two objects with the same composite key.
+        // Removed joins become orphans of the required relationship and are deleted on save.
+        _skills.RemoveAll(skill => !wanted.Contains(skill.SkillId));
 
-    //    var existing = _skills.Select(s => s.SkillId).ToHashSet();
-    //    foreach (var skillId in wanted.Where(id => !existing.Contains(id)))
-    //        _skills.Add(new CandidateSkill(UserId, skillId));
-    //}
+        var existing = _skills.Select(skill => skill.SkillId).ToHashSet();
+        foreach (var skillId in wanted.Where(id => !existing.Contains(id)))
+        {
+            _skills.Add(new CandidateSkill(UserId, skillId));
+        }
+    }
 }
