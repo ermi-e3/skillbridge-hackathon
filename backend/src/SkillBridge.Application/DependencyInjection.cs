@@ -1,4 +1,6 @@
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using SkillBridge.Application.Auth;
 
 namespace SkillBridge.Application;
 
@@ -6,7 +8,8 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        // Register one service per feature folder here, e.g. services.AddScoped<JobService>();
+        services.AddScoped<AuthService>();
+        services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
         return services;
     }
 }
