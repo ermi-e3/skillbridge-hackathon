@@ -1,0 +1,480 @@
+// Palette tokens from specification & screenshot
+$primary: #0d9488; // Teal-600
+$primary-hover: #0f766e; // Teal-700
+$primary-light: #ccfbf1; // Teal-100
+$primary-focus: rgba(13, 148, 136, 0.25);
+
+$neutral-bg: #f8fafc; // Slate-50
+$neutral-card: #ffffff;
+$neutral-text: #1e293b; // Slate-800
+$neutral-muted: #64748b; // Slate-500
+$neutral-border: #e2e8f0; // Slate-200
+$neutral-border-focus: #cbd5e1; // Slate-300
+
+$accent: #f97316; // Orange-500
+$accent-hover: #ea580c; // Orange-600
+$accent-light: #ffedd5; // Orange-100
+
+$danger: #dc2626; // Red-600
+$danger-bg: #fef2f2; // Red-50
+$danger-border: #fecaca; // Red-200
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: $neutral-bg;
+  background-image: radial-gradient(at 0% 0%, rgba(13, 148, 136, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(249, 115, 22, 0.06) 0px, transparent 50%);
+  padding: 2rem 1.25rem;
+  box-sizing: border-box;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 480px;
+  background: $neutral-card;
+  border: 1px solid $neutral-border;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(30, 41, 59, 0.06), 0 8px 10px -6px rgba(30, 41, 59, 0.04);
+  padding: 2.25rem;
+  box-sizing: border-box;
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Brand Header
+.auth-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+
+  .brand-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.875rem;
+    background: $primary-light;
+    border-radius: 9999px;
+    margin-bottom: 0.875rem;
+
+    .brand-icon {
+      width: 1.125rem;
+      height: 1.125rem;
+      color: $primary;
+    }
+
+    .brand-title {
+      font-size: 0.875rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: $primary;
+    }
+  }
+
+  .auth-title {
+    font-size: 1.625rem;
+    font-weight: 700;
+    color: $neutral-text;
+    letter-spacing: -0.025em;
+    margin: 0 0 0.375rem;
+  }
+
+  .auth-subtitle {
+    font-size: 0.9375rem;
+    color: $neutral-muted;
+    margin: 0;
+    line-height: 1.45;
+  }
+}
+
+// Dismissible Alert Banner
+.alert-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: $danger-bg;
+  border: 1px solid $danger-border;
+  border-radius: 10px;
+  padding: 0.875rem 1rem;
+  margin-bottom: 1.5rem;
+  animation: slideDown 0.2s ease-out;
+
+  .alert-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    color: $danger;
+
+    .alert-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .alert-text {
+      font-size: 0.875rem;
+      line-height: 1.4;
+      font-weight: 500;
+    }
+  }
+
+  .alert-close-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: $danger;
+    opacity: 0.7;
+    padding: 0.125rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.15s ease;
+
+    &:hover {
+      opacity: 1;
+    }
+
+    svg {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Form Elements
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+
+  .form-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $neutral-text;
+  }
+}
+
+// Role Selection Radio Cards
+.role-selection-group {
+  margin-bottom: 0.25rem;
+
+  .role-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+
+    @media (max-width: 420px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .role-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.875rem 1rem;
+    border: 2px solid $neutral-border;
+    border-radius: 12px;
+    background: $neutral-card;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    outline: none;
+
+    &:hover {
+      border-color: #99f6e4;
+      background: #f0fdfa;
+    }
+
+    &:focus-visible {
+      border-color: $primary;
+      box-shadow: 0 0 0 3px $primary-focus;
+    }
+
+    &.active {
+      border-color: $primary;
+      background: #f0fdfa;
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.12);
+
+      .role-icon-box {
+        background: $primary;
+        color: #ffffff;
+      }
+
+      .role-name {
+        color: $primary;
+        font-weight: 700;
+      }
+    }
+
+    .role-icon-box {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 8px;
+      background: #f1f5f9;
+      color: $neutral-muted;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.5rem;
+      transition: background-color 0.2s ease, color 0.2s ease;
+
+      svg {
+        width: 1.125rem;
+        height: 1.125rem;
+      }
+    }
+
+    .role-text-box {
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+
+      .role-name {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: $neutral-text;
+      }
+
+      .role-desc {
+        font-size: 0.75rem;
+        color: $neutral-muted;
+        line-height: 1.3;
+      }
+    }
+
+    .role-check-indicator {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+
+      svg {
+        width: 1.125rem;
+        height: 1.125rem;
+        color: $primary;
+      }
+
+      .empty-circle {
+        display: block;
+        width: 1rem;
+        height: 1rem;
+        border-radius: 50%;
+        border: 2px solid $neutral-border-focus;
+      }
+    }
+  }
+}
+
+// Company Field Animation
+.company-field-animate {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid $neutral-border;
+  border-radius: 8px;
+  background: $neutral-card;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus-within {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px $primary-focus;
+  }
+
+  &.has-error {
+    border-color: $danger;
+
+    &:focus-within {
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+    }
+
+    .input-icon {
+      color: $danger;
+    }
+  }
+
+  .input-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+    color: $neutral-muted;
+    position: absolute;
+    left: 0.875rem;
+    pointer-events: none;
+    transition: color 0.15s ease;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 0.6875rem 0.875rem 0.6875rem 2.625rem;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    font-size: 0.9375rem;
+    color: $neutral-text;
+    box-sizing: border-box;
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  .password-toggle-btn {
+    position: absolute;
+    right: 0.75rem;
+    background: transparent;
+    border: none;
+    color: $neutral-muted;
+    padding: 0.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: $neutral-text;
+    }
+
+    svg {
+      width: 1.125rem;
+      height: 1.125rem;
+    }
+  }
+}
+
+// Inline Reactive Error
+.inline-error {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: $danger;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-top: 0.125rem;
+  animation: fadeIn 0.15s ease-out;
+
+  .error-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    flex-shrink: 0;
+  }
+}
+
+// Submit Button
+.submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  margin-top: 0.5rem;
+  background-color: $primary;
+  color: #ffffff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.05s ease, opacity 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: $primary-hover;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .btn-arrow {
+    width: 1.125rem;
+    height: 1.125rem;
+    transition: transform 0.15s ease;
+  }
+
+  &:hover:not(:disabled) .btn-arrow {
+    transform: translateX(3px);
+  }
+
+  .spinner {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Footer
+.auth-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: $neutral-muted;
+
+  p {
+    margin: 0;
+  }
+
+  .auth-link {
+    color: $accent;
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 0.25rem;
+    transition: color 0.15s ease, text-decoration 0.15s ease;
+
+    &:hover {
+      color: $accent-hover;
+      text-decoration: underline;
+    }
+  }
+}

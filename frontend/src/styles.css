@@ -1,21 +1,28 @@
-/* SkillBridge design tokens. Deep highland teal for structure, Meskel-daisy amber for "match".
-   System fonts only: no network needed at build time or on venue Wi-Fi. */
+/* SkillBridge design tokens - Aligned with screenshot:
+   Primary: #0D9488 (Teal-600)
+   Neutral: #F8FAFC (Slate-50), #1E293B (Slate-800)
+   Accent: #F97316 (Orange-500) */
 :root {
-  --bg: #f3f6f5;
+  --bg: #f8fafc;
   --surface: #ffffff;
-  --ink: #17252b;
-  --ink-soft: #55656c;
-  --line: #e1e8e6;
-  --line-strong: #c4d0cd;
-  --primary: #1d5c63;
-  --primary-hover: #164a50;
-  --accent: #e0a526;
-  --ok: #1f6e43;
-  --ok-soft: #dcefe3;
-  --danger: #b3382c;
-  --danger-soft: #f7e0dd;
+  --ink: #1e293b;
+  --ink-soft: #64748b;
+  --ink-muted: #94a3b8;
+  --line: #e2e8f0;
+  --line-strong: #cbd5e1;
+  --primary: #0d9488;
+  --primary-hover: #0f766e;
+  --primary-light: #ccfbf1;
+  --primary-ring: rgba(13, 148, 136, 0.2);
+  --accent: #f97316;
+  --accent-hover: #ea580c;
+  --accent-light: #ffedd5;
+  --ok: #16a34a;
+  --ok-soft: #dcfce7;
+  --danger: #dc2626;
+  --danger-soft: #fee2e2;
 
-  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   color-scheme: light;
 }
 
