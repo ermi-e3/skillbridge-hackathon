@@ -72,6 +72,30 @@ public sealed class IdentityService(UserManager<AppUser> userManager, AppDbConte
         return user is null ? null : await LoadAuthUserAsync(user, cancellationToken);
     }
 
+    public async Task<IReadOnlyDictionary<string, AuthUser>> FindByIdsAsync(
+        IEnumerable<string> userIds, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var idList = userIds.Distinct().ToList();
+        if (idList.Count == 0)
+            return new Dictionary<string, AuthUser>();
+
+        var users = await dbContext.Users
+            .Where(u => idList.Contains(u.Id))
+            .ToListAsync(cancellationToken);
+
+        var result = new Dictionary<string, AuthUser>();
+        foreach (var user in users)
+        {
+            var authUser = await LoadAuthUserAsync(user, cancellationToken);
+            if (authUser is not null)
+            {
+                result[user.Id] = authUser;
+            }
+        }
+        return result;
+    }
+
     private async Task<AuthUser?> LoadAuthUserAsync(AppUser user, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();

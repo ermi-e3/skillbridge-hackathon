@@ -43,3 +43,11 @@ export interface EmployerJobDto {
     withdrawn: number;
   };
 }
+
+export interface CreateJobRequest {
+  title: string;
+  description: string;
+  location?: string | null;
+  requiredSkillIds: number[];
+}
+
