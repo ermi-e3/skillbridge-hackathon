@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Pure C#: no EF Core, no ASP.NET. Entities, enums and business rules only. -->
+</Project>

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\SkillBridge.Application\SkillBridge.Application.csproj" />
+    <ProjectReference Include="..\SkillBridge.Domain\SkillBridge.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Options, configuration binding and (later) Identity come from the shared framework. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+</Project>

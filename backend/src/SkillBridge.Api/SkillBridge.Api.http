@@ -1,0 +1,4 @@
+@api = http://localhost:5080/api
+
+### API and database reachable?
+GET {{api}}/health

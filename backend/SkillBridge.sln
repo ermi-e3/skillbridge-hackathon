@@ -1,0 +1,57 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{397EC11A-135E-4925-9666-F985AFD8DB47}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{723CC09B-C94E-4853-912B-5501EC7A9816}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillBridge.Domain", "src\SkillBridge.Domain\SkillBridge.Domain.csproj", "{D90CDA45-1DAC-4A96-84E8-C108A386C5CD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillBridge.Application", "src\SkillBridge.Application\SkillBridge.Application.csproj", "{FD70DE82-7A2B-468B-BCE4-6B92AE4AFFA5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillBridge.Infrastructure", "src\SkillBridge.Infrastructure\SkillBridge.Infrastructure.csproj", "{19C968E7-70A5-4A3F-A57F-9E145DC7B6EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillBridge.Api", "src\SkillBridge.Api\SkillBridge.Api.csproj", "{87AF0C6A-08D9-49FD-A654-35DB02D1761E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillBridge.Domain.Tests", "tests\SkillBridge.Domain.Tests\SkillBridge.Domain.Tests.csproj", "{1E62B308-42E8-4935-8E07-78068E1FA854}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D90CDA45-1DAC-4A96-84E8-C108A386C5CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D90CDA45-1DAC-4A96-84E8-C108A386C5CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D90CDA45-1DAC-4A96-84E8-C108A386C5CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D90CDA45-1DAC-4A96-84E8-C108A386C5CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD70DE82-7A2B-468B-BCE4-6B92AE4AFFA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD70DE82-7A2B-468B-BCE4-6B92AE4AFFA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD70DE82-7A2B-468B-BCE4-6B92AE4AFFA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD70DE82-7A2B-468B-BCE4-6B92AE4AFFA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19C968E7-70A5-4A3F-A57F-9E145DC7B6EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19C968E7-70A5-4A3F-A57F-9E145DC7B6EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19C968E7-70A5-4A3F-A57F-9E145DC7B6EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19C968E7-70A5-4A3F-A57F-9E145DC7B6EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87AF0C6A-08D9-49FD-A654-35DB02D1761E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87AF0C6A-08D9-49FD-A654-35DB02D1761E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87AF0C6A-08D9-49FD-A654-35DB02D1761E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87AF0C6A-08D9-49FD-A654-35DB02D1761E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E62B308-42E8-4935-8E07-78068E1FA854}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E62B308-42E8-4935-8E07-78068E1FA854}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E62B308-42E8-4935-8E07-78068E1FA854}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E62B308-42E8-4935-8E07-78068E1FA854}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D90CDA45-1DAC-4A96-84E8-C108A386C5CD} = {397EC11A-135E-4925-9666-F985AFD8DB47}
+		{FD70DE82-7A2B-468B-BCE4-6B92AE4AFFA5} = {397EC11A-135E-4925-9666-F985AFD8DB47}
+		{19C968E7-70A5-4A3F-A57F-9E145DC7B6EF} = {397EC11A-135E-4925-9666-F985AFD8DB47}
+		{87AF0C6A-08D9-49FD-A654-35DB02D1761E} = {397EC11A-135E-4925-9666-F985AFD8DB47}
+		{1E62B308-42E8-4935-8E07-78068E1FA854} = {723CC09B-C94E-4853-912B-5501EC7A9816}
+	EndGlobalSection
+EndGlobal

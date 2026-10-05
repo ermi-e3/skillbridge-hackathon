@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\SkillBridge.Domain\SkillBridge.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- DbSet<T> and async LINQ (ToListAsync, AnyAsync) for services. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+  </ItemGroup>
+</Project>
