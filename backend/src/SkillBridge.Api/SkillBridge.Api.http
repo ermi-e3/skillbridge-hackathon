@@ -1,4 +1,30 @@
 @api = http://localhost:5080/api
+@candidateToken = paste-access-token-here
 
 ### API and database reachable?
 GET {{api}}/health
+
+### Sign in as a Candidate and copy accessToken into candidateToken above.
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@hackathon.local",
+  "password": "User123!"
+}
+
+### Read the signed-in Candidate's profile.
+GET {{api}}/candidates/me/profile
+Authorization: Bearer {{candidateToken}}
+
+### Update the signed-in Candidate's profile and selected skills.
+PUT {{api}}/candidates/me/profile
+Authorization: Bearer {{candidateToken}}
+Content-Type: application/json
+
+{
+  "headline": "Backend developer",
+  "bio": "I build APIs using C# and PostgreSQL.",
+  "gitHubUrl": "https://github.com/example",
+  "skillIds": [1, 3, 5]
+}

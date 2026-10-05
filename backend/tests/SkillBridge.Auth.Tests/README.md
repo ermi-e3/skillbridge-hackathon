@@ -1,4 +1,4 @@
-These tests run the real API with ASP.NET Core Identity, JWT bearer middleware, and PostgreSQL. They apply migrations to the supplied database, seed the demo accounts, and create uniquely named test accounts. They do not delete or reset any database.
+These authentication and candidate profile tests run the real API with ASP.NET Core Identity, JWT bearer middleware, and PostgreSQL. They apply migrations to the supplied database, seed the demo accounts, and create uniquely named test accounts. They do not delete or reset any database.
 
 Use a dedicated PostgreSQL database whose name ends in `_tests` or `_test` and run from `backend` in PowerShell. The fixture refuses the application database `skillbridge`, explicitly replaces its database registration, and verifies the resolved host targets the supplied test database.
 
