@@ -83,4 +83,37 @@ describe('ApplicationsService', () => {
     expect(req.request.body).toEqual({});
     req.flush(withdrawnResponse);
   });
+
+  it('should send GET /api/jobs/{jobId}/applications with query parameters', () => {
+    const mockApplicantsResponse = {
+      job: { id: 12, title: 'Junior Backend Developer', isOpen: true, requiredSkills: [] },
+      applicants: [],
+    };
+
+    service.getJobApplicants(12, 'Received', true).subscribe((res) => {
+      expect(res).toEqual(mockApplicantsResponse);
+    });
+
+    const req = httpTesting.expectOne(
+      (r) =>
+        r.url === `${environment.apiUrl}/jobs/12/applications` &&
+        r.params.get('status') === 'Received' &&
+        r.params.get('fullMatchOnly') === 'true'
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush(mockApplicantsResponse);
+  });
+
+  it('should send PATCH /api/applications/{id}/status when changing status', () => {
+    const shortlistedResponse: ApplicationDto = { ...mockApplication, status: 'Shortlisted' };
+
+    service.changeStatus(31, 'Shortlisted').subscribe((res) => {
+      expect(res.status).toBe('Shortlisted');
+    });
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/applications/31/status`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ status: 'Shortlisted' });
+    req.flush(shortlistedResponse);
+  });
 });

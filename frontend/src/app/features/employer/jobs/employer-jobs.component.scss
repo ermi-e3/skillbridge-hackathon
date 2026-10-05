@@ -58,6 +58,52 @@
   }
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  flex-shrink: 0;
+}
+
+.signout-button {
+  display: inline-flex;
+  min-height: 2.875rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.75rem 1.15rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.65rem;
+  background: #ffffff;
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms ease;
+
+  svg {
+    width: 1.05rem;
+    height: 1.05rem;
+    color: #64748b;
+    transition: color 150ms ease;
+  }
+
+  &:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #0f172a;
+    transform: translateY(-1px);
+
+    svg {
+      color: #ef4444;
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
 .primary-action {
   display: inline-flex;
   min-height: 2.875rem;

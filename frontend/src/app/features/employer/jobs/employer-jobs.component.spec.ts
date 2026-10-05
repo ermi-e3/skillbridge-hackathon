@@ -2,12 +2,14 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { EmployerJobDto } from '../../../core/models/job.models';
+import { AuthService } from '../../../core/services/auth.service';
 import { JobsService } from '../../../core/services/jobs.service';
 import { EmployerJobsComponent } from './employer-jobs.component';
 
 describe('EmployerJobsComponent', () => {
   let fixture: ComponentFixture<EmployerJobsComponent>;
   let jobsServiceSpy: { getEmployerJobs: ReturnType<typeof vi.fn> };
+  let authServiceSpy: { logout: ReturnType<typeof vi.fn> };
 
   const mockJobs: EmployerJobDto[] = [
     {
@@ -34,12 +36,16 @@ describe('EmployerJobsComponent', () => {
     jobsServiceSpy = {
       getEmployerJobs: vi.fn().mockReturnValue(of(mockJobs)),
     };
+    authServiceSpy = {
+      logout: vi.fn(),
+    };
 
     await TestBed.configureTestingModule({
       imports: [EmployerJobsComponent],
       providers: [
         provideRouter([]),
         { provide: JobsService, useValue: jobsServiceSpy },
+        { provide: AuthService, useValue: authServiceSpy },
       ],
     }).compileComponents();
 
@@ -77,5 +83,15 @@ describe('EmployerJobsComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('We couldn’t load your jobs');
     expect(fixture.nativeElement.querySelector('.retry-button')).toBeTruthy();
+  });
+
+  it('signs out when clicking the sign out button', () => {
+    fixture.detectChanges();
+
+    const signoutBtn = fixture.nativeElement.querySelector('.signout-button');
+    expect(signoutBtn).toBeTruthy();
+    signoutBtn.click();
+
+    expect(authServiceSpy.logout).toHaveBeenCalledOnce();
   });
 });

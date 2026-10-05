@@ -1,8 +1,13 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ApplicationDto, ApplyRequest } from '../models/application.models';
+import {
+  ApplicationDto,
+  ApplyRequest,
+  ChangeStatusRequest,
+  JobApplicantsResponse,
+} from '../models/application.models';
 
 @Injectable({
   providedIn: 'root',
@@ -41,5 +46,35 @@ export class ApplicationsService {
    */
   withdraw(id: number): Observable<ApplicationDto> {
     return this.http.patch<ApplicationDto>(`${this.baseUrl}/applications/${id}/withdraw`, {});
+  }
+
+  /**
+   * Get applicants for a specific employer job with optional status and full match filters
+   * GET /api/jobs/{jobId}/applications
+   */
+  getJobApplicants(
+    jobId: number,
+    status?: string,
+    fullMatchOnly = false
+  ): Observable<JobApplicantsResponse> {
+    let params = new HttpParams();
+    if (status && status !== 'All') {
+      params = params.set('status', status);
+    }
+    if (fullMatchOnly) {
+      params = params.set('fullMatchOnly', 'true');
+    }
+    return this.http.get<JobApplicantsResponse>(`${this.baseUrl}/jobs/${jobId}/applications`, {
+      params,
+    });
+  }
+
+  /**
+   * Update application status (Shortlisted or Rejected) by the employer
+   * PATCH /api/applications/{id}/status
+   */
+  changeStatus(id: number, status: 'Shortlisted' | 'Rejected'): Observable<ApplicationDto> {
+    const payload: ChangeStatusRequest = { status };
+    return this.http.patch<ApplicationDto>(`${this.baseUrl}/applications/${id}/status`, payload);
   }
 }

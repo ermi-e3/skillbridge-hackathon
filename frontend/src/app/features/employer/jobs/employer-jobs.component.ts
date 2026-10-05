@@ -2,6 +2,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { EmployerJobDto } from '../../../core/models/job.models';
+import { AuthService } from '../../../core/services/auth.service';
 import { JobsService } from '../../../core/services/jobs.service';
 import { extractErrorMessage } from '../../../core/utils/error-formatter';
 
@@ -14,6 +15,7 @@ import { extractErrorMessage } from '../../../core/utils/error-formatter';
 })
 export class EmployerJobsComponent implements OnInit {
   private readonly jobsService = inject(JobsService);
+  private readonly authService = inject(AuthService);
 
   readonly jobs = signal<EmployerJobDto[]>([]);
   readonly isLoading = signal(true);
@@ -21,6 +23,10 @@ export class EmployerJobsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadJobs();
+  }
+
+  signOut(): void {
+    this.authService.logout();
   }
 
   loadJobs(): void {
