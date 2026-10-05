@@ -19,15 +19,23 @@ export const routes: Routes = [
   },
   {
     path: 'jobs',
-    canActivate: [authGuard, roleGuard('Candidate')],
+    //canActivate: [authGuard, roleGuard('Candidate')],
     loadComponent: () =>
-      import('./features/placeholder/destination-placeholder.component').then(
-        (m) => m.CandidateHomePlaceholderComponent
+      import('./features/candidate/jobs/job-list/job-list.component').then(
+        (m) => m.JobListComponent
+      ),
+  },
+  {
+    path: 'jobs/:id',
+    //canActivate: [authGuard, roleGuard('Candidate')],
+    loadComponent: () =>
+      import('./features/candidate/jobs/job-detail/job-detail.component').then(
+        (m) => m.JobDetailComponent
       ),
   },
   {
     path: 'candidate/profile',
-    canActivate: [authGuard, roleGuard('Candidate')],
+    //canActivate: [authGuard, roleGuard('Candidate')],
     loadComponent: () =>
       import('./features/candidate/profile/candidate-profile.component').then(
         (m) => m.CandidateProfileComponent
@@ -40,7 +48,7 @@ export const routes: Routes = [
   },
   {
     path: 'employer/jobs',
-    canActivate: [authGuard, roleGuard('Employer')],
+    //canActivate: [authGuard, roleGuard('Employer')],
     loadComponent: () =>
       import('./features/placeholder/destination-placeholder.component').then(
         (m) => m.EmployerHomePlaceholderComponent
