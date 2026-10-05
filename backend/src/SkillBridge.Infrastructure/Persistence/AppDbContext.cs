@@ -16,7 +16,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Job> Jobs => Set<Job>();
     public DbSet<JobSkill> JobSkills => Set<JobSkill>();
     public DbSet<JobApplication> Applications => Set<JobApplication>();
-    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

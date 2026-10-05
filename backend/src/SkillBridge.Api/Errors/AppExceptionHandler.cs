@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Diagnostics;
+using SkillBridge.Application.Common.Exceptions;
 using SkillBridge.Domain.Common;
 
 namespace SkillBridge.Api.Errors;
@@ -10,7 +11,10 @@ public sealed class AppExceptionHandler(ILogger<AppExceptionHandler> logger) : I
     {
         if (exception is AppException app)
         {
-            await ProblemDetailsWriter.WriteAsync(context, app.Status, app.Code, app.Title, app.Message);
+            IDictionary<string, object?>? extensions = exception is RequestValidationException validation
+                ? new Dictionary<string, object?> { ["errors"] = validation.Errors }
+                : null;
+            await ProblemDetailsWriter.WriteAsync(context, app.Status, app.Code, app.Title, app.Message, extensions);
             return true;
         }
 

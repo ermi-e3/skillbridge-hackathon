@@ -9,11 +9,17 @@ public sealed class AppDbContextFactory
 {
     public AppDbContext CreateDbContext(string[] args)
     {
+        var currentDirectory = Directory.GetCurrentDirectory();
+        var apiDirectory = new[]
+        {
+            Path.Combine(currentDirectory, "src", "SkillBridge.Api"),
+            Path.Combine(currentDirectory, "backend", "src", "SkillBridge.Api"),
+            Path.Combine(currentDirectory, "..", "SkillBridge.Api")
+        }.FirstOrDefault(path => File.Exists(Path.Combine(path, "appsettings.json")))
+            ?? throw new InvalidOperationException("Run EF commands from the repository, backend, or Infrastructure directory.");
+
         var configuration = new ConfigurationBuilder()
-            .SetBasePath(
-                Path.Combine(
-                    Directory.GetCurrentDirectory(),
-                    "../SkillBridge.Api"))
+            .SetBasePath(apiDirectory)
             .AddJsonFile(
                 "appsettings.json",
                 optional: false)
