@@ -63,8 +63,8 @@ export const routes: Routes = [
     path: 'employer/jobs',
     //canActivate: [authGuard, roleGuard('Employer')],
     loadComponent: () =>
-      import('./features/placeholder/destination-placeholder.component').then(
-        (m) => m.EmployerHomePlaceholderComponent
+      import('./features/employer/jobs/employer-jobs.component').then(
+        (m) => m.EmployerJobsComponent
       ),
   },
   {
@@ -72,4 +72,3 @@ export const routes: Routes = [
     redirectTo: 'login',
   },
 ];
-
