@@ -68,6 +68,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'employer/jobs/:id/applicants',
+    //canActivate: [authGuard, roleGuard('Employer')],
+    loadComponent: () =>
+      import(
+        './features/employer/jobs/employer-job-applicants/employer-job-applicants.component'
+      ).then((m) => m.EmployerJobApplicantsComponent),
+  },
+  {
     path: 'employer/jobs',
     //canActivate: [authGuard, roleGuard('Employer')],
     loadComponent: () =>

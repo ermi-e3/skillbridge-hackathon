@@ -1,0 +1,367 @@
+<main class="applicants-page">
+  <div class="applicants-container">
+    <!-- Top Bar with Navigation & Actions -->
+    <header class="top-nav">
+      <a routerLink="/employer/jobs" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <path d="M19 12H5M12 19l-7-7 7-7"></path>
+        </svg>
+        <span>Back to My Jobs</span>
+      </a>
+
+      <div class="top-actions">
+        <button type="button" class="signout-btn" (click)="signOut()" aria-label="Sign out">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Feedback Message Banner -->
+    @if (feedbackMessage()) {
+      <div
+        class="feedback-banner"
+        [class.feedback-success]="feedbackMessage()?.type === 'success'"
+        [class.feedback-error]="feedbackMessage()?.type === 'error'"
+        role="status"
+      >
+        <div class="feedback-content">
+          @if (feedbackMessage()?.type === 'success') {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          }
+          <span>{{ feedbackMessage()?.text }}</span>
+        </div>
+        <button type="button" class="dismiss-feedback" (click)="feedbackMessage.set(null)" aria-label="Dismiss message">
+          ✕
+        </button>
+      </div>
+    }
+
+    <!-- Job Header Summary Card -->
+    @if (jobSummary()) {
+      <section class="job-header-card" aria-label="Job Overview">
+        <div class="job-header-main">
+          <div class="job-title-row">
+            <h1>{{ jobSummary()?.title }}</h1>
+            <span class="status-pill" [class.closed]="!jobSummary()?.isOpen">
+              <span class="status-dot"></span>
+              {{ jobSummary()?.isOpen ? 'Active Opening' : 'Closed' }}
+            </span>
+          </div>
+
+          <div class="job-skills-overview">
+            <span class="label">Required skills:</span>
+            <div class="skills-wrap">
+              @for (skill of jobSummary()?.requiredSkills; track skill.id) {
+                <span class="job-skill-chip">{{ skill.name }}</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-ribbon">
+          <div class="stat-box">
+            <span class="stat-number">{{ totalApplicantsCount() }}</span>
+            <span class="stat-label">Total Applicants</span>
+          </div>
+          <div class="stat-box highlight-received">
+            <span class="stat-number">{{ receivedCount() }}</span>
+            <span class="stat-label">Received</span>
+          </div>
+          <div class="stat-box highlight-shortlisted">
+            <span class="stat-number">{{ shortlistedCount() }}</span>
+            <span class="stat-label">Shortlisted</span>
+          </div>
+          <div class="stat-box highlight-rejected">
+            <span class="stat-number">{{ rejectedCount() }}</span>
+            <span class="stat-label">Rejected</span>
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- Error Banner -->
+    @if (errorMessage()) {
+      <section class="error-banner" role="alert">
+        <div class="error-copy">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <div>
+            <strong>Unable to load applicants</strong>
+            <p>{{ errorMessage() }}</p>
+          </div>
+        </div>
+        <button type="button" class="retry-button" (click)="loadApplicants()">Try again</button>
+      </section>
+    }
+
+    <!-- Filtering Bar -->
+    <div class="filters-bar" aria-label="Filter applicants">
+      <div class="filter-tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="statusFilter() === 'All'"
+          class="tab-btn"
+          [class.active]="statusFilter() === 'All'"
+          (click)="setStatusFilter('All')"
+        >
+          All Applicants
+        </button>
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="statusFilter() === 'Received'"
+          class="tab-btn"
+          [class.active]="statusFilter() === 'Received'"
+          (click)="setStatusFilter('Received')"
+        >
+          Received
+        </button>
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="statusFilter() === 'Shortlisted'"
+          class="tab-btn"
+          [class.active]="statusFilter() === 'Shortlisted'"
+          (click)="setStatusFilter('Shortlisted')"
+        >
+          Shortlisted
+        </button>
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="statusFilter() === 'Rejected'"
+          class="tab-btn"
+          [class.active]="statusFilter() === 'Rejected'"
+          (click)="setStatusFilter('Rejected')"
+        >
+          Rejected
+        </button>
+      </div>
+
+      <div class="filter-toggles">
+        <button
+          type="button"
+          class="toggle-btn"
+          [class.active]="fullMatchOnly()"
+          (click)="toggleFullMatch()"
+          [attr.aria-pressed]="fullMatchOnly()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>100% Match Only</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading Skeleton -->
+    @if (isLoading()) {
+      <div class="applicants-grid skeleton-container" aria-label="Loading applicants" aria-busy="true">
+        @for (item of [1, 2, 3]; track item) {
+          <article class="applicant-card skeleton-card">
+            <div class="skeleton-header">
+              <div class="skeleton skeleton-avatar"></div>
+              <div class="skeleton-title-box">
+                <div class="skeleton skeleton-name"></div>
+                <div class="skeleton skeleton-meta"></div>
+              </div>
+            </div>
+            <div class="skeleton skeleton-skills"></div>
+            <div class="skeleton skeleton-actions"></div>
+          </article>
+        }
+      </div>
+    } @else if (!errorMessage() && applicants().length === 0) {
+      <!-- Empty State -->
+      <section class="empty-state">
+        <div class="empty-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+        <h2>No applicants found</h2>
+        @if (statusFilter() !== 'All' || fullMatchOnly()) {
+          <p>No candidates match the current filter criteria. Try resetting your filters to view all applicants.</p>
+          <button type="button" class="reset-filter-btn" (click)="statusFilter.set('All'); fullMatchOnly.set(false); loadApplicants()">
+            Clear Filters
+          </button>
+        } @else {
+          <p>Candidates who apply for this job will show up here, ranked by how well their skills match your requirements.</p>
+        }
+      </section>
+    } @else if (!errorMessage()) {
+      <!-- Applicants List -->
+      <section class="applicants-list" aria-label="Applicants for this job">
+        @for (applicant of applicants(); track applicant.applicationId) {
+          <article class="applicant-card">
+            <!-- Card Header: Candidate Info & Badges -->
+            <div class="applicant-header">
+              <div class="candidate-primary">
+                <div class="avatar-circle">
+                  {{ applicant.candidate.fullName.charAt(0).toUpperCase() }}
+                </div>
+                <div class="candidate-details">
+                  <h2 class="candidate-name">{{ applicant.candidate.fullName }}</h2>
+                  @if (applicant.candidate.headline) {
+                    <p class="candidate-headline">{{ applicant.candidate.headline }}</p>
+                  }
+                  <div class="candidate-contact-links">
+                    <a class="contact-link" [href]="'mailto:' + applicant.candidate.email">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                      </svg>
+                      <span>{{ applicant.candidate.email }}</span>
+                    </a>
+
+                    @if (applicant.candidate.gitHubUrl) {
+                      <a class="contact-link" [href]="applicant.candidate.gitHubUrl" target="_blank" rel="noopener noreferrer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                        </svg>
+                        <span>GitHub Profile</span>
+                      </a>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <!-- Match & Status Badges -->
+              <div class="applicant-badges">
+                <span class="match-pill" [ngClass]="getMatchBadgeClass(applicant.match.percent)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                  <strong>{{ applicant.match.percent }}% Match</strong>
+                </span>
+
+                <span class="status-badge" [ngClass]="getStatusBadgeClass(applicant.status)">
+                  <span class="badge-dot"></span>
+                  {{ applicant.status }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Skills Breakdown Section -->
+            <div class="skills-breakdown">
+              @if (applicant.match.matchedSkills.length > 0) {
+                <div class="skill-group matched-group">
+                  <span class="group-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Matched skills ({{ applicant.match.matchedSkills.length }}):
+                  </span>
+                  <div class="chips-row">
+                    @for (skill of applicant.match.matchedSkills; track skill.id) {
+                      <span class="skill-chip matched">{{ skill.name }}</span>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (applicant.match.missingSkills.length > 0) {
+                <div class="skill-group missing-group">
+                  <span class="group-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    Missing required skills ({{ applicant.match.missingSkills.length }}):
+                  </span>
+                  <div class="chips-row">
+                    @for (skill of applicant.match.missingSkills; track skill.id) {
+                      <span class="skill-chip missing">{{ skill.name }}</span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Cover Note (if provided) -->
+            @if (applicant.coverNote) {
+              <div class="cover-note-box">
+                <span class="note-label">Cover Note:</span>
+                <p class="note-text">"{{ applicant.coverNote }}"</p>
+              </div>
+            }
+
+            <!-- Card Footer: Timeline & Decision Actions -->
+            <div class="applicant-footer">
+              <div class="timeline-info">
+                <span>Applied {{ applicant.appliedAt | date: 'MMM d, y, h:mm a' }}</span>
+                @if (applicant.statusChangedAt) {
+                  <span class="updated-time">• Status updated {{ applicant.statusChangedAt | date: 'MMM d, y' }}</span>
+                }
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="action-buttons">
+                @if (applicant.status === 'Received') {
+                  <button
+                    type="button"
+                    class="action-btn shortlist-btn"
+                    [disabled]="updatingApplicationId() === applicant.applicationId"
+                    (click)="updateStatus(applicant, 'Shortlisted')"
+                    aria-label="Shortlist applicant"
+                  >
+                    @if (updatingApplicationId() === applicant.applicationId) {
+                      <span class="spinner" aria-hidden="true"></span>
+                      <span>Updating...</span>
+                    } @else {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Shortlist</span>
+                    }
+                  </button>
+
+                  <button
+                    type="button"
+                    class="action-btn reject-btn"
+                    [disabled]="updatingApplicationId() === applicant.applicationId"
+                    (click)="updateStatus(applicant, 'Rejected')"
+                    aria-label="Reject applicant"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    <span>Reject</span>
+                  </button>
+                } @else {
+                  <span class="decision-label">
+                    Decision: <strong>{{ applicant.status }}</strong>
+                  </span>
+                }
+              </div>
+            </div>
+          </article>
+        }
+      </section>
+    }
+  </div>
+</main>
