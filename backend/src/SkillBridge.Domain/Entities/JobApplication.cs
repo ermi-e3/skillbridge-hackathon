@@ -27,7 +27,43 @@ public class JobApplication
     public Job Job { get; private set; } = null!;
     //public AppUser Candidate { get; private set; } = null!;
 
+    public JobApplication(int jobId, string candidateId, string? coverNote, DateTime appliedAt)
+    {
+        JobId = jobId;
+        CandidateId = candidateId;
+        CoverNote = string.IsNullOrWhiteSpace(coverNote) ? null : coverNote.Trim();
+        Status = ApplicationStatus.Received;
+        AppliedAt = appliedAt;
+    }
+
     public bool BelongsToCandidate(string userId) => CandidateId == userId;
 
-    
+    public void ChangeStatus(ApplicationStatus newStatus, DateTime changedAt)
+    {
+        if (newStatus is not (ApplicationStatus.Shortlisted or ApplicationStatus.Rejected))
+        {
+            throw new BusinessRuleException("applications.invalid_status", "Invalid status", "Status must be Shortlisted or Rejected.");
+        }
+
+        if (Status != ApplicationStatus.Received)
+        {
+            throw new BusinessRuleException("applications.invalid_transition", "Invalid transition",
+                $"Cannot change status from {Status} to {newStatus}.");
+        }
+
+        Status = newStatus;
+        StatusChangedAt = changedAt;
+    }
+
+    public void Withdraw(DateTime withdrawnAt)
+    {
+        if (Status != ApplicationStatus.Received)
+        {
+            throw new BusinessRuleException("applications.cannot_withdraw", "Cannot withdraw",
+                "Only applications still in Received can be withdrawn.");
+        }
+
+        Status = ApplicationStatus.Withdrawn;
+        StatusChangedAt = withdrawnAt;
+    }
 }

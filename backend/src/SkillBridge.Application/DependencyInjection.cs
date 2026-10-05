@@ -13,6 +13,8 @@ public static class DependencyInjection
         services.AddScoped<AuthService>();
         services.AddScoped<ICandidateProfileService, CandidateProfileService>();
         services.AddScoped<ISkillCatalogService, SkillCatalogService>();
+        services.AddScoped<Jobs.JobsService>();
+        services.AddScoped<Applications.ApplicationsService>();
         services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
         return services;
     }

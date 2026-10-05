@@ -39,7 +39,7 @@ public class CandidateProfile
         UpdatedAt = nowUtc;
     }
 
-    private void ReplaceSkills(IEnumerable<int> skillIds)
+    public void ReplaceSkills(IEnumerable<int> skillIds)
     {
         var wanted = skillIds.ToHashSet();
         if (wanted.Count is < 1 or > MaxSkills || wanted.Any(id => id <= 0))

@@ -1,0 +1,336 @@
+<main class="post-job-page">
+  <div class="post-job-container">
+    <!-- Breadcrumb / Back Link -->
+    <nav class="back-nav" aria-label="Breadcrumb">
+      <a routerLink="/employer/jobs" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M19 12H5M12 19l-7-7 7-7"></path>
+        </svg>
+        <span>Back to My Jobs</span>
+      </a>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+      <div class="header-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <rect x="3" y="7" width="18" height="14" rx="2"></rect>
+          <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2"></path>
+        </svg>
+        Employer workspace
+      </div>
+      <h1 class="page-title">Post a New Job Opening</h1>
+      <p class="page-subtitle">
+        Define role requirements and target skills to connect with high-matching qualified candidates.
+      </p>
+    </header>
+
+    <!-- Error Alert Banner -->
+    @if (errorMessage()) {
+      <div class="alert alert-error" role="alert">
+        <div class="alert-content">
+          <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <div class="alert-body">
+            <span class="alert-title">Publication Error</span>
+            <p class="alert-text">{{ errorMessage() }}</p>
+          </div>
+        </div>
+        <button type="button" class="alert-close" aria-label="Dismiss error" (click)="dismissAlert()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    }
+
+    <!-- Post Job Form -->
+    <form [formGroup]="jobForm" (ngSubmit)="onSubmit()" class="job-form" novalidate>
+      <!-- Section 1: Role Overview -->
+      <section class="form-card">
+        <div class="card-header">
+          <div class="header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </div>
+          <div>
+            <h2 class="card-title">Job Details</h2>
+            <p class="card-desc">Provide core details about this role to help candidates understand the opportunity.</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <!-- Job Title -->
+          <div class="form-group full-width">
+            <div class="label-row">
+              <label for="title" class="form-label required">Job Title</label>
+              <span class="char-count" [class.near-limit]="titleLength > 100">
+                {{ titleLength }}/120
+              </span>
+            </div>
+            <input
+              id="title"
+              type="text"
+              class="form-input"
+              [class.input-invalid]="titleControl?.invalid && (titleControl?.touched || titleControl?.dirty)"
+              formControlName="title"
+              placeholder="e.g. Senior Full-Stack .NET & Angular Engineer"
+              maxlength="120"
+              autocomplete="off"
+            />
+            @if (titleControl?.invalid && (titleControl?.touched || titleControl?.dirty)) {
+              <div class="inline-error" role="alert">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                @if (titleControl?.errors?.['required']) {
+                  <span>Job title is required.</span>
+                } @else if (titleControl?.errors?.['minlength']) {
+                  <span>Job title must be at least 3 characters.</span>
+                } @else if (titleControl?.errors?.['maxlength']) {
+                  <span>Job title cannot exceed 120 characters.</span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Location -->
+          <div class="form-group full-width">
+            <div class="label-row">
+              <label for="location" class="form-label">Location (Optional)</label>
+              <span class="char-count" [class.near-limit]="locationLength > 85">
+                {{ locationLength }}/100
+              </span>
+            </div>
+            <div class="input-with-icon">
+              <svg class="leading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path>
+                <circle cx="12" cy="10" r="2.5"></circle>
+              </svg>
+              <input
+                id="location"
+                type="text"
+                class="form-input with-icon"
+                [class.input-invalid]="locationControl?.invalid && (locationControl?.touched || locationControl?.dirty)"
+                formControlName="location"
+                placeholder="e.g. Addis Ababa, Remote, or Hybrid"
+                maxlength="100"
+              />
+            </div>
+            @if (locationControl?.invalid && (locationControl?.touched || locationControl?.dirty)) {
+              <div class="inline-error" role="alert">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span>Location cannot exceed 100 characters.</span>
+              </div>
+            }
+          </div>
+
+          <!-- Description -->
+          <div class="form-group full-width">
+            <div class="label-row">
+              <label for="description" class="form-label required">Job Description</label>
+              <span class="char-count" [class.near-limit]="descriptionLength > 3600">
+                {{ descriptionLength }}/4000
+              </span>
+            </div>
+            <textarea
+              id="description"
+              class="form-textarea"
+              [class.input-invalid]="descriptionControl?.invalid && (descriptionControl?.touched || descriptionControl?.dirty)"
+              formControlName="description"
+              rows="6"
+              maxlength="4000"
+              placeholder="Describe the responsibilities, project scope, team environment, and expectations for this role..."
+            ></textarea>
+            @if (descriptionControl?.invalid && (descriptionControl?.touched || descriptionControl?.dirty)) {
+              <div class="inline-error" role="alert">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                @if (descriptionControl?.errors?.['required']) {
+                  <span>Job description is required.</span>
+                } @else if (descriptionControl?.errors?.['minlength']) {
+                  <span>Job description must be at least 20 characters (currently {{ descriptionLength }}).</span>
+                } @else if (descriptionControl?.errors?.['maxlength']) {
+                  <span>Job description cannot exceed 4000 characters.</span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Required Skills Selection -->
+      <section class="form-card">
+        <div class="card-header">
+          <div class="header-icon teal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </div>
+          <div class="header-text-with-badge">
+            <div>
+              <h2 class="card-title required">Required Skills</h2>
+              <p class="card-desc">
+                Select the key competencies for this position. Candidates will be ranked based on skill match.
+              </p>
+            </div>
+            <div class="selection-badge" [class.badge-valid]="selectedSkillIds().length >= 1 && selectedSkillIds().length <= 15">
+              <span>{{ selectedSkillIds().length }}</span> / 15 selected
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Skills Ribbon -->
+        @if (selectedSkills().length > 0) {
+          <div class="selected-ribbon">
+            <span class="ribbon-label">Currently selected:</span>
+            <div class="selected-chips-list">
+              @for (skill of selectedSkills(); track skill.id) {
+                <span class="selected-chip">
+                  {{ skill.name }}
+                  <button
+                    type="button"
+                    class="chip-remove-btn"
+                    [attr.aria-label]="'Remove skill ' + skill.name"
+                    (click)="removeSkill(skill.id)"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </span>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Skill Filter / Search Box -->
+        <div class="skills-search-wrapper">
+          <div class="search-input-box">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="text"
+              class="skills-search-input"
+              placeholder="Search skills catalog (e.g. C#, Angular, PostgreSQL)..."
+              [value]="skillSearchQuery()"
+              (input)="onSearchChange($event)"
+              aria-label="Filter available skills"
+            />
+            @if (skillSearchQuery()) {
+              <button
+                type="button"
+                class="search-clear-btn"
+                (click)="clearSearch()"
+                aria-label="Clear skill search"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Skills Chips Container -->
+        @if (isLoadingSkills()) {
+          <div class="skills-loading" aria-live="polite">
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Loading skills catalog...</span>
+          </div>
+        } @else {
+          <div class="skills-chip-grid" role="group" aria-label="Available skill tags">
+            @for (skill of filteredSkills(); track skill.id) {
+              <button
+                type="button"
+                class="skill-chip"
+                [class.chip-active]="isSkillSelected(skill.id)"
+                [attr.aria-pressed]="isSkillSelected(skill.id)"
+                (click)="toggleSkill(skill.id)"
+              >
+                <span class="chip-check" aria-hidden="true">
+                  @if (isSkillSelected(skill.id)) {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  } @else {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  }
+                </span>
+                <span class="chip-text">{{ skill.name }}</span>
+              </button>
+            } @empty {
+              <div class="skills-empty">
+                <p>No skills match "{{ skillSearchQuery() }}".</p>
+                <button type="button" class="btn-text-clear" (click)="clearSearch()">Show all skills</button>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Skills Validation Error -->
+        @if (requiredSkillIdsControl?.invalid && (requiredSkillIdsControl?.touched || requiredSkillIdsControl?.dirty)) {
+          <div class="inline-error skills-error" role="alert">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            @if (requiredSkillIdsControl?.errors?.['minSkills']) {
+              <span>Select at least 1 required skill so candidates can be matched to this job.</span>
+            } @else if (requiredSkillIdsControl?.errors?.['maxSkills']) {
+              <span>You can select a maximum of 15 skills for a single opening.</span>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Form Actions Footer -->
+      <footer class="form-actions">
+        <a routerLink="/employer/jobs" class="btn-secondary">
+          Cancel
+        </a>
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="jobForm.invalid || isSubmitting()"
+        >
+          @if (isSubmitting()) {
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Publishing Job...</span>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <path d="M12 5v14M5 12h14"></path>
+            </svg>
+            <span>Publish Job Opening</span>
+          }
+        </button>
+      </footer>
+    </form>
+  </div>
+</main>

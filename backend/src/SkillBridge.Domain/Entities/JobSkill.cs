@@ -5,7 +5,7 @@ public class JobSkill
 {
     private JobSkill() { } // EF
 
-    internal JobSkill(Job job, int skillId)
+    public JobSkill(Job job, int skillId)
     {
         Job = job;
         SkillId = skillId;

@@ -13,8 +13,25 @@ public class Job
 
     private Job() { } // EF
 
-    
+    public Job(string employerId, string title, string description, string? location, IEnumerable<int> requiredSkillIds, DateTime createdAt)
+    {
+        EmployerId = employerId;
+        Title = title.Trim();
+        Description = description.Trim();
+        Location = string.IsNullOrWhiteSpace(location) ? null : location.Trim();
+        IsOpen = true;
+        CreatedAt = createdAt;
 
+        var skillIdSet = requiredSkillIds.Distinct().ToList();
+        if (skillIdSet.Count is < MinSkills or > MaxSkills)
+            throw new BusinessRuleException("validation", "Invalid skills",
+                $"Job must require between {MinSkills} and {MaxSkills} skills.");
+
+        foreach (var skillId in skillIdSet)
+        {
+            _requiredSkills.Add(new JobSkill(this, skillId));
+        }
+    }
     public int Id { get; private set; }
     public string EmployerId { get; private set; } = null!;
     public string Title { get; private set; } = null!;
