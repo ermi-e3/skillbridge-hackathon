@@ -26,6 +26,19 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'candidate/profile',
+    canActivate: [authGuard, roleGuard('Candidate')],
+    loadComponent: () =>
+      import('./features/candidate/profile/candidate-profile.component').then(
+        (m) => m.CandidateProfileComponent
+      ),
+  },
+  {
+    path: 'profile',
+    redirectTo: 'candidate/profile',
+    pathMatch: 'full',
+  },
+  {
     path: 'employer/jobs',
     canActivate: [authGuard, roleGuard('Employer')],
     loadComponent: () =>

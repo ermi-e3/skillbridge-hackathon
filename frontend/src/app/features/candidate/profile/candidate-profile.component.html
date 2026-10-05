@@ -1,0 +1,380 @@
+<div class="profile-page">
+  <!-- Toast Notification (Green Success Toast) -->
+  @if (successToast()) {
+    <div class="toast-container" role="status" aria-live="polite">
+      <div class="success-toast">
+        <div class="toast-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <div class="toast-content">
+          <span class="toast-title">Success</span>
+          <span class="toast-message">{{ successToast() }}</span>
+        </div>
+        <button
+          type="button"
+          class="toast-close-btn"
+          aria-label="Dismiss notification"
+          (click)="dismissToast()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  }
+
+  <div class="profile-container">
+    <!-- Top Header & Navigation -->
+    <header class="page-header">
+      <div class="header-left">
+        <a routerLink="/jobs" class="back-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Back to Jobs</span>
+        </a>
+        <h1 class="page-title">Candidate Profile</h1>
+        <p class="page-subtitle">Curate your professional headline and technical skills to match with Ethiopian tech employers</p>
+      </div>
+
+      @if (candidateUser(); as user) {
+        <div class="candidate-pill">
+          <div class="candidate-avatar">
+            {{ user.fullName ? user.fullName[0].toUpperCase() : 'C' }}
+          </div>
+          <div class="candidate-meta">
+            <span class="candidate-name">{{ user.fullName }}</span>
+            <span class="candidate-email">{{ user.email }}</span>
+          </div>
+        </div>
+      }
+    </header>
+
+    <!-- Error Alert Banner -->
+    @if (errorMessage()) {
+      <div class="alert-banner" role="alert" aria-live="assertive">
+        <div class="alert-content">
+          <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span class="alert-text">{{ errorMessage() }}</span>
+        </div>
+        <button
+          type="button"
+          class="alert-close-btn"
+          aria-label="Dismiss error"
+          (click)="dismissAlert()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    }
+
+    <!-- Loading Skeleton -->
+    @if (isLoading()) {
+      <div class="loading-state" aria-busy="true" aria-label="Loading profile details">
+        <div class="skeleton-card">
+          <div class="skeleton-line title-skel"></div>
+          <div class="skeleton-line input-skel"></div>
+          <div class="skeleton-line input-skel"></div>
+          <div class="skeleton-chips">
+            <div class="skeleton-chip"></div>
+            <div class="skeleton-chip"></div>
+            <div class="skeleton-chip"></div>
+            <div class="skeleton-chip"></div>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <!-- Profile Reactive Form -->
+      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" novalidate class="profile-form">
+        <!-- Card 1: Core Professional Information -->
+        <section class="card section-card">
+          <div class="card-header">
+            <div class="card-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <div>
+              <h2 class="card-title">Professional Information</h2>
+              <p class="card-desc">Information displayed directly on your applications and match cards.</p>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <!-- Headline Field (Required, 3 - 120 chars) -->
+            <div class="form-group">
+              <div class="label-row">
+                <label for="headline" class="form-label">
+                  Professional Headline <span class="required-star">*</span>
+                </label>
+                <span class="char-count" [class.warn]="headlineControl?.value?.length > 110">
+                  {{ headlineControl?.value?.length || 0 }} / 120
+                </span>
+              </div>
+              <div
+                class="input-wrapper"
+                [class.has-error]="headlineControl?.invalid && (headlineControl?.touched || headlineControl?.dirty)"
+              >
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                <input
+                  id="headline"
+                  type="text"
+                  formControlName="headline"
+                  placeholder="e.g. Junior .NET Developer | ASP.NET Core & PostgreSQL"
+                  class="form-input"
+                  [attr.aria-invalid]="headlineControl?.invalid && headlineControl?.touched"
+                  aria-describedby="headline-error"
+                />
+              </div>
+
+              @if (headlineControl?.invalid && (headlineControl?.touched || headlineControl?.dirty)) {
+                <div id="headline-error" class="inline-error" role="alert">
+                  <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="12" r="10"></circle>
+                  </svg>
+                  @if (headlineControl?.errors?.['required']) {
+                    <span>Headline is required.</span>
+                  } @else if (headlineControl?.errors?.['minlength']) {
+                    <span>Headline must be at least 3 characters.</span>
+                  } @else if (headlineControl?.errors?.['maxlength']) {
+                    <span>Headline cannot exceed 120 characters.</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- GitHub URL Field (Optional, URL format) -->
+            <div class="form-group">
+              <label for="gitHubUrl" class="form-label">
+                GitHub Profile URL <span class="optional-badge">Optional</span>
+              </label>
+              <div
+                class="input-wrapper"
+                [class.has-error]="gitHubUrlControl?.invalid && (gitHubUrlControl?.touched || gitHubUrlControl?.dirty)"
+              >
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                </svg>
+                <input
+                  id="gitHubUrl"
+                  type="url"
+                  formControlName="gitHubUrl"
+                  placeholder="https://github.com/your-username"
+                  class="form-input"
+                  [attr.aria-invalid]="gitHubUrlControl?.invalid && gitHubUrlControl?.touched"
+                  aria-describedby="github-error"
+                />
+              </div>
+
+              @if (gitHubUrlControl?.invalid && (gitHubUrlControl?.touched || gitHubUrlControl?.dirty)) {
+                <div id="github-error" class="inline-error" role="alert">
+                  <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="12" r="10"></circle>
+                  </svg>
+                  @if (gitHubUrlControl?.errors?.['invalidUrl']) {
+                    <span>Please enter a valid URL (starting with http:// or https://).</span>
+                  } @else if (gitHubUrlControl?.errors?.['maxlength']) {
+                    <span>URL cannot exceed 300 characters.</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Bio Field (Optional Textarea, max 2000 chars) -->
+            <div class="form-group">
+              <div class="label-row">
+                <label for="bio" class="form-label">
+                  Bio / Summary <span class="optional-badge">Optional</span>
+                </label>
+                <span class="char-count" [class.warn]="bioLength > 1900">
+                  {{ bioLength }} / 2000
+                </span>
+              </div>
+              <div class="textarea-wrapper" [class.has-error]="bioControl?.invalid && (bioControl?.touched || bioControl?.dirty)">
+                <textarea
+                  id="bio"
+                  formControlName="bio"
+                  rows="4"
+                  placeholder="Share a brief overview of your background, experience, key projects, and career aspirations..."
+                  class="form-textarea"
+                  [attr.aria-invalid]="bioControl?.invalid && bioControl?.touched"
+                  aria-describedby="bio-error"
+                ></textarea>
+              </div>
+
+              @if (bioControl?.invalid && (bioControl?.touched || bioControl?.dirty)) {
+                <div id="bio-error" class="inline-error" role="alert">
+                  <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="12" r="10"></circle>
+                  </svg>
+                  <span>Bio cannot exceed 2000 characters.</span>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- Card 2: Multi-select Skill Picker (1 to 30 skills) -->
+        <section class="card section-card">
+          <div class="card-header skills-header-row">
+            <div class="header-title-group">
+              <div class="card-icon-box skill-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                </svg>
+              </div>
+              <div>
+                <h2 class="card-title">Technical Skills Catalog</h2>
+                <p class="card-desc">
+                  Select between <strong>1 and 30 skills</strong>. The server uses these exact tags to compute your match score against job openings.
+                </p>
+              </div>
+            </div>
+
+            <!-- Skills Counter Pill -->
+            <div
+              class="skills-counter-pill"
+              [class.counter-valid]="selectedSkillIds().length >= 1 && selectedSkillIds().length <= 30"
+              [class.counter-empty]="selectedSkillIds().length === 0"
+              [class.counter-overflow]="selectedSkillIds().length > 30"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="counter-icon">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>Selected: <strong>{{ selectedSkillIds().length }}</strong> / 30</span>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <!-- Search & Filter Bar -->
+            <div class="skills-search-bar">
+              <div class="search-input-wrapper">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input
+                  type="text"
+                  [value]="skillSearchQuery()"
+                  (input)="onSearchChange($event)"
+                  placeholder="Filter skills (e.g. C#, ASP.NET, Angular, Docker)..."
+                  class="search-input"
+                />
+                @if (skillSearchQuery()) {
+                  <button type="button" class="clear-search-btn" (click)="clearSearch()" aria-label="Clear filter">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Validation Feedback for Skills -->
+            @if (skillIdsControl?.invalid && (skillIdsControl?.touched || skillIdsControl?.dirty)) {
+              <div class="inline-error skills-error-banner" role="alert">
+                <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+                @if (skillIdsControl?.errors?.['minSkills']) {
+                  <span>Please select at least 1 technical skill to qualify for job matching.</span>
+                } @else if (skillIdsControl?.errors?.['maxSkills']) {
+                  <span>You can select a maximum of 30 skills.</span>
+                }
+              </div>
+            }
+
+            <!-- Clickable Chips Grid -->
+            <div class="chips-container" role="group" aria-label="Available technical skills">
+              @for (skill of filteredSkills(); track skill.id) {
+                <button
+                  type="button"
+                  class="skill-chip"
+                  [class.selected]="isSkillSelected(skill.id)"
+                  (click)="toggleSkill(skill.id)"
+                  [attr.aria-pressed]="isSkillSelected(skill.id)"
+                >
+                  @if (isSkillSelected(skill.id)) {
+                    <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  } @else {
+                    <svg class="chip-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  }
+                  <span class="chip-label">{{ skill.name }}</span>
+                </button>
+              }
+
+              @if (filteredSkills().length === 0) {
+                <div class="empty-skills-search">
+                  <p>No skills match "{{ skillSearchQuery() }}".</p>
+                  <button type="button" class="reset-filter-btn" (click)="clearSearch()">Clear filter</button>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- Sticky Action Bar -->
+        <div class="form-actions-bar">
+          <div class="actions-left">
+            <span class="status-summary">
+              @if (profileForm.dirty) {
+                <span class="unsaved-badge">• Unsaved changes</span>
+              } @else {
+                <span class="synced-badge">✓ Profile in sync</span>
+              }
+            </span>
+          </div>
+
+          <div class="actions-right">
+            <button
+              type="button"
+              class="cancel-btn"
+              routerLink="/jobs"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="save-btn"
+              [disabled]="profileForm.invalid || isSaving()"
+            >
+              @if (isSaving()) {
+                <span class="spinner" aria-hidden="true"></span>
+                <span>Saving changes...</span>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="save-icon">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                <span>Save Profile</span>
+              }
+            </button>
+          </div>
+        </div>
+      </form>
+    }
+  </div>
+</div>
