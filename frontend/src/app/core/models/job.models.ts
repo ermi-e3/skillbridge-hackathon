@@ -27,3 +27,19 @@ export interface PagedJobsResponse {
   totalCount?: number;
   totalPages?: number;
 }
+
+export interface EmployerJobDto {
+  id: number;
+  title: string;
+  location?: string | null;
+  isOpen: boolean;
+  createdAt: string;
+  requiredSkills: SkillDto[];
+  applicantCounts: {
+    total: number;
+    received: number;
+    shortlisted: number;
+    rejected: number;
+    withdrawn: number;
+  };
+}

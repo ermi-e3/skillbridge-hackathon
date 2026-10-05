@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { JobDto, PagedJobsResponse } from '../models/job.models';
+import { EmployerJobDto, JobDto, PagedJobsResponse } from '../models/job.models';
 
 @Injectable({
   providedIn: 'root',
@@ -45,5 +45,9 @@ export class JobsService {
    */
   getJobById(id: number): Observable<JobDto> {
     return this.http.get<JobDto>(`${this.baseUrl}/${id}`);
+  }
+
+  getEmployerJobs(): Observable<EmployerJobDto[]> {
+    return this.http.get<EmployerJobDto[]>(`${environment.apiUrl}/employer/jobs`);
   }
 }

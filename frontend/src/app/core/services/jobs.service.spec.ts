@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
-import { JobDto } from '../models/job.models';
+import { EmployerJobDto, JobDto } from '../models/job.models';
 import { JobsService } from './jobs.service';
 
 describe('JobsService', () => {
@@ -23,6 +23,27 @@ describe('JobsService', () => {
       ],
       myMatchPercent: 67,
       hasApplied: false,
+    },
+  ];
+
+  const mockEmployerJobs: EmployerJobDto[] = [
+    {
+      id: 12,
+      title: 'Junior Backend Developer',
+      location: 'Addis Ababa',
+      isOpen: true,
+      createdAt: '2026-10-10T08:55:00Z',
+      requiredSkills: [
+        { id: 1, name: 'ASP.NET Core' },
+        { id: 3, name: 'C#' },
+      ],
+      applicantCounts: {
+        total: 4,
+        received: 2,
+        shortlisted: 1,
+        rejected: 1,
+        withdrawn: 0,
+      },
     },
   ];
 
@@ -80,5 +101,15 @@ describe('JobsService', () => {
     const req = httpTesting.expectOne(`${environment.apiUrl}/jobs/1`);
     expect(req.request.method).toBe('GET');
     req.flush(mockJobs[0]);
+  });
+
+  it('should fetch the logged-in employer jobs', () => {
+    service.getEmployerJobs().subscribe((jobs) => {
+      expect(jobs).toEqual(mockEmployerJobs);
+    });
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/employer/jobs`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockEmployerJobs);
   });
 });
