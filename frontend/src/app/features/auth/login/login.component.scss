@@ -68,9 +68,11 @@ $danger-border: #fecaca; // Red-200
     border-radius: 9999px;
     margin-bottom: 1rem;
 
-    .brand-icon {
-      width: 1.125rem;
-      height: 1.125rem;
+    .brand-icon,
+    .brand-icon-img {
+      width: 1.25rem;
+      height: 1.25rem;
+      object-fit: contain;
       color: $primary;
     }
 
