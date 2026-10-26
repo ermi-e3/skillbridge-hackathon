@@ -5,7 +5,8 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'login',
+    loadComponent: () =>
+      import('./features/landing/landing.component').then((m) => m.LandingComponent),
   },
   {
     path: 'login',
@@ -19,7 +20,7 @@ export const routes: Routes = [
   },
   {
     path: 'jobs',
-    //canActivate: [authGuard, roleGuard('Candidate')],
+    canActivate: [authGuard, roleGuard('Candidate')],
     loadComponent: () =>
       import('./features/candidate/jobs/job-list/job-list.component').then(
         (m) => m.JobListComponent
@@ -27,7 +28,7 @@ export const routes: Routes = [
   },
   {
     path: 'jobs/:id',
-    //canActivate: [authGuard, roleGuard('Candidate')],
+    canActivate: [authGuard, roleGuard('Candidate')],
     loadComponent: () =>
       import('./features/candidate/jobs/job-detail/job-detail.component').then(
         (m) => m.JobDetailComponent
@@ -35,7 +36,7 @@ export const routes: Routes = [
   },
   {
     path: 'candidate/profile',
-    //canActivate: [authGuard, roleGuard('Candidate')],
+    canActivate: [authGuard, roleGuard('Candidate')],
     loadComponent: () =>
       import('./features/candidate/profile/candidate-profile.component').then(
         (m) => m.CandidateProfileComponent
@@ -48,7 +49,7 @@ export const routes: Routes = [
   },
   {
     path: 'my-applications',
-    //canActivate: [authGuard, roleGuard('Candidate')],
+    canActivate: [authGuard, roleGuard('Candidate')],
     loadComponent: () =>
       import('./features/candidate/applications/candidate-applications.component').then(
         (m) => m.CandidateApplicationsComponent
@@ -61,7 +62,7 @@ export const routes: Routes = [
   },
   {
     path: 'employer/jobs/new',
-    //canActivate: [authGuard, roleGuard('Employer')],
+    canActivate: [authGuard, roleGuard('Employer')],
     loadComponent: () =>
       import('./features/employer/jobs/employer-post-job/employer-post-job.component').then(
         (m) => m.EmployerPostJobComponent
@@ -69,7 +70,7 @@ export const routes: Routes = [
   },
   {
     path: 'employer/jobs/:id/applicants',
-    //canActivate: [authGuard, roleGuard('Employer')],
+    canActivate: [authGuard, roleGuard('Employer')],
     loadComponent: () =>
       import(
         './features/employer/jobs/employer-job-applicants/employer-job-applicants.component'
@@ -77,7 +78,7 @@ export const routes: Routes = [
   },
   {
     path: 'employer/jobs',
-    //canActivate: [authGuard, roleGuard('Employer')],
+    canActivate: [authGuard, roleGuard('Employer')],
     loadComponent: () =>
       import('./features/employer/jobs/employer-jobs.component').then(
         (m) => m.EmployerJobsComponent
@@ -85,6 +86,7 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'login',
+    redirectTo: '',
   },
 ];
+

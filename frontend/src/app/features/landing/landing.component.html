@@ -1,0 +1,350 @@
+<!-- ═══════════════════════════════ NAVBAR ═══════════════════════════════ -->
+<nav class="navbar" id="landing-navbar">
+  <div class="nav-container">
+    <a routerLink="/" class="nav-brand" id="nav-brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 32 32" fill="none" class="brand-svg">
+          <rect width="32" height="32" rx="8" fill="url(#brandGrad)"/>
+          <path d="M10 22V14L16 10L22 14V22L16 18L10 22Z" fill="white" opacity="0.9"/>
+          <path d="M16 10V18" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="brandGrad" x1="0" y1="0" x2="32" y2="32">
+              <stop stop-color="#0d9488"/>
+              <stop offset="1" stop-color="#0f766e"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <span class="brand-name">SkillBridge</span>
+    </a>
+
+    <div class="nav-links" [class.open]="mobileMenuOpen()">
+      <a href="#features" class="nav-link" id="nav-features">Features</a>
+      <a href="#how-it-works" class="nav-link" id="nav-how">How it Works</a>
+      <a href="#testimonials" class="nav-link" id="nav-testimonials">Testimonials</a>
+      <div class="nav-auth">
+        <a routerLink="/login" class="nav-btn-ghost" id="nav-signin">Sign In</a>
+        <a routerLink="/register" class="nav-btn-primary" id="nav-signup">Get Started</a>
+      </div>
+    </div>
+
+    <button
+      class="mobile-toggle"
+      (click)="toggleMobileMenu()"
+      [attr.aria-label]="mobileMenuOpen() ? 'Close menu' : 'Open menu'"
+      id="mobile-menu-toggle"
+    >
+      @if (mobileMenuOpen()) {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      } @else {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      }
+    </button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════ HERO ═══════════════════════════════ -->
+<section class="hero" id="hero-section">
+  <div class="hero-bg-effects">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+    <div class="hero-grid-pattern"></div>
+  </div>
+
+  <div class="hero-container">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span>Bridging Skills to Opportunities</span>
+      </div>
+
+      <h1 class="hero-title">
+        Your skills deserve
+        <span class="gradient-text">the right match</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        SkillBridge connects candidates with internships and entry-level jobs
+        based on <strong>real skills</strong> — not just keywords. Transparent matching,
+        explainable results, instant applications.
+      </p>
+
+      <div class="hero-actions">
+        <a routerLink="/register" class="hero-btn-primary" id="hero-cta-signup">
+          <span>Start Matching Free</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </a>
+        <a routerLink="/login" class="hero-btn-ghost" id="hero-cta-signin">
+          Sign In
+        </a>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="hero-stats">
+        @for (stat of stats; track stat.label) {
+          <div class="stat-item">
+            <span class="stat-value">{{ stat.value }}</span>
+            <span class="stat-label">{{ stat.label }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="hero-card-stack">
+        <!-- Floating skill match card -->
+        <div class="float-card card-match">
+          <div class="fc-header">
+            <div class="fc-dot fc-dot-green"></div>
+            <span>Match Score</span>
+          </div>
+          <div class="fc-score">94%</div>
+          <div class="fc-bar">
+            <div class="fc-bar-fill" style="width: 94%"></div>
+          </div>
+        </div>
+
+        <!-- Main dashboard preview -->
+        <div class="preview-dashboard">
+          <div class="pd-header">
+            <div class="pd-dots">
+              <span class="pd-dot pd-dot-r"></span>
+              <span class="pd-dot pd-dot-y"></span>
+              <span class="pd-dot pd-dot-g"></span>
+            </div>
+            <span class="pd-title">SkillBridge Dashboard</span>
+          </div>
+          <div class="pd-body">
+            <div class="pd-sidebar">
+              <div class="pd-nav-item pd-nav-active">
+                <div class="pd-nav-icon"></div>
+                <span>Jobs</span>
+              </div>
+              <div class="pd-nav-item">
+                <div class="pd-nav-icon"></div>
+                <span>Profile</span>
+              </div>
+              <div class="pd-nav-item">
+                <div class="pd-nav-icon"></div>
+                <span>Applications</span>
+              </div>
+            </div>
+            <div class="pd-content">
+              <div class="pd-job-card">
+                <div class="pd-job-top">
+                  <span class="pd-company">TechStart</span>
+                  <span class="pd-match-badge">94% match</span>
+                </div>
+                <div class="pd-job-title">Frontend Developer Intern</div>
+                <div class="pd-skills">
+                  <span class="pd-skill matched">Angular</span>
+                  <span class="pd-skill matched">TypeScript</span>
+                  <span class="pd-skill missing">React</span>
+                </div>
+              </div>
+              <div class="pd-job-card">
+                <div class="pd-job-top">
+                  <span class="pd-company">DataCo</span>
+                  <span class="pd-match-badge match-mid">78% match</span>
+                </div>
+                <div class="pd-job-title">Junior Full-Stack Dev</div>
+                <div class="pd-skills">
+                  <span class="pd-skill matched">Node.js</span>
+                  <span class="pd-skill matched">SQL</span>
+                  <span class="pd-skill missing">Docker</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating notification card -->
+        <div class="float-card card-notif">
+          <div class="fc-header">
+            <div class="fc-dot fc-dot-orange"></div>
+            <span>New Application</span>
+          </div>
+          <div class="fc-text">Sarah M. applied — <strong>94% match</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ FEATURES ═══════════════════════════════ -->
+<section class="features-section" id="features">
+  <div class="section-container">
+    <div class="section-header">
+      <span class="section-badge">Features</span>
+      <h2 class="section-title">Everything you need to<br><span class="gradient-text">bridge the gap</span></h2>
+      <p class="section-subtitle">
+        A complete platform for candidates seeking opportunities and employers finding talent that truly fits.
+      </p>
+    </div>
+
+    <div class="features-grid">
+      @for (feature of features; track feature.title) {
+        <div class="feature-card" [id]="'feature-' + feature.icon">
+          <div class="feature-icon-wrap">
+            @switch (feature.icon) {
+              @case ('target') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+                </svg>
+              }
+              @case ('briefcase') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                </svg>
+              }
+              @case ('user') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+              }
+              @case ('chart') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+              }
+              @case ('shield') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              }
+              @case ('zap') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                </svg>
+              }
+            }
+          </div>
+          <h3 class="feature-title">{{ feature.title }}</h3>
+          <p class="feature-desc">{{ feature.description }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ HOW IT WORKS ═══════════════════════════════ -->
+<section class="how-section" id="how-it-works">
+  <div class="section-container">
+    <div class="section-header">
+      <span class="section-badge">How It Works</span>
+      <h2 class="section-title">Three steps to your<br><span class="gradient-text">perfect match</span></h2>
+      <p class="section-subtitle">Getting started takes less than 5 minutes.</p>
+    </div>
+
+    <div class="steps-row">
+      @for (step of steps; track step.number; let i = $index) {
+        <div class="step-card" [id]="'step-' + step.number">
+          <div class="step-number">{{ step.number }}</div>
+          <h3 class="step-title">{{ step.title }}</h3>
+          <p class="step-desc">{{ step.description }}</p>
+          @if (i < steps.length - 1) {
+            <div class="step-connector"></div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ TESTIMONIALS ═══════════════════════════════ -->
+<section class="testimonials-section" id="testimonials">
+  <div class="section-container">
+    <div class="section-header">
+      <span class="section-badge">Testimonials</span>
+      <h2 class="section-title">Loved by candidates<br><span class="gradient-text">&amp; employers</span></h2>
+    </div>
+
+    <div class="testimonials-carousel">
+      @for (t of testimonials; track t.name; let i = $index) {
+        <div class="testimonial-card" [class.active]="activeTestimonial() === i" [id]="'testimonial-' + i">
+          <div class="t-quote-mark">"</div>
+          <p class="t-quote">{{ t.quote }}</p>
+          <div class="t-author">
+            <div class="t-avatar">{{ t.avatar }}</div>
+            <div class="t-info">
+              <span class="t-name">{{ t.name }}</span>
+              <span class="t-role">{{ t.role }}</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="testimonial-dots">
+      @for (t of testimonials; track t.name; let i = $index) {
+        <button
+          class="t-dot"
+          [class.active]="activeTestimonial() === i"
+          (click)="setTestimonial(i)"
+          [attr.aria-label]="'View testimonial from ' + t.name"
+        ></button>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ CTA ═══════════════════════════════ -->
+<section class="cta-section" id="cta-section">
+  <div class="cta-bg-effects">
+    <div class="cta-orb cta-orb-1"></div>
+    <div class="cta-orb cta-orb-2"></div>
+  </div>
+  <div class="section-container cta-inner">
+    <h2 class="cta-title">Ready to find your <span class="gradient-text">perfect match</span>?</h2>
+    <p class="cta-subtitle">Join thousands of candidates and employers already using SkillBridge.</p>
+    <div class="cta-actions">
+      <a routerLink="/register" class="cta-btn-primary" id="cta-signup">
+        <span>Create Free Account</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </a>
+      <a routerLink="/login" class="cta-btn-ghost" id="cta-signin">
+        I already have an account
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ FOOTER ═══════════════════════════════ -->
+<footer class="landing-footer" id="landing-footer">
+  <div class="section-container footer-inner">
+    <div class="footer-brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 32 32" fill="none" class="brand-svg">
+          <rect width="32" height="32" rx="8" fill="url(#brandGrad2)"/>
+          <path d="M10 22V14L16 10L22 14V22L16 18L10 22Z" fill="white" opacity="0.9"/>
+          <path d="M16 10V18" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="brandGrad2" x1="0" y1="0" x2="32" y2="32">
+              <stop stop-color="#0d9488"/>
+              <stop offset="1" stop-color="#0f766e"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <span class="brand-name">SkillBridge</span>
+    </div>
+    <p class="footer-text">Skills-matched jobs & internships. Built for the future of hiring.</p>
+    <div class="footer-bottom">
+      <span>&copy; 2026 SkillBridge. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
