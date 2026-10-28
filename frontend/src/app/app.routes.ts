@@ -34,6 +34,18 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'candidate/onboarding/skills',
+    loadComponent: () =>
+      import('./features/candidate/onboarding/candidate-skill-onboarding.component').then(
+        (m) => m.CandidateSkillOnboardingComponent
+      ),
+  },
+  {
+    path: 'candidate/skill-registration',
+    redirectTo: 'candidate/onboarding/skills',
+    pathMatch: 'full',
+  },
+  {
     path: 'candidate/profile',
     //canActivate: [authGuard, roleGuard('Candidate')],
     loadComponent: () =>

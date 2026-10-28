@@ -261,6 +261,22 @@
           </div>
 
           <div class="card-body">
+            <!-- Category Tabs -->
+            <div class="category-tabs" role="tablist" aria-label="Skill Categories">
+              @for (cat of categories; track cat.id) {
+                <button
+                  type="button"
+                  class="cat-tab"
+                  [class.active]="activeCategory() === cat.id"
+                  (click)="setCategory(cat.id)"
+                  role="tab"
+                  [attr.aria-selected]="activeCategory() === cat.id"
+                >
+                  {{ cat.name }}
+                </button>
+              }
+            </div>
+
             <!-- Search & Filter Bar -->
             <div class="skills-search-bar">
               <div class="search-input-wrapper">

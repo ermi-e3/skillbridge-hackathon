@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { UserRole } from '../../../core/models/auth.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { extractErrorMessage } from '../../../core/utils/error-formatter';
@@ -52,6 +52,7 @@ export const passwordComplexityValidator: ValidatorFn = (control: AbstractContro
 export class RegisterComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly isSubmitting = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
@@ -176,7 +177,11 @@ export class RegisterComponent implements OnInit {
       next: (response) => {
         this.isSubmitting.set(false);
         // AuthService saved token, role, and userId to localStorage
-        this.authService.redirectAfterAuth(response.role);
+        if (response.role === 'Candidate') {
+          this.router.navigate(['/candidate/onboarding/skills']);
+        } else {
+          this.authService.redirectAfterAuth(response.role);
+        }
       },
       error: (err) => {
         this.isSubmitting.set(false);

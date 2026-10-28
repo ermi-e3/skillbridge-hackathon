@@ -586,6 +586,38 @@ $success-border: #bbf7d0; // Green-200
   }
 }
 
+.category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+
+  .cat-tab {
+    background: #f8fafc;
+    border: 1px solid $neutral-border;
+    border-radius: 9999px;
+    padding: 0.375rem 0.875rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: $neutral-muted;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: #ffffff;
+      color: $neutral-text;
+      border-color: #cbd5e1;
+    }
+
+    &.active {
+      background: $primary;
+      border-color: $primary;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(13, 148, 136, 0.25);
+    }
+  }
+}
+
 .skills-search-bar {
   margin-bottom: 1.25rem;
 

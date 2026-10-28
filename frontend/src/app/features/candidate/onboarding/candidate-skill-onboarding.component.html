@@ -1,0 +1,346 @@
+<main class="onboarding-page">
+  <div class="onboarding-container">
+    <!-- Brand / Progress Header -->
+    <header class="onboarding-header">
+      <div class="header-topline">
+        <div class="brand-badge">
+          <img src="/logo.png" alt="SkillBridge Logo" class="brand-logo-img" />
+          <span class="brand-title">SkillBridge</span>
+        </div>
+        <div class="step-pill">
+          <span class="step-number">Step 1 of 2</span>
+          <span class="step-label">Skill Registration v1</span>
+        </div>
+      </div>
+
+      <h1 class="onboarding-title">Welcome, {{ candidateName() }}!</h1>
+      <p class="onboarding-subtitle">
+        Register your core technical skills and professional focus. SkillBridge matches you with tech openings and internships based on these exact tags.
+      </p>
+
+      <div class="progress-bar-container" aria-hidden="true">
+        <div class="progress-bar-fill"></div>
+      </div>
+    </header>
+
+    <!-- Dismissible Error Alert Banner -->
+    @if (errorMessage()) {
+      <div class="alert-banner" role="alert" aria-live="assertive">
+        <div class="alert-content">
+          <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span class="alert-text">{{ errorMessage() }}</span>
+        </div>
+        <button
+          type="button"
+          class="alert-close-btn"
+          aria-label="Dismiss error"
+          (click)="dismissAlert()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    }
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="loading-state" aria-busy="true" aria-label="Loading skills catalog">
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-input"></div>
+        <div class="skeleton-categories">
+          <div class="skeleton-pill"></div>
+          <div class="skeleton-pill"></div>
+          <div class="skeleton-pill"></div>
+          <div class="skeleton-pill"></div>
+        </div>
+        <div class="skeleton-grid">
+          @for (item of [1, 2, 3, 4, 5, 6, 7, 8]; track item) {
+            <div class="skeleton-card"></div>
+          }
+        </div>
+      </div>
+    } @else {
+      <!-- Onboarding Form -->
+      <form [formGroup]="onboardingForm" (ngSubmit)="onSubmit()" novalidate class="onboarding-form">
+        <!-- 1. Headline Section -->
+        <section class="form-section">
+          <div class="section-heading">
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+            </div>
+            <div>
+              <h2 class="section-title">Professional Headline <span class="required-star">*</span></h2>
+              <p class="section-desc">A concise summary of your developer role and focus.</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="input-wrapper" [class.has-error]="headlineControl?.invalid && (headlineControl?.touched || headlineControl?.dirty)">
+              <input
+                id="headline"
+                type="text"
+                formControlName="headline"
+                placeholder="e.g. Junior .NET & Angular Developer | REST APIs & Cloud"
+                class="form-input"
+                [attr.aria-invalid]="headlineControl?.invalid && headlineControl?.touched"
+              />
+              <span class="char-count" [class.warn]="(headlineControl?.value?.length || 0) > 110">
+                {{ headlineControl?.value?.length || 0 }} / 120
+              </span>
+            </div>
+
+            @if (headlineControl?.invalid && (headlineControl?.touched || headlineControl?.dirty)) {
+              <div class="inline-error" role="alert">
+                <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+                @if (headlineControl?.errors?.['required']) {
+                  <span>A professional headline is required.</span>
+                } @else if (headlineControl?.errors?.['minlength']) {
+                  <span>Headline must be at least 3 characters.</span>
+                } @else if (headlineControl?.errors?.['maxlength']) {
+                  <span>Headline cannot exceed 120 characters.</span>
+                }
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- 2. Technical Skills Section -->
+        <section class="form-section">
+          <div class="section-heading-row">
+            <div class="section-heading">
+              <div class="section-icon skills-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                </svg>
+              </div>
+              <div>
+                <h2 class="section-title">Technical Skills Catalog</h2>
+                <p class="section-desc">Select between <strong>1 and 30 skills</strong>. Job recommendations will be prioritized by your skills.</p>
+              </div>
+            </div>
+
+            <!-- Real-time Selected Counter Pill -->
+            <div
+              class="skills-counter"
+              [class.counter-valid]="selectedSkillIds().length >= 1 && selectedSkillIds().length <= 30"
+              [class.counter-empty]="selectedSkillIds().length === 0"
+              [class.counter-max]="selectedSkillIds().length >= 30"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="counter-check">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>Selected: <strong>{{ selectedSkillIds().length }}</strong> / 30</span>
+            </div>
+          </div>
+
+          <!-- Selected Skills Tray (Quick Overview) -->
+          @if (selectedSkillsList().length > 0) {
+            <div class="selected-skills-tray">
+              <span class="tray-label">Your Registered Skills:</span>
+              <div class="tray-chips">
+                @for (skill of selectedSkillsList(); track skill.id) {
+                  <span class="selected-chip">
+                    {{ skill.name }}
+                    <button
+                      type="button"
+                      class="remove-chip-btn"
+                      (click)="removeSkill(skill.id)"
+                      [attr.aria-label]="'Remove ' + skill.name"
+                    >
+                      &times;
+                    </button>
+                  </span>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Filter & Search Controls -->
+          <div class="catalog-controls">
+            <!-- Category Filter Tabs -->
+            <div class="category-tabs" role="tablist" aria-label="Skill Categories">
+              @for (cat of categories; track cat.id) {
+                <button
+                  type="button"
+                  class="cat-tab"
+                  [class.active]="activeCategory() === cat.id"
+                  (click)="setCategory(cat.id)"
+                  role="tab"
+                  [attr.aria-selected]="activeCategory() === cat.id"
+                >
+                  {{ cat.name }}
+                </button>
+              }
+            </div>
+
+            <!-- Live Search Bar -->
+            <div class="search-wrapper">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input
+                type="text"
+                [value]="searchQuery()"
+                (input)="onSearchChange($event)"
+                placeholder="Search skills (e.g. C#, Angular, PostgreSQL, Docker)..."
+                class="search-input"
+              />
+              @if (searchQuery()) {
+                <button type="button" class="clear-btn" (click)="clearSearch()" aria-label="Clear search">
+                  &times;
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Validation Warning for Skill Count -->
+          @if (skillIdsControl?.invalid && (skillIdsControl?.touched || skillIdsControl?.dirty)) {
+            <div class="inline-error" role="alert">
+              <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="10"></circle>
+              </svg>
+              @if (skillIdsControl?.errors?.['minSkills']) {
+                <span>Please select at least 1 technical skill to continue.</span>
+              } @else if (skillIdsControl?.errors?.['maxSkills']) {
+                <span>You can select a maximum of 30 skills.</span>
+              }
+            </div>
+          }
+
+          <!-- Skills Selection Grid -->
+          <div class="skills-grid" role="group" aria-label="Technical skills selection">
+            @for (skill of filteredSkills(); track skill.id) {
+              <button
+                type="button"
+                class="skill-card"
+                [class.selected]="isSkillSelected(skill.id)"
+                (click)="toggleSkill(skill.id)"
+                [attr.aria-pressed]="isSkillSelected(skill.id)"
+              >
+                <div class="skill-card-inner">
+                  <div class="checkbox-box" [class.checked]="isSkillSelected(skill.id)">
+                    @if (isSkillSelected(skill.id)) {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    }
+                  </div>
+                  <span class="skill-name">{{ skill.name }}</span>
+                </div>
+              </button>
+            } @empty {
+              <div class="no-results">
+                <p>No skills match "{{ searchQuery() }}" in this category.</p>
+                <button type="button" class="reset-filter-btn" (click)="clearSearch(); setCategory('all')">
+                  Show All Skills
+                </button>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- 3. Optional Additional Details (Accordion/Toggle) -->
+        <section class="form-section optional-section">
+          <button
+            type="button"
+            class="toggle-additional-btn"
+            (click)="toggleAdditionalInfo()"
+            [attr.aria-expanded]="showAdditionalInfo()"
+          >
+            <div class="toggle-copy">
+              <span class="toggle-title">Add Bio & GitHub Profile</span>
+              <span class="optional-tag">Optional</span>
+            </div>
+            <svg
+              class="chevron-icon"
+              [class.open]="showAdditionalInfo()"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+
+          @if (showAdditionalInfo()) {
+            <div class="additional-fields">
+              <!-- GitHub URL -->
+              <div class="form-group">
+                <label for="gitHubUrl" class="form-label">GitHub Profile URL</label>
+                <div class="input-wrapper" [class.has-error]="gitHubUrlControl?.invalid && (gitHubUrlControl?.touched || gitHubUrlControl?.dirty)">
+                  <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                  </svg>
+                  <input
+                    id="gitHubUrl"
+                    type="url"
+                    formControlName="gitHubUrl"
+                    placeholder="https://github.com/username"
+                    class="form-input has-icon"
+                  />
+                </div>
+                @if (gitHubUrlControl?.invalid && (gitHubUrlControl?.touched || gitHubUrlControl?.dirty)) {
+                  <div class="inline-error" role="alert">
+                    <span>Please enter a valid URL starting with http:// or https://</span>
+                  </div>
+                }
+              </div>
+
+              <!-- Bio -->
+              <div class="form-group">
+                <label for="bio" class="form-label">Brief Bio / Summary</label>
+                <textarea
+                  id="bio"
+                  formControlName="bio"
+                  rows="3"
+                  placeholder="Share a short background on your interests, projects, and goals..."
+                  class="form-textarea"
+                ></textarea>
+              </div>
+            </div>
+          }
+        </section>
+
+        <!-- Actions Footer -->
+        <footer class="onboarding-footer">
+          <button
+            type="button"
+            class="skip-action-btn"
+            (click)="skipForNow()"
+          >
+            Skip for now
+          </button>
+
+          <button
+            type="submit"
+            class="submit-action-btn"
+            [disabled]="isSubmitting() || selectedSkillIds().length === 0"
+          >
+            @if (isSubmitting()) {
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Registering Skills...</span>
+            } @else {
+              <span>Complete Skill Registration</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="arrow-icon">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            }
+          </button>
+        </footer>
+      </form>
+    }
+  </div>
+</main>
