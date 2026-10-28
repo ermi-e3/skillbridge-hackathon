@@ -1,10 +1,11 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { JobDto } from '../../../../core/models/job.models';
 import { SkillDto } from '../../../../core/models/profile.models';
 import { AuthService } from '../../../../core/services/auth.service';
 import { JobsService } from '../../../../core/services/jobs.service';
+import { ProfileService } from '../../../../core/services/profile.service';
 import { SkillsService } from '../../../../core/services/skills.service';
 import { extractErrorMessage } from '../../../../core/utils/error-formatter';
 
@@ -18,12 +19,16 @@ import { extractErrorMessage } from '../../../../core/utils/error-formatter';
 export class JobListComponent implements OnInit {
   private readonly jobsService = inject(JobsService);
   private readonly skillsService = inject(SkillsService);
+  private readonly profileService = inject(ProfileService);
+  private readonly route = inject(ActivatedRoute);
   readonly authService = inject(AuthService);
 
   // State Signals
   readonly isLoadingSkills = signal<boolean>(true);
   readonly isLoadingJobs = signal<boolean>(true);
   readonly errorMessage = signal<string | null>(null);
+  readonly hasSkillsRegistered = signal<boolean>(true);
+  readonly showWelcomeBanner = signal<boolean>(false);
 
   readonly allSkills = signal<SkillDto[]>([]);
   readonly selectedSkillIds = signal<number[]>([]);
@@ -42,8 +47,31 @@ export class JobListComponent implements OnInit {
   readonly selectedCount = computed(() => this.selectedSkillIds().length);
 
   ngOnInit(): void {
+    if (this.route.snapshot.queryParamMap.has('welcome')) {
+      this.showWelcomeBanner.set(true);
+    }
+
+    this.checkCandidateSkills();
     this.loadSkills();
     this.loadJobs();
+  }
+
+  checkCandidateSkills(): void {
+    if (this.authService.getRole() === 'Candidate') {
+      this.profileService.getMyProfile().subscribe({
+        next: (profile) => {
+          const count = (profile.skills?.length ?? 0) || (profile.skillIds?.length ?? 0);
+          this.hasSkillsRegistered.set(count > 0);
+        },
+        error: () => {
+          // Keep default if call fails
+        },
+      });
+    }
+  }
+
+  dismissWelcome(): void {
+    this.showWelcomeBanner.set(false);
   }
 
   /**

@@ -6,6 +6,7 @@ import { SkillDto } from '../../../../core/models/profile.models';
 import { AuthService } from '../../../../core/services/auth.service';
 import { JobsService } from '../../../../core/services/jobs.service';
 import { SkillsService } from '../../../../core/services/skills.service';
+import { ProfileService } from '../../../../core/services/profile.service';
 import { JobListComponent } from './job-list.component';
 
 describe('JobListComponent', () => {
@@ -20,6 +21,10 @@ describe('JobListComponent', () => {
   };
   let authServiceSpy: {
     logout: ReturnType<typeof vi.fn>;
+    getRole: ReturnType<typeof vi.fn>;
+  };
+  let profileServiceSpy: {
+    getMyProfile: ReturnType<typeof vi.fn>;
   };
 
   const mockSkills: SkillDto[] = [
@@ -79,6 +84,10 @@ describe('JobListComponent', () => {
     };
     authServiceSpy = {
       logout: vi.fn(),
+      getRole: vi.fn().mockReturnValue('Candidate'),
+    };
+    profileServiceSpy = {
+      getMyProfile: vi.fn().mockReturnValue(of({ skills: [{ id: 1, name: 'ASP.NET Core' }] })),
     };
 
     await TestBed.configureTestingModule({
@@ -88,6 +97,7 @@ describe('JobListComponent', () => {
         { provide: JobsService, useValue: jobsServiceSpy },
         { provide: SkillsService, useValue: skillsServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
+        { provide: ProfileService, useValue: profileServiceSpy },
       ],
     }).compileComponents();
 

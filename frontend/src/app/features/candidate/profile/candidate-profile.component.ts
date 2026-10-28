@@ -52,6 +52,8 @@ export const skillCountValidator = (min = 1, max = 30): ValidatorFn => {
   };
 };
 
+import { SKILL_CATEGORIES } from '../onboarding/candidate-skill-onboarding.component';
+
 @Component({
   selector: 'app-candidate-profile',
   standalone: true,
@@ -74,16 +76,31 @@ export class CandidateProfileComponent implements OnInit {
   readonly skillSearchQuery = signal<string>('');
   readonly candidateUser = signal<{ fullName?: string; email?: string } | null>(null);
 
+  // Categories
+  readonly categories = SKILL_CATEGORIES;
+  readonly activeCategory = signal<string>('all');
+
   // Available and Selected Skills
   readonly allSkills = signal<SkillDto[]>([]);
   readonly selectedSkillIds = signal<number[]>([]);
 
-  // Filtered skills based on search chip input
+  // Filtered skills based on search chip input and active category
   readonly filteredSkills = computed(() => {
     const query = this.skillSearchQuery().trim().toLowerCase();
-    const skills = this.allSkills();
-    if (!query) return skills;
-    return skills.filter((s) => s.name.toLowerCase().includes(query));
+    const categoryId = this.activeCategory();
+    let skills = this.allSkills();
+
+    if (categoryId !== 'all') {
+      const group = this.categories.find((c) => c.id === categoryId);
+      if (group && group.skillNames.length > 0) {
+        skills = skills.filter((s) => group.skillNames.some((name) => name.toLowerCase() === s.name.toLowerCase()));
+      }
+    }
+
+    if (query) {
+      skills = skills.filter((s) => s.name.toLowerCase().includes(query));
+    }
+    return skills;
   });
 
   // Reactive Form
@@ -203,6 +220,10 @@ export class CandidateProfileComponent implements OnInit {
 
   clearSearch(): void {
     this.skillSearchQuery.set('');
+  }
+
+  setCategory(categoryId: string): void {
+    this.activeCategory.set(categoryId);
   }
 
   dismissAlert(): void {

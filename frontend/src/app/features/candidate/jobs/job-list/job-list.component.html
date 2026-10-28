@@ -40,6 +40,50 @@
       </nav>
     </header>
 
+    <!-- Welcome Toast / Banner After Skill Registration -->
+    @if (showWelcomeBanner()) {
+      <div class="welcome-success-banner" role="status">
+        <div class="welcome-content">
+          <div class="welcome-icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <div>
+            <strong>Skill Registration Complete!</strong>
+            <p>Your technical skills have been registered. Live match percentages are now computed for every job.</p>
+          </div>
+        </div>
+        <button type="button" class="dismiss-banner-btn" (click)="dismissWelcome()" aria-label="Dismiss">
+          &times;
+        </button>
+      </div>
+    }
+
+    <!-- Skills Registration Reminder Banner (When Candidate has 0 registered skills) -->
+    @if (!hasSkillsRegistered() && authService.getRole() === 'Candidate') {
+      <div class="skills-reminder-banner" role="status">
+        <div class="reminder-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+          </svg>
+        </div>
+        <div class="reminder-text">
+          <h3 class="reminder-title">Complete your Skill Registration (v1)</h3>
+          <p class="reminder-desc">
+            You haven't registered your technical skills yet. Register your skills now to unlock personalized match scores across all active job openings!
+          </p>
+        </div>
+        <a routerLink="/candidate/onboarding/skills" class="reminder-cta-btn">
+          <span>Register Skills Now</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+      </div>
+    }
+
     <!-- Error Alert Banner -->
     @if (errorMessage()) {
       <div class="alert-banner" role="alert" aria-live="assertive">
