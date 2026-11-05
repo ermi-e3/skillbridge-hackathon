@@ -337,11 +337,15 @@ $status-gray-border: #cbd5e1;
 // Metrics Grid
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 1rem;
   margin-bottom: 1.75rem;
 
-  @media (max-width: 768px) {
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 600px) {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -372,6 +376,7 @@ $status-gray-border: #cbd5e1;
     &.received-metric .metric-number { color: $status-blue; }
     &.shortlisted-metric .metric-number { color: $status-green; }
     &.rejected-metric .metric-number { color: $status-red; }
+    &.withdrawn-metric .metric-number { color: #64748b; }
   }
 }
 
@@ -527,6 +532,25 @@ $status-gray-border: #cbd5e1;
       display: flex;
       flex-direction: column;
       gap: 0.35rem;
+
+      .match-badge-row {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+
+      .nice-to-have-match-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.1rem 0.4rem;
+        background: #f3e8ff;
+        color: #7e22ce;
+        border: 1px solid #d8b4fe;
+        border-radius: 9999px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
 
       .match-badge {
         display: inline-block;

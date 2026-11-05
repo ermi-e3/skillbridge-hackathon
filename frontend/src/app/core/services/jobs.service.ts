@@ -12,19 +12,56 @@ export class JobsService {
   private readonly baseUrl = `${environment.apiUrl}/jobs`;
 
   /**
-   * Fetch open jobs with optional multi-skill filtering and title search.
+   * Fetch open jobs with optional multi-skill filtering, search, work arrangement, job type, and experience level.
    * Seamlessly handles both JobDto[] and PagedJobsResponse shapes from the server.
    */
-  getJobs(skillIds?: number[], search?: string): Observable<JobDto[]> {
+  getJobs(
+    skillIds?: number[],
+    search?: string,
+    sort?: string,
+    page?: number,
+    pageSize?: number,
+    jobType?: string,
+    workArrangement?: string,
+    experienceLevel?: string,
+    location?: string
+  ): Observable<JobDto[]> {
     let params = new HttpParams();
 
     if (skillIds && skillIds.length > 0) {
-      // Pass comma-separated skillIds (e.g. ?skillIds=1,2) as per endpoint specification
       params = params.set('skillIds', skillIds.join(','));
     }
 
     if (search && search.trim().length > 0) {
       params = params.set('search', search.trim());
+    }
+
+    if (sort) {
+      params = params.set('sort', sort);
+    }
+
+    if (page) {
+      params = params.set('page', page.toString());
+    }
+
+    if (pageSize) {
+      params = params.set('pageSize', pageSize.toString());
+    }
+
+    if (jobType) {
+      params = params.set('jobType', jobType);
+    }
+
+    if (workArrangement) {
+      params = params.set('workArrangement', workArrangement);
+    }
+
+    if (experienceLevel) {
+      params = params.set('experienceLevel', experienceLevel);
+    }
+
+    if (location && location.trim().length > 0) {
+      params = params.set('location', location.trim());
     }
 
     return this.http.get<JobDto[] | PagedJobsResponse>(this.baseUrl, { params }).pipe(

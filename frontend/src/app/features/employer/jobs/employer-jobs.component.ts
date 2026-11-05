@@ -46,4 +46,51 @@ export class EmployerJobsComponent implements OnInit {
       },
     });
   }
+
+  formatJobType(type?: string): string {
+    switch (type) {
+      case 'FullTime':
+        return 'Full-time';
+      case 'PartTime':
+        return 'Part-time';
+      case 'Contract':
+        return 'Contract';
+      case 'Internship':
+        return 'Internship';
+      case 'Freelance':
+        return 'Freelance';
+      default:
+        return type || 'Full-time';
+    }
+  }
+
+  formatWorkArrangement(arrangement?: string): string {
+    switch (arrangement) {
+      case 'Remote':
+        return 'Remote';
+      case 'Hybrid':
+        return 'Hybrid';
+      case 'OnSite':
+        return 'On-site';
+      default:
+        return arrangement || 'On-site';
+    }
+  }
+
+  formatExperienceLevel(level?: string): string {
+    switch (level) {
+      case 'EntryLevel':
+        return 'Entry Level';
+      case 'Junior':
+        return 'Junior';
+      case 'MidLevel':
+        return 'Mid Level';
+      case 'Senior':
+        return 'Senior';
+      case 'Lead':
+        return 'Lead / Principal';
+      default:
+        return level || 'Entry Level';
+    }
+  }
 }

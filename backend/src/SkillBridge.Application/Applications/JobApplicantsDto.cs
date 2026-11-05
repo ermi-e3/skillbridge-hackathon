@@ -7,7 +7,8 @@ public sealed record JobSummaryDto(
     int Id,
     string Title,
     bool IsOpen,
-    IReadOnlyList<SkillDto> RequiredSkills);
+    IReadOnlyList<SkillDto> RequiredSkills,
+    IReadOnlyList<SkillDto>? PreferredSkills = null);
 
 public sealed record CandidateSummaryDto(
     string UserId,

@@ -133,13 +133,60 @@ describe('CandidateSkillOnboardingComponent', () => {
 
     component.onSubmit();
 
-    expect(profileServiceSpy.updateMyProfile).toHaveBeenCalledWith({
-      headline: 'Junior Full Stack Developer',
-      skillIds: [1, 2],
-      bio: null,
-      gitHubUrl: null,
-    });
+    expect(profileServiceSpy.updateMyProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headline: 'Junior Full Stack Developer',
+        skillIds: [1, 2],
+        preferredSkillIds: [],
+        bio: null,
+        gitHubUrl: null,
+      })
+    );
     expect(router.navigate).toHaveBeenCalledWith(['/jobs'], { queryParams: { welcome: '1' } });
+  });
+
+  it('should support selecting and submitting preferred skills during onboarding', () => {
+    component.onboardingForm.patchValue({ headline: 'Junior Full Stack Developer' });
+    component.toggleSkill(1);
+    component.togglePreferredSkill(2);
+
+    expect(component.selectedSkillIds()).toEqual([1]);
+    expect(component.selectedPreferredSkillIds()).toEqual([2]);
+
+    component.onSubmit();
+
+    expect(profileServiceSpy.updateMyProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headline: 'Junior Full Stack Developer',
+        skillIds: [1],
+        preferredSkillIds: [2],
+      })
+    );
+  });
+
+  it('should support location, work arrangement, job type, and experience in onboarding', () => {
+    component.onboardingForm.patchValue({
+      headline: 'Mid-level Backend Developer',
+      location: 'Addis Ababa',
+      preferredWorkArrangement: 'Hybrid',
+      preferredJobType: 'FullTime',
+      experienceLevel: 'MidLevel',
+      yearsOfExperience: 3,
+    });
+    component.toggleSkill(1);
+
+    component.onSubmit();
+
+    expect(profileServiceSpy.updateMyProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headline: 'Mid-level Backend Developer',
+        location: 'Addis Ababa',
+        preferredWorkArrangement: 'Hybrid',
+        preferredJobType: 'FullTime',
+        experienceLevel: 'MidLevel',
+        yearsOfExperience: 3,
+      })
+    );
   });
 
   it('should navigate to /jobs when skipped', () => {

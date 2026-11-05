@@ -229,7 +229,154 @@
           </div>
         </section>
 
-        <!-- Card 2: Multi-select Skill Picker (1 to 30 skills) -->
+        <!-- Card 2: Career Preferences & Matching Criteria -->
+        <section class="card section-card matching-criteria-card">
+          <div class="card-header">
+            <div class="card-icon-box matching-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+            </div>
+            <div>
+              <div class="category-badge-inline">
+                <span class="category-pill criteria-pill">Career Preferences</span>
+              </div>
+              <h2 class="card-title">Career Preferences & Matching Criteria</h2>
+              <p class="card-desc">
+                Set your work preferences and seniority level to get matched with the most relevant positions.
+              </p>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <!-- Row 1: Location & Work Arrangement -->
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label for="location" class="form-label">
+                  Your Location (City / Region)
+                </label>
+                <div class="input-wrapper" [class.has-error]="locationControl?.invalid && (locationControl?.touched || locationControl?.dirty)">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                  <input
+                    id="location"
+                    type="text"
+                    formControlName="location"
+                    placeholder="e.g. Addis Ababa, Ethiopia"
+                    class="form-input"
+                    maxlength="100"
+                  />
+                </div>
+                <span class="field-hint">Used for location compatibility. Remote openings automatically match.</span>
+              </div>
+
+              <div class="form-group">
+                <label for="preferredWorkArrangement" class="form-label required">
+                  Work Arrangement Preference
+                </label>
+                <div class="input-wrapper select-wrapper">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                  </svg>
+                  <select
+                    id="preferredWorkArrangement"
+                    formControlName="preferredWorkArrangement"
+                    class="form-input form-select"
+                  >
+                    <option value="Remote">Remote</option>
+                    <option value="Hybrid">Hybrid</option>
+                    <option value="OnSite">On-site</option>
+                  </select>
+                </div>
+                <span class="field-hint">Matches your preference against employer job arrangement requirements.</span>
+              </div>
+            </div>
+
+            <!-- Row 2: Job Type & Experience Level -->
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label for="preferredJobType" class="form-label required">
+                  Job Type Preference
+                </label>
+                <div class="input-wrapper select-wrapper">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                  </svg>
+                  <select
+                    id="preferredJobType"
+                    formControlName="preferredJobType"
+                    class="form-input form-select"
+                  >
+                    <option value="FullTime">Full-time</option>
+                    <option value="PartTime">Part-time</option>
+                    <option value="Contract">Contract</option>
+                    <option value="Internship">Internship</option>
+                    <option value="Freelance">Freelance</option>
+                  </select>
+                </div>
+                <span class="field-hint">Target employment type for recommendations.</span>
+              </div>
+
+              <div class="form-group">
+                <label for="experienceLevel" class="form-label required">
+                  Experience Level
+                </label>
+                <div class="input-wrapper select-wrapper">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <polyline points="17 11 19 13 23 9"></polyline>
+                  </svg>
+                  <select
+                    id="experienceLevel"
+                    formControlName="experienceLevel"
+                    class="form-input form-select"
+                  >
+                    <option value="EntryLevel">Entry Level (0 - 1 years)</option>
+                    <option value="Junior">Junior (1 - 3 years)</option>
+                    <option value="MidLevel">Mid Level (3 - 5 years)</option>
+                    <option value="Senior">Senior (5 - 8 years)</option>
+                    <option value="Lead">Lead / Architect (8+ years)</option>
+                  </select>
+                </div>
+                <span class="field-hint">Assessed against the position's required seniority tier.</span>
+              </div>
+            </div>
+
+            <!-- Row 3: Years of Professional Experience -->
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label for="yearsOfExperience" class="form-label">
+                  Total Professional Experience (Years)
+                </label>
+                <div class="input-wrapper" [class.has-error]="yearsOfExperienceControl?.invalid && (yearsOfExperienceControl?.touched || yearsOfExperienceControl?.dirty)">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <input
+                    id="yearsOfExperience"
+                    type="number"
+                    min="0"
+                    max="50"
+                    formControlName="yearsOfExperience"
+                    placeholder="e.g. 3"
+                    class="form-input"
+                  />
+                </div>
+                <span class="field-hint">Validated against minimum experience year thresholds set by employers.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Card 3: Primary Technical Skills -->
         <section class="card section-card">
           <div class="card-header skills-header-row">
             <div class="header-title-group">
@@ -239,9 +386,12 @@
                 </svg>
               </div>
               <div>
-                <h2 class="card-title">Technical Skills Catalog</h2>
+                <div class="category-badge-inline">
+                  <span class="category-pill primary-pill">Core Skills</span>
+                </div>
+                <h2 class="card-title">Primary Technical Skills</h2>
                 <p class="card-desc">
-                  Select between <strong>1 and 30 skills</strong>. The server uses these exact tags to compute your match score against job openings.
+                  Select between <strong>1 and 20 core skills</strong>. These represent your primary stack and main technical competencies for candidate-job matching.
                 </p>
               </div>
             </div>
@@ -256,13 +406,38 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="counter-icon">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
-              <span>Selected: <strong>{{ selectedSkillIds().length }}</strong> / 30</span>
+              <span>Selected: <strong>{{ selectedSkillIds().length }}</strong> / 20</span>
             </div>
           </div>
 
           <div class="card-body">
+            <!-- Selected Core Skills Ribbon -->
+            @if (selectedCoreSkills().length > 0) {
+              <div class="selected-ribbon core-ribbon">
+                <span class="ribbon-label">Your Core Stack:</span>
+                <div class="selected-chips-list">
+                  @for (skill of selectedCoreSkills(); track skill.id) {
+                    <span class="selected-chip chip-core">
+                      {{ skill.name }}
+                      <button
+                        type="button"
+                        class="chip-remove-btn"
+                        [attr.aria-label]="'Remove ' + skill.name"
+                        (click)="removeCoreSkill(skill.id)"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+
             <!-- Category Tabs -->
-            <div class="category-tabs" role="tablist" aria-label="Skill Categories">
+            <div class="category-tabs" role="tablist" aria-label="Core Skill Categories">
               @for (cat of categories; track cat.id) {
                 <button
                   type="button"
@@ -288,7 +463,7 @@
                   type="text"
                   [value]="skillSearchQuery()"
                   (input)="onSearchChange($event)"
-                  placeholder="Filter skills (e.g. C#, ASP.NET, Angular, Docker)..."
+                  placeholder="Filter core skills (e.g. C#, ASP.NET, Angular, Docker)..."
                   class="search-input"
                 />
                 @if (skillSearchQuery()) {
@@ -323,8 +498,10 @@
                   type="button"
                   class="skill-chip"
                   [class.selected]="isSkillSelected(skill.id)"
+                  [class.in-preferred]="isPreferredSkillSelected(skill.id)"
                   (click)="toggleSkill(skill.id)"
                   [attr.aria-pressed]="isSkillSelected(skill.id)"
+                  [title]="isPreferredSkillSelected(skill.id) ? 'Currently in Nice-to-Have (click to move to Core)' : ''"
                 >
                   @if (isSkillSelected(skill.id)) {
                     <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
@@ -337,6 +514,9 @@
                     </svg>
                   }
                   <span class="chip-label">{{ skill.name }}</span>
+                  @if (isPreferredSkillSelected(skill.id)) {
+                    <span class="chip-tag-pref">Preferred</span>
+                  }
                 </button>
               }
 
@@ -344,6 +524,145 @@
                 <div class="empty-skills-search">
                   <p>No skills match "{{ skillSearchQuery() }}".</p>
                   <button type="button" class="reset-filter-btn" (click)="clearSearch()">Clear filter</button>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- Card 3: Nice-to-Have Skills (Preferred Competencies) Section -->
+        <section class="card section-card preferred-skills-card">
+          <div class="card-header skills-header-row preferred-header-row">
+            <div class="header-title-group">
+              <div class="card-icon-box preferred-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+              </div>
+              <div>
+                <div class="category-badge-inline">
+                  <span class="category-pill preferred-pill">Nice-to-Have Skills</span>
+                  <span class="bonus-badge">Bonus Match Points</span>
+                </div>
+                <h2 class="card-title">Nice-to-Have Skills (Preferred Competencies)</h2>
+                <p class="card-desc">
+                  Highlight secondary tools, emerging frameworks, or technologies you know. When employers mark these as nice-to-have, you will earn <strong>bonus matching points</strong> without being penalized if an opening doesn't need them!
+                </p>
+              </div>
+            </div>
+
+            <!-- Preferred Counter Pill -->
+            <div
+              class="skills-counter-pill preferred-counter-pill"
+              [class.counter-valid]="selectedPreferredSkillIds().length > 0"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="counter-icon">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+              <span>Selected: <strong>{{ selectedPreferredSkillIds().length }}</strong> / 15</span>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <!-- Selected Preferred Skills Ribbon -->
+            @if (selectedPreferredSkills().length > 0) {
+              <div class="selected-ribbon preferred-ribbon">
+                <span class="ribbon-label">Your Nice-to-Have Skills:</span>
+                <div class="selected-chips-list">
+                  @for (skill of selectedPreferredSkills(); track skill.id) {
+                    <span class="selected-chip chip-preferred">
+                      {{ skill.name }}
+                      <button
+                        type="button"
+                        class="chip-remove-btn"
+                        [attr.aria-label]="'Remove preferred skill ' + skill.name"
+                        (click)="removePreferredSkill(skill.id)"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Category Tabs for Preferred Skills -->
+            <div class="category-tabs" role="tablist" aria-label="Preferred Skill Categories">
+              @for (cat of categories; track cat.id) {
+                <button
+                  type="button"
+                  class="cat-tab tab-preferred"
+                  [class.active]="activePreferredCategory() === cat.id"
+                  (click)="setPreferredCategory(cat.id)"
+                  role="tab"
+                  [attr.aria-selected]="activePreferredCategory() === cat.id"
+                >
+                  {{ cat.name }}
+                </button>
+              }
+            </div>
+
+            <!-- Preferred Search & Filter Bar -->
+            <div class="skills-search-bar preferred-search-bar">
+              <div class="search-input-wrapper">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input
+                  type="text"
+                  [value]="preferredSkillSearchQuery()"
+                  (input)="onPreferredSearchChange($event)"
+                  placeholder="Filter nice-to-have skills (e.g. Redis, GraphQL, Flutter, AWS)..."
+                  class="search-input"
+                />
+                @if (preferredSkillSearchQuery()) {
+                  <button type="button" class="clear-search-btn" (click)="clearPreferredSearch()" aria-label="Clear filter">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Preferred Clickable Chips Grid -->
+            <div class="chips-container preferred-chips-container" role="group" aria-label="Available preferred skills">
+              @for (skill of filteredPreferredSkills(); track skill.id) {
+                <button
+                  type="button"
+                  class="skill-chip chip-preferred-item"
+                  [class.selected-preferred]="isPreferredSkillSelected(skill.id)"
+                  [class.in-core]="isSkillSelected(skill.id)"
+                  (click)="togglePreferredSkill(skill.id)"
+                  [attr.aria-pressed]="isPreferredSkillSelected(skill.id)"
+                  [title]="isSkillSelected(skill.id) ? 'Currently in Core Skills (click to move to Nice-to-Have)' : ''"
+                >
+                  @if (isPreferredSkillSelected(skill.id)) {
+                    <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  } @else {
+                    <svg class="chip-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  }
+                  <span class="chip-label">{{ skill.name }}</span>
+                  @if (isSkillSelected(skill.id)) {
+                    <span class="chip-tag-core">Core</span>
+                  }
+                </button>
+              }
+
+              @if (filteredPreferredSkills().length === 0) {
+                <div class="empty-skills-search">
+                  <p>No skills match "{{ preferredSkillSearchQuery() }}".</p>
+                  <button type="button" class="reset-filter-btn" (click)="clearPreferredSearch()">Clear filter</button>
                 </div>
               }
             </div>

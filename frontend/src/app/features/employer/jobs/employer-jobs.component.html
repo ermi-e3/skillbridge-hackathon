@@ -106,15 +106,56 @@
 
               <h2 class="job-title">{{ job.title }}</h2>
 
+              <!-- Key Job Requirements & Attributes -->
+              <div class="job-attributes-row">
+                @if (job.workArrangement) {
+                  <span class="attr-chip arrangement-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="2" y1="12" x2="22" y2="12"></line>
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    {{ formatWorkArrangement(job.workArrangement) }}
+                  </span>
+                }
+                @if (job.jobType) {
+                  <span class="attr-chip type-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                    {{ formatJobType(job.jobType) }}
+                  </span>
+                }
+                @if (job.experienceLevel) {
+                  <span class="attr-chip exp-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    {{ formatExperienceLevel(job.experienceLevel) }}
+                  </span>
+                }
+                @if (job.minExperienceYears && job.minExperienceYears > 0) {
+                  <span class="attr-chip years-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    {{ job.minExperienceYears }}+ yrs exp
+                  </span>
+                }
+              </div>
+
+              <!-- Location & Date -->
               <div class="job-meta">
-                <span>
+                <span class="meta-location">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path>
                     <circle cx="12" cy="10" r="2.5"></circle>
                   </svg>
                   {{ job.location || 'Location not specified' }}
                 </span>
-                <span>
+                <span class="meta-date">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <circle cx="12" cy="12" r="9"></circle>
                     <path d="M12 7v5l3 2"></path>
@@ -123,6 +164,12 @@
                 </span>
               </div>
 
+              <!-- Job Description Preview -->
+              @if (job.description) {
+                <p class="job-description-excerpt">{{ job.description }}</p>
+              }
+
+              <!-- Required Skills -->
               <div class="skills-block">
                 <h3>Required skills</h3>
                 @if (job.requiredSkills.length > 0) {
@@ -136,8 +183,36 @@
                 }
               </div>
 
+              <!-- Preferred / Nice-to-Have Skills -->
+              @if (job.preferredSkills && job.preferredSkills.length > 0) {
+                <div class="skills-block preferred-skills-block">
+                  <div class="skills-title-row">
+                    <h3>Nice-to-Have / Preferred skills</h3>
+                    <span class="nice-to-have-badge">Optional</span>
+                  </div>
+                  <div class="skill-list">
+                    @for (skill of job.preferredSkills; track skill.id) {
+                      <span class="skill-tag preferred-tag">{{ skill.name }}</span>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Applicant Breakdown Status -->
+              @if (job.applicantCounts.total > 0) {
+                <div class="applicant-breakdown">
+                  <span class="breakdown-item received">{{ job.applicantCounts.received }} received</span>
+                  <span class="breakdown-divider">·</span>
+                  <span class="breakdown-item shortlisted">{{ job.applicantCounts.shortlisted }} shortlisted</span>
+                  @if (job.applicantCounts.rejected > 0) {
+                    <span class="breakdown-divider">·</span>
+                    <span class="breakdown-item rejected">{{ job.applicantCounts.rejected }} rejected</span>
+                  }
+                </div>
+              }
+
               <a class="applicants-action" [routerLink]="['/employer/jobs', job.id, 'applicants']">
-                <span>View Applicants</span>
+                <span>View Applicants ({{ job.applicantCounts.total }})</span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <path d="M5 12h14M13 6l6 6-6 6"></path>
                 </svg>

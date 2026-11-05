@@ -4,6 +4,7 @@ using SkillBridge.Application.Common.Exceptions;
 using SkillBridge.Application.Common.Interfaces;
 using SkillBridge.Domain.Common;
 using SkillBridge.Domain.Entities;
+using SkillBridge.Domain.Enums;
 
 namespace SkillBridge.Application.CandidateProfiles;
 
@@ -21,12 +22,18 @@ public sealed class CandidateProfileService(
             .AsNoTracking()
             .Include(candidate => candidate.Skills)
             .ThenInclude(candidateSkill => candidateSkill.Skill)
+            .Include(candidate => candidate.ExperienceHistory)
             .SingleOrDefaultAsync(candidate => candidate.UserId == userId, cancellationToken)
             ?? throw ProfileNotFound();
 
         return CreateResponse(profile, profile.Skills
             .OrderBy(skill => skill.SkillId)
-            .Select(skill => new CandidateProfileSkillResponse(skill.SkillId, skill.Skill.Name))
+            .Select(skill => new CandidateProfileSkillResponse(
+                skill.SkillId,
+                skill.Skill?.Name ?? "Unknown Skill",
+                skill.Proficiency,
+                skill.YearsOfExperience,
+                skill.IsPreferred))
             .ToArray());
     }
 
@@ -38,7 +45,9 @@ public sealed class CandidateProfileService(
         {
             Headline = (request.Headline ?? string.Empty).Trim(),
             Bio = NormalizeOptional(request.Bio),
-            GitHubUrl = NormalizeOptional(request.GitHubUrl)
+            GitHubUrl = NormalizeOptional(request.GitHubUrl),
+            Location = NormalizeOptional(request.Location),
+            SkillIds = request.SkillIds ?? []
         };
 
         var validation = await validator.ValidateAsync(normalized, cancellationToken);
@@ -54,17 +63,20 @@ public sealed class CandidateProfileService(
 
         var profile = await dbContext.CandidateProfiles
             .Include(candidate => candidate.Skills)
+            .Include(candidate => candidate.ExperienceHistory)
             .SingleOrDefaultAsync(candidate => candidate.UserId == userId, cancellationToken)
             ?? throw ProfileNotFound();
 
+        var preferredIds = request.PreferredSkillIds ?? [];
+        var allRequestedSkillIds = normalized.SkillIds.Concat(preferredIds).Distinct().ToList();
+
         var selectedSkills = await dbContext.Skills
             .AsNoTracking()
-            .Where(skill => normalized.SkillIds.Contains(skill.Id))
+            .Where(skill => allRequestedSkillIds.Contains(skill.Id))
             .OrderBy(skill => skill.Id)
-            .Select(skill => new CandidateProfileSkillResponse(skill.Id, skill.Name))
-            .ToArrayAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
 
-        if (selectedSkills.Length != normalized.SkillIds.Count)
+        if (selectedSkills.Count != allRequestedSkillIds.Count)
         {
             throw new RequestValidationException(new Dictionary<string, string[]>
             {
@@ -72,11 +84,57 @@ public sealed class CandidateProfileService(
             });
         }
 
-        profile.Update(normalized.Headline, normalized.Bio, normalized.GitHubUrl,
-            normalized.SkillIds, clock.UtcNow);
+        IEnumerable<(int SkillId, SkillProficiency Proficiency, int Years, bool IsPreferred)>? skillDetails = null;
+        if (request.SkillDetails != null && request.SkillDetails.Count > 0)
+        {
+            skillDetails = request.SkillDetails.Select(sd => (
+                sd.SkillId,
+                sd.Proficiency,
+                sd.YearsOfExperience,
+                sd.IsPreferred || preferredIds.Contains(sd.SkillId)));
+        }
+
+        IEnumerable<CandidateExperience>? experiences = null;
+        if (request.ExperienceHistory != null)
+        {
+            experiences = request.ExperienceHistory.Select(e => new CandidateExperience(
+                userId,
+                e.Title,
+                e.Company,
+                e.Location,
+                e.StartDate,
+                e.EndDate,
+                e.IsCurrent,
+                e.Description));
+        }
+
+        profile.Update(
+            normalized.Headline,
+            normalized.Bio,
+            normalized.GitHubUrl,
+            normalized.SkillIds,
+            normalized.Location,
+            normalized.ExperienceLevel,
+            normalized.YearsOfExperience,
+            normalized.PreferredWorkArrangement,
+            normalized.PreferredJobType,
+            clock.UtcNow,
+            skillDetails,
+            experiences,
+            request.PreferredSkillIds);
+
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return CreateResponse(profile, selectedSkills);
+        var skillResponses = profile.Skills
+            .OrderBy(s => s.SkillId)
+            .Select(s =>
+            {
+                var skillName = selectedSkills.FirstOrDefault(sk => sk.Id == s.SkillId)?.Name ?? "Skill";
+                return new CandidateProfileSkillResponse(s.SkillId, skillName, s.Proficiency, s.YearsOfExperience, s.IsPreferred);
+            })
+            .ToArray();
+
+        return CreateResponse(profile, skillResponses);
     }
 
     private string GetCandidateUserId()
@@ -103,6 +161,37 @@ public sealed class CandidateProfileService(
         new("candidate.profile_not_found", "Profile not found", "Candidate profile not found.");
 
     private static CandidateProfileResponse CreateResponse(
-        CandidateProfile profile, IReadOnlyList<CandidateProfileSkillResponse> skills) =>
-        new(profile.UserId, profile.Headline, profile.Bio, profile.GitHubUrl, profile.UpdatedAt, skills);
+        CandidateProfile profile, IReadOnlyList<CandidateProfileSkillResponse> skills)
+    {
+        var experiences = profile.ExperienceHistory
+            .OrderByDescending(e => e.IsCurrent)
+            .ThenByDescending(e => e.StartDate)
+            .Select(e => new CandidateExperienceDto(
+                e.Id,
+                e.Title,
+                e.Company,
+                e.Location,
+                e.StartDate,
+                e.EndDate,
+                e.IsCurrent,
+                e.Description))
+            .ToList();
+
+        var preferredSkills = skills.Where(s => s.IsPreferred).ToList();
+
+        return new(
+            profile.UserId,
+            profile.Headline,
+            profile.Bio,
+            profile.GitHubUrl,
+            profile.UpdatedAt,
+            skills,
+            profile.Location,
+            profile.ExperienceLevel,
+            profile.YearsOfExperience,
+            profile.PreferredWorkArrangement,
+            profile.PreferredJobType,
+            experiences,
+            preferredSkills);
+    }
 }

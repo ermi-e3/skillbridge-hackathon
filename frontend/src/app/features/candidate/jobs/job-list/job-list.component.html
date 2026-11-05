@@ -192,6 +192,57 @@
           }
         }
       </div>
+
+      <!-- Additional Match Filter Bars: Work Arrangement, Job Type, Experience Level -->
+      <div class="secondary-filters-bar">
+        <div class="filter-group-inline">
+          <span class="inline-filter-label">Arrangement:</span>
+          <div class="pill-group">
+            @for (opt of ['All', 'Remote', 'Hybrid', 'OnSite']; track opt) {
+              <button
+                type="button"
+                class="small-filter-pill"
+                [class.active]="selectedWorkArrangement() === opt"
+                (click)="setWorkArrangement(opt)"
+              >
+                {{ opt === 'OnSite' ? 'On-site' : opt }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="filter-group-inline">
+          <span class="inline-filter-label">Job Type:</span>
+          <div class="pill-group">
+            @for (opt of ['All', 'FullTime', 'PartTime', 'Contract', 'Internship']; track opt) {
+              <button
+                type="button"
+                class="small-filter-pill"
+                [class.active]="selectedJobType() === opt"
+                (click)="setJobType(opt)"
+              >
+                {{ opt === 'FullTime' ? 'Full-time' : opt === 'PartTime' ? 'Part-time' : opt }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="filter-group-inline">
+          <span class="inline-filter-label">Level:</span>
+          <div class="pill-group">
+            @for (opt of ['All', 'EntryLevel', 'Junior', 'MidLevel', 'Senior', 'Lead']; track opt) {
+              <button
+                type="button"
+                class="small-filter-pill"
+                [class.active]="selectedExperienceLevel() === opt"
+                (click)="setExperienceLevel(opt)"
+              >
+                {{ opt === 'EntryLevel' ? 'Entry' : opt === 'MidLevel' ? 'Mid' : opt }}
+              </button>
+            }
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Results Count Bar -->
@@ -233,11 +284,23 @@
       <!-- Responsive Job Card Grid -->
       <div class="jobs-grid">
         @for (job of jobs(); track job.id) {
-          <article class="job-card" [class.has-applied-card]="job.hasApplied">
-            <!-- Card Top Bar: Applied Badge & Match % Badge -->
+          <article
+            class="job-card"
+            [class.has-applied-card]="job.hasApplied && job.applicationStatus !== 'Withdrawn'"
+            [class.withdrawn-card]="job.applicationStatus === 'Withdrawn'"
+          >
+            <!-- Card Top Bar: Applied/Withdrawn Badge & Match % Badge -->
             <div class="card-top-bar">
               <div class="badges-left">
-                @if (job.hasApplied) {
+                @if (job.applicationStatus === 'Withdrawn') {
+                  <span class="status-indicator-badge badge-withdrawn" title="Application Withdrawn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    <span>Withdrawn</span>
+                  </span>
+                } @else if (job.hasApplied) {
                   <span class="applied-badge">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                       <polyline points="20 6 9 17 4 12"></polyline>
@@ -253,7 +316,7 @@
                   <div
                     class="match-badge"
                     [ngClass]="getMatchClass(matchScore)"
-                    [title]="'Your skills match ' + matchScore + '% of this job\'s requirements'"
+                    [title]="job.match?.breakdown?.explanation || ('Your skills match ' + matchScore + '% of this job\'s requirements')"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="match-icon">
                       <circle cx="12" cy="12" r="10"></circle>
@@ -271,6 +334,37 @@
 
             <!-- Job Title -->
             <h2 class="job-title">{{ job.title }}</h2>
+
+            <!-- Attributes Badges Row: Arrangement, Job Type, Experience Level -->
+            <div class="job-attributes-row">
+              @if (job.workArrangement) {
+                <span class="attr-chip arrangement-chip">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                  </svg>
+                  {{ job.workArrangement }}
+                </span>
+              }
+              @if (job.jobType) {
+                <span class="attr-chip type-chip">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                  </svg>
+                  {{ job.jobType }}
+                </span>
+              }
+              @if (job.experienceLevel) {
+                <span class="attr-chip exp-chip">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                  {{ job.experienceLevel }}
+                </span>
+              }
+            </div>
 
             <!-- Company & Location Meta Row -->
             <div class="job-meta-row">
@@ -322,6 +416,20 @@
                 }
               </div>
             </div>
+
+            <!-- Preferred Skills Tags if any -->
+            @if (job.preferredSkills && job.preferredSkills.length > 0) {
+              <div class="skills-tag-group preferred-group">
+                <span class="skills-label preferred-label">Preferred Skills:</span>
+                <div class="skill-tags-list">
+                  @for (skill of job.preferredSkills; track skill.id) {
+                    <span class="preferred-skill-tag">
+                      {{ skill.name }}
+                    </span>
+                  }
+                </div>
+              </div>
+            }
 
             <!-- Card Action Footer -->
             <div class="card-footer">

@@ -54,6 +54,8 @@ export class EmployerPostJobComponent implements OnInit {
   // Skills Catalog & Selected IDs
   readonly allSkills = signal<SkillDto[]>([]);
   readonly selectedSkillIds = signal<number[]>([]);
+  readonly selectedPreferredSkillIds = signal<number[]>([]);
+  readonly preferredSkillSearchQuery = signal<string>('');
 
   // Filtered skills based on chip search input
   readonly filteredSkills = computed(() => {
@@ -69,10 +71,28 @@ export class EmployerPostJobComponent implements OnInit {
     return this.allSkills().filter((s) => selectedIds.has(s.id));
   });
 
+  // Filtered preferred skills based on preferred search input
+  readonly filteredPreferredSkills = computed(() => {
+    const query = this.preferredSkillSearchQuery().trim().toLowerCase();
+    const skills = this.allSkills();
+    if (!query) return skills;
+    return skills.filter((s) => s.name.toLowerCase().includes(query));
+  });
+
+  // Selected preferred skill objects for quick display
+  readonly selectedPreferredSkills = computed(() => {
+    const selectedIds = new Set(this.selectedPreferredSkillIds());
+    return this.allSkills().filter((s) => selectedIds.has(s.id));
+  });
+
   // Reactive Form
   readonly jobForm: FormGroup = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(120)]],
     location: ['', [Validators.maxLength(100)]],
+    jobType: ['FullTime', [Validators.required]],
+    workArrangement: ['Remote', [Validators.required]],
+    experienceLevel: ['MidLevel', [Validators.required]],
+    minExperienceYears: [0, [Validators.min(0), Validators.max(50)]],
     description: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(4000)]],
     requiredSkillIds: [[], [requiredSkillsValidator(1, 15)]],
   });
@@ -143,6 +163,10 @@ export class EmployerPostJobComponent implements OnInit {
       if (current.length >= 15) {
         return; // Max 15 skills reached
       }
+      // If currently selected in preferred skills, remove from preferred
+      if (this.isPreferredSkillSelected(skillId)) {
+        this.removePreferredSkill(skillId);
+      }
       current.push(skillId);
     }
 
@@ -163,6 +187,39 @@ export class EmployerPostJobComponent implements OnInit {
     }
   }
 
+  /**
+   * Toggle preferred / nice-to-have skill selection chip
+   */
+  togglePreferredSkill(skillId: number): void {
+    const current = [...this.selectedPreferredSkillIds()];
+    const index = current.indexOf(skillId);
+
+    if (index > -1) {
+      current.splice(index, 1);
+    } else {
+      if (current.length >= 15) {
+        return; // Max 15 preferred skills
+      }
+      // If currently selected in required skills, remove from required
+      if (this.isSkillSelected(skillId)) {
+        this.removeSkill(skillId);
+      }
+      current.push(skillId);
+    }
+
+    this.selectedPreferredSkillIds.set(current);
+  }
+
+  isPreferredSkillSelected(skillId: number): boolean {
+    return this.selectedPreferredSkillIds().includes(skillId);
+  }
+
+  removePreferredSkill(skillId: number): void {
+    if (this.isPreferredSkillSelected(skillId)) {
+      this.togglePreferredSkill(skillId);
+    }
+  }
+
   onSearchChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.skillSearchQuery.set(input.value);
@@ -170,6 +227,15 @@ export class EmployerPostJobComponent implements OnInit {
 
   clearSearch(): void {
     this.skillSearchQuery.set('');
+  }
+
+  onPreferredSearchChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.preferredSkillSearchQuery.set(input.value);
+  }
+
+  clearPreferredSearch(): void {
+    this.preferredSkillSearchQuery.set('');
   }
 
   dismissAlert(): void {
@@ -193,7 +259,12 @@ export class EmployerPostJobComponent implements OnInit {
       title: formValue.title.trim(),
       description: formValue.description.trim(),
       location: formValue.location?.trim() ? formValue.location.trim() : null,
+      jobType: formValue.jobType,
+      workArrangement: formValue.workArrangement,
+      experienceLevel: formValue.experienceLevel,
+      minExperienceYears: Number(formValue.minExperienceYears || 0),
       requiredSkillIds: formValue.requiredSkillIds as number[],
+      preferredSkillIds: this.selectedPreferredSkillIds(),
     };
 
     this.jobsService.postJob(payload).subscribe({

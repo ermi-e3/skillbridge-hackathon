@@ -145,6 +145,10 @@
         <span class="metric-number">{{ rejectedCount() }}</span>
         <span class="metric-label">Rejected</span>
       </div>
+      <div class="metric-card withdrawn-metric">
+        <span class="metric-number">{{ withdrawnCount() }}</span>
+        <span class="metric-label">Withdrawn</span>
+      </div>
     </div>
 
     <!-- Table Section -->
@@ -196,12 +200,24 @@
                   <!-- Match % Chip & Bar -->
                   <td class="td-match">
                     <div class="match-cell-group">
-                      <span
-                        class="match-badge"
-                        [ngClass]="getMatchClass(getMatchPercent(app))"
-                      >
-                        {{ getMatchPercent(app) }}%
-                      </span>
+                      <div class="match-badge-row">
+                        <span
+                          class="match-badge"
+                          [ngClass]="getMatchClass(getMatchPercent(app))"
+                        >
+                          {{ getMatchPercent(app) }}%
+                        </span>
+                        @if (app.match?.matchedPreferredSkills; as matchedPrefs) {
+                          @if (matchedPrefs.length > 0) {
+                            <span
+                              class="nice-to-have-match-chip"
+                              [title]="'Matched ' + matchedPrefs.length + ' Nice-to-Have / Preferred skill(s)'"
+                            >
+                              +{{ matchedPrefs.length }} bonus
+                            </span>
+                          }
+                        }
+                      </div>
                       <div class="match-mini-bar-track">
                         <div
                           class="match-mini-bar-fill"

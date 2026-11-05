@@ -9,6 +9,52 @@
       <span>Back to Jobs</span>
     </a>
 
+    <!-- Confirmation Modal for Withdraw -->
+    @if (showWithdrawModal()) {
+      <div class="modal-backdrop" (click)="cancelWithdraw()">
+        <div class="modal-card" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+          <div class="modal-header">
+            <div class="modal-warning-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <h3 id="modal-title" class="modal-title">Withdraw Application</h3>
+          </div>
+
+          <div class="modal-body">
+            <p>
+              Are you sure you want to withdraw your application for <strong>{{ job()?.title }}</strong>?
+            </p>
+            <p class="modal-subtext">
+              ⚠️ Note: Once withdrawn, you cannot reapply to this opening per platform rules.
+            </p>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="cancelWithdraw()" [disabled]="isWithdrawing()">
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn-confirm-withdraw"
+              (click)="confirmWithdraw()"
+              [disabled]="isWithdrawing()"
+            >
+              @if (isWithdrawing()) {
+                <span class="spinner" aria-hidden="true"></span>
+                <span>Withdrawing...</span>
+              } @else {
+                <span>Confirm Withdrawal</span>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
     <!-- Success Notification Banner -->
     @if (successMessage()) {
       <div class="alert-banner alert-success" role="status" aria-live="polite">
@@ -89,7 +135,15 @@
                   <span>{{ j.companyName }}</span>
                 </span>
 
-                @if (hasAppliedState()) {
+                @if (applicationStatusState() === 'Withdrawn') {
+                  <span class="status-pill withdrawn-pill" title="Application Withdrawn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    <span>Withdrawn</span>
+                  </span>
+                } @else if (hasAppliedState()) {
                   <span class="applied-pill">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                       <polyline points="20 6 9 17 4 12"></polyline>
@@ -100,6 +154,40 @@
               </div>
 
               <h1 class="job-title">{{ j.title }}</h1>
+
+              <!-- Attributes Badges Row -->
+              <div class="job-attributes-row">
+                @if (j.workArrangement) {
+                  <span class="attr-chip arrangement-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="2" y1="12" x2="22" y2="12"></line>
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    {{ j.workArrangement }}
+                  </span>
+                }
+                @if (j.jobType) {
+                  <span class="attr-chip type-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                    {{ j.jobType }}
+                  </span>
+                }
+                @if (j.experienceLevel) {
+                  <span class="attr-chip exp-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    {{ j.experienceLevel }}
+                    @if (j.minExperienceYears && j.minExperienceYears > 0) {
+                      ({{ j.minExperienceYears }}+ yrs)
+                    }
+                  </span>
+                }
+              </div>
 
               <div class="meta-row">
                 @if (j.location) {
@@ -145,7 +233,7 @@
           </header>
 
           <!-- Match Breakdown (Matched vs Missing Skills) if available -->
-          @if (j.match && (j.match.matchedSkills?.length || j.match.missingSkills?.length)) {
+          @if (j.match && (j.match.matchedSkills?.length || j.match.missingSkills?.length || j.match.matchedPreferredSkills?.length)) {
             <div class="match-breakdown-card">
               <div class="breakdown-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -153,12 +241,12 @@
                   <line x1="12" y1="16" x2="12" y2="12"></line>
                   <line x1="12" y1="8" x2="12.01" y2="8"></line>
                 </svg>
-                <span>Skill Match Breakdown</span>
+                <span>Candidate-Job Skill Fit Breakdown</span>
               </div>
               <div class="breakdown-content">
                 @if (j.match.matchedSkills && j.match.matchedSkills.length > 0) {
                   <div class="breakdown-row matched-row">
-                    <span class="breakdown-label">✓ Matched:</span>
+                    <span class="breakdown-label">✓ Required Matched:</span>
                     <div class="mini-chips">
                       @for (s of j.match.matchedSkills; track s.id) {
                         <span class="mini-chip matched">{{ s.name }}</span>
@@ -168,10 +256,20 @@
                 }
                 @if (j.match.missingSkills && j.match.missingSkills.length > 0) {
                   <div class="breakdown-row missing-row">
-                    <span class="breakdown-label">Missing:</span>
+                    <span class="breakdown-label">Missing Required:</span>
                     <div class="mini-chips">
                       @for (s of j.match.missingSkills; track s.id) {
                         <span class="mini-chip missing">{{ s.name }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (j.match.matchedPreferredSkills && j.match.matchedPreferredSkills.length > 0) {
+                  <div class="breakdown-row matched-pref-row">
+                    <span class="breakdown-label">✓ Preferred Matched:</span>
+                    <div class="mini-chips">
+                      @for (s of j.match.matchedPreferredSkills; track s.id) {
+                        <span class="mini-chip preferred">{{ s.name }}</span>
                       }
                     </div>
                   </div>
@@ -189,6 +287,18 @@
               }
             </div>
           </section>
+
+          <!-- Preferred Skills Section if any -->
+          @if (j.preferredSkills && j.preferredSkills.length > 0) {
+            <section class="detail-section">
+              <h2 class="section-title">Preferred / Nice-to-Have Skills</h2>
+              <div class="skills-pill-group">
+                @for (skill of j.preferredSkills; track skill.id) {
+                  <span class="skill-pill preferred-pill">{{ skill.name }}</span>
+                }
+              </div>
+            </section>
+          }
 
           <!-- Job Description Section -->
           <section class="detail-section">
@@ -217,8 +327,34 @@
             </div>
           </div>
 
-          <!-- If already applied: Show informational banner & disabled button -->
-          @if (hasAppliedState()) {
+          <!-- If application status is Withdrawn: Show Withdrawn state -->
+          @if (applicationStatusState() === 'Withdrawn') {
+            <div class="already-applied-banner withdrawn-banner" role="status">
+              <div class="banner-top">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="banner-icon">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+                <span class="banner-title">Application Withdrawn</span>
+              </div>
+              <p class="banner-message">
+                You have withdrawn your application for this position. Per platform guidelines, withdrawn applications cannot be reopened.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              class="apply-submit-btn already-applied-btn withdrawn-btn"
+              disabled
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+              </svg>
+              <span>Withdrawn</span>
+            </button>
+          } @else if (hasAppliedState()) {
+            <!-- If applied and not withdrawn -->
             <div class="already-applied-banner" role="status">
               <div class="banner-top">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="banner-icon">
@@ -242,6 +378,22 @@
               </svg>
               <span>Applied</span>
             </button>
+
+            @if (applicationIdState() && (!applicationStatusState() || applicationStatusState() === 'Received')) {
+              <div class="withdraw-section">
+                <button
+                  type="button"
+                  class="btn-withdraw-job"
+                  (click)="promptWithdraw()"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                  </svg>
+                  <span>Withdraw Application</span>
+                </button>
+              </div>
+            }
           } @else {
             <!-- Active Application Form -->
             <form [formGroup]="applyForm" (ngSubmit)="onApplySubmit()" class="apply-form" novalidate>

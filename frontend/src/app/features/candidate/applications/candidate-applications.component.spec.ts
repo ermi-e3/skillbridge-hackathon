@@ -161,7 +161,21 @@ describe('CandidateApplicationsComponent', () => {
     const updated = component.applications().find((a) => a.id === 1);
     expect(updated?.status).toBe('Withdrawn');
 
+    expect(component.withdrawnCount()).toBe(2);
+    expect(component.receivedCount()).toBe(0);
+
     expect(component.successToast()).toContain('withdrawn');
+  });
+
+  it('should compute metrics correctly including withdrawnCount', () => {
+    expect(component.totalCount()).toBe(4);
+    expect(component.receivedCount()).toBe(1);
+    expect(component.shortlistedCount()).toBe(1);
+    expect(component.rejectedCount()).toBe(1);
+    expect(component.withdrawnCount()).toBe(1);
+
+    const withdrawnMetric = fixture.nativeElement.querySelector('.withdrawn-metric .metric-number');
+    expect(withdrawnMetric.textContent.trim()).toBe('1');
   });
 
   it('should display empty state when applications list is empty', () => {

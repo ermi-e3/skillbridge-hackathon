@@ -812,6 +812,137 @@ $danger-border: #fecaca;
   }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// PREFERRED / NICE-TO-HAVE ONBOARDING SECTION
+// ═══════════════════════════════════════════════════════════════
+.category-badge-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+
+  .category-pill {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    &.preferred-pill {
+      background: #f5f3ff;
+      color: #6d28d9;
+      border: 1px solid #ddd6fe;
+    }
+  }
+
+  .bonus-badge {
+    background: #ede9fe;
+    color: #5b21b6;
+    padding: 0.15rem 0.55rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+}
+
+.preferred-onboarding-section {
+  border: 1.5px dashed #d8b4fe;
+  background: linear-gradient(180deg, #ffffff 0%, #faf5ff 100%);
+
+  .preferred-icon {
+    background: #f3e8ff;
+    color: #7e22ce;
+  }
+
+  .preferred-counter {
+    background: #f3e8ff;
+    color: #6b21a8;
+    border: 1px solid #d8b4fe;
+  }
+
+  .tab-pref.active {
+    background: #7e22ce;
+    border-color: #7e22ce;
+    color: #ffffff;
+  }
+
+  .preferred-tray {
+    background: #faf5ff;
+    border: 1px solid #e9d5ff;
+
+    .tray-label {
+      color: #6b21a8;
+    }
+
+    .chip-pref {
+      background: #f3e8ff;
+      color: #7e22ce;
+      border: 1px solid #d8b4fe;
+    }
+  }
+
+  .card-pref {
+    &.selected-pref {
+      background: #f5f3ff;
+      border-color: #7e22ce;
+      box-shadow: 0 0 0 1px #7e22ce, 0 3px 10px rgba(126, 34, 206, 0.12);
+    }
+
+    .pref-box.checked {
+      background: #7e22ce;
+      border-color: #7e22ce;
+      color: #ffffff;
+    }
+  }
+}
+
+.pref-mini-tag {
+  font-size: 0.65rem;
+  background: #ede9fe;
+  color: #6d28d9;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-weight: 700;
+  margin-left: auto;
+}
+
+.core-mini-tag {
+  font-size: 0.65rem;
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-weight: 700;
+  margin-left: auto;
+}
+
+// Preferences Section
+.preferences-section {
+  .preferences-icon {
+    background: #ecfdf5;
+    color: #059669;
+  }
+
+  .preferences-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .form-select {
+    cursor: pointer;
+    background-color: #f8fafc;
+
+    option {
+      background: #ffffff;
+      color: #0f172a;
+    }
+  }
+}
+
 @keyframes shimmer {
   0% {
     background-position: 200% 0;

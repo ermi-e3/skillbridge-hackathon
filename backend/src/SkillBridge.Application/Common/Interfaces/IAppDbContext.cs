@@ -12,6 +12,7 @@ public interface IAppDbContext
     DbSet<Skill> Skills { get; }
     DbSet<CandidateProfile> CandidateProfiles { get; }
     DbSet<CandidateSkill> CandidateSkills { get; }
+    DbSet<CandidateExperience> CandidateExperiences { get; }
     DbSet<Job> Jobs { get; }
     DbSet<JobSkill> JobSkills { get; }
     DbSet<JobApplication> Applications { get; }

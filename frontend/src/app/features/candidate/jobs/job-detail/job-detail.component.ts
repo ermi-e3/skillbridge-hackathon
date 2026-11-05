@@ -25,8 +25,12 @@ export class JobDetailComponent implements OnInit {
   // Component Signals
   readonly isLoading = signal<boolean>(true);
   readonly isSubmitting = signal<boolean>(false);
+  readonly isWithdrawing = signal<boolean>(false);
+  readonly showWithdrawModal = signal<boolean>(false);
   readonly job = signal<JobDto | null>(null);
   readonly hasAppliedState = signal<boolean>(false);
+  readonly applicationStatusState = signal<string | null>(null);
+  readonly applicationIdState = signal<number | null>(null);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
 
@@ -63,6 +67,8 @@ export class JobDetailComponent implements OnInit {
       next: (data) => {
         this.job.set(data);
         this.hasAppliedState.set(!!data.hasApplied);
+        this.applicationStatusState.set(data.applicationStatus || (data.hasApplied ? 'Received' : null));
+        this.applicationIdState.set(data.applicationId || null);
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -117,9 +123,11 @@ export class JobDetailComponent implements OnInit {
     const note = this.applyForm.value.coverNote?.trim() || null;
 
     this.applicationsService.apply(currentJob.id, { coverNote: note }).subscribe({
-      next: () => {
+      next: (application) => {
         this.isSubmitting.set(false);
         this.hasAppliedState.set(true);
+        this.applicationStatusState.set(application?.status || 'Received');
+        this.applicationIdState.set(application?.id || null);
         this.successMessage.set('Application submitted successfully! Your application status is now Received.');
         this.applyForm.reset();
       },
@@ -134,6 +142,39 @@ export class JobDetailComponent implements OnInit {
         if (err.status === 400 && (err.error?.code === 'applications.duplicate' || errorDetail.toLowerCase().includes('already applied'))) {
           this.hasAppliedState.set(true);
         }
+      },
+    });
+  }
+
+  promptWithdraw(): void {
+    if (this.applicationStatusState() === 'Withdrawn') return;
+    this.showWithdrawModal.set(true);
+  }
+
+  cancelWithdraw(): void {
+    this.showWithdrawModal.set(false);
+  }
+
+  confirmWithdraw(): void {
+    const appId = this.applicationIdState();
+    if (!appId || this.isWithdrawing()) return;
+
+    this.isWithdrawing.set(true);
+    this.dismissAlert();
+    this.dismissSuccess();
+
+    this.applicationsService.withdraw(appId).subscribe({
+      next: () => {
+        this.isWithdrawing.set(false);
+        this.showWithdrawModal.set(false);
+        this.applicationStatusState.set('Withdrawn');
+        this.successMessage.set('Application withdrawn successfully. Your application status is now Withdrawn.');
+      },
+      error: (err) => {
+        this.isWithdrawing.set(false);
+        this.showWithdrawModal.set(false);
+        const msg = extractErrorMessage(err, 'Failed to withdraw application.');
+        this.errorMessage.set(msg);
       },
     });
   }

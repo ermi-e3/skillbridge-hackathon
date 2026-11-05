@@ -154,6 +154,52 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("SkillBridge.Domain.Entities.CandidateExperience", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CandidateId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Company")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsCurrent")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CandidateId");
+
+                    b.ToTable("CandidateExperiences", (string)null);
+                });
+
             modelBuilder.Entity("SkillBridge.Domain.Entities.CandidateProfile", b =>
                 {
                     b.Property<string>("UserId")
@@ -163,6 +209,11 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
+                    b.Property<int>("ExperienceLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.Property<string>("GitHubUrl")
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
@@ -171,8 +222,27 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
+                    b.Property<string>("Location")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("PreferredJobType")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.Property<int>("PreferredWorkArrangement")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(2);
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("YearsOfExperience")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.HasKey("UserId");
 
@@ -186,6 +256,21 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("SkillId")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("IsPreferred")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("Proficiency")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(2);
+
+                    b.Property<int>("YearsOfExperience")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
 
                     b.HasKey("CandidateId", "SkillId");
 
@@ -214,23 +299,49 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("ExperienceLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.Property<bool>("IsOpen")
                         .HasColumnType("boolean");
+
+                    b.Property<int>("JobType")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
 
                     b.Property<string>("Location")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<int>("MinExperienceYears")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
+                    b.Property<int>("WorkArrangement")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.HasKey("Id");
 
                     b.HasIndex("EmployerId");
 
                     b.HasIndex("IsOpen", "CreatedAt");
+
+                    b.HasIndex("IsOpen", "ExperienceLevel");
+
+                    b.HasIndex("IsOpen", "JobType");
+
+                    b.HasIndex("IsOpen", "WorkArrangement");
 
                     b.ToTable("Jobs", (string)null);
                 });
@@ -293,9 +404,21 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                     b.Property<int>("SkillId")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("IsRequired")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("MinProficiency")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(2);
+
                     b.HasKey("JobId", "SkillId");
 
                     b.HasIndex("SkillId");
+
+                    b.HasIndex("JobId", "IsRequired");
 
                     b.ToTable("JobSkills", (string)null);
                 });
@@ -694,6 +817,17 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SkillBridge.Domain.Entities.CandidateExperience", b =>
+                {
+                    b.HasOne("SkillBridge.Domain.Entities.CandidateProfile", "Candidate")
+                        .WithMany("ExperienceHistory")
+                        .HasForeignKey("CandidateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Candidate");
+                });
+
             modelBuilder.Entity("SkillBridge.Domain.Entities.CandidateProfile", b =>
                 {
                     b.HasOne("SkillBridge.Infrastructure.Identity.AppUser", null)
@@ -769,6 +903,8 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("SkillBridge.Domain.Entities.CandidateProfile", b =>
                 {
+                    b.Navigation("ExperienceHistory");
+
                     b.Navigation("Skills");
                 });
 

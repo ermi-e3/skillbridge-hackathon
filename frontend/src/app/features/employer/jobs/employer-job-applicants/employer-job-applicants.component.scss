@@ -247,6 +247,20 @@
       font-size: 0.825rem;
       font-weight: 600;
     }
+
+    &.preferred-overview {
+      margin-top: 0.5rem;
+
+      .preferred-label {
+        color: #7c3aed;
+      }
+
+      .preferred-chip {
+        background: #faf5ff;
+        border: 1px dashed #d8b4fe;
+        color: #6d28d9;
+      }
+    }
   }
 
   .stats-ribbon {
@@ -658,6 +672,10 @@
   &.missing-group .group-title {
     color: #64748b;
   }
+
+  &.preferred-group .group-title {
+    color: #1d4ed8;
+  }
 }
 
 .chips-row {
@@ -682,6 +700,32 @@
     background: #ffffff;
     border: 1px dashed #cbd5e1;
     color: #64748b;
+  }
+
+  &.preferred {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1d4ed8;
+  }
+}
+
+.applicant-breakdown-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding-top: 0.65rem;
+  margin-top: 0.25rem;
+  border-top: 1px solid #e2e8f0;
+
+  .breakdown-tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.725rem;
+    font-weight: 600;
+    color: #475569;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
   }
 }
 

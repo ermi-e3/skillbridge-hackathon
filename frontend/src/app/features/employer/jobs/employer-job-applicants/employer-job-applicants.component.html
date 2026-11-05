@@ -70,6 +70,17 @@
               }
             </div>
           </div>
+
+          @if (jobSummary()?.preferredSkills && jobSummary()!.preferredSkills!.length > 0) {
+            <div class="job-skills-overview preferred-overview">
+              <span class="label preferred-label">Nice-to-Have (Preferred):</span>
+              <div class="skills-wrap">
+                @for (skill of jobSummary()?.preferredSkills; track skill.id) {
+                  <span class="job-skill-chip preferred-chip">{{ skill.name }}</span>
+                }
+              </div>
+            </div>
+          }
         </div>
 
         <!-- Quick Stats -->
@@ -267,7 +278,7 @@
 
             <!-- Skills Breakdown Section -->
             <div class="skills-breakdown">
-              @if (applicant.match.matchedSkills.length > 0) {
+              @if (applicant.match.matchedSkills && applicant.match.matchedSkills.length > 0) {
                 <div class="skill-group matched-group">
                   <span class="group-title">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -283,7 +294,7 @@
                 </div>
               }
 
-              @if (applicant.match.missingSkills.length > 0) {
+              @if (applicant.match.missingSkills && applicant.match.missingSkills.length > 0) {
                 <div class="skill-group missing-group">
                   <span class="group-title">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -297,6 +308,34 @@
                       <span class="skill-chip missing">{{ skill.name }}</span>
                     }
                   </div>
+                </div>
+              }
+
+              @if (applicant.match.matchedPreferredSkills && applicant.match.matchedPreferredSkills.length > 0) {
+                <div class="skill-group preferred-group">
+                  <span class="group-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    Matched preferred ({{ applicant.match.matchedPreferredSkills.length }}):
+                  </span>
+                  <div class="chips-row">
+                    @for (skill of applicant.match.matchedPreferredSkills; track skill.id) {
+                      <span class="skill-chip preferred">{{ skill.name }}</span>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (applicant.match.breakdown; as b) {
+                <div class="applicant-breakdown-summary">
+                  <span class="breakdown-tag">Required Skills: {{ b.requiredSkillsScore }}/{{ b.maxRequiredSkillsScore }} pts</span>
+                  @if (b.maxPreferredSkillsScore > 0) {
+                    <span class="breakdown-tag">Preferred: {{ b.preferredSkillsScore }}/{{ b.maxPreferredSkillsScore }} pts</span>
+                  }
+                  <span class="breakdown-tag">Experience: {{ b.experienceScore }}/{{ b.maxExperienceScore }} pts</span>
+                  <span class="breakdown-tag">Arrangement: {{ b.workArrangementScore }}/{{ b.maxWorkArrangementScore }} pts</span>
+                  <span class="breakdown-tag">Location: {{ b.locationScore }}/{{ b.maxLocationScore }} pts</span>
                 </div>
               }
             </div>

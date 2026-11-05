@@ -16,11 +16,19 @@ describe('EmployerJobsComponent', () => {
       id: 12,
       title: 'Junior Backend Developer',
       location: 'Addis Ababa',
+      jobType: 'FullTime',
+      workArrangement: 'Hybrid',
+      experienceLevel: 'MidLevel',
+      minExperienceYears: 3,
+      description: 'We are looking for a skilled developer to build scalable backend services.',
       isOpen: true,
       createdAt: '2026-10-10T08:55:00Z',
       requiredSkills: [
         { id: 1, name: 'ASP.NET Core' },
         { id: 3, name: 'C#' },
+      ],
+      preferredSkills: [
+        { id: 5, name: 'Docker' },
       ],
       applicantCounts: {
         total: 4,
@@ -58,8 +66,16 @@ describe('EmployerJobsComponent', () => {
     expect(jobsServiceSpy.getEmployerJobs).toHaveBeenCalledOnce();
     expect(fixture.nativeElement.textContent).toContain('Junior Backend Developer');
     expect(fixture.nativeElement.textContent).toContain('Addis Ababa');
+    expect(fixture.nativeElement.textContent).toContain('Full-time');
+    expect(fixture.nativeElement.textContent).toContain('Hybrid');
+    expect(fixture.nativeElement.textContent).toContain('Mid Level');
+    expect(fixture.nativeElement.textContent).toContain('3+ yrs exp');
+    expect(fixture.nativeElement.textContent).toContain('We are looking for a skilled developer');
     expect(fixture.nativeElement.textContent).toContain('ASP.NET Core');
+    expect(fixture.nativeElement.textContent).toContain('Docker');
     expect(fixture.nativeElement.textContent).toContain('4 applicants');
+    expect(fixture.nativeElement.textContent).toContain('2 received');
+    expect(fixture.nativeElement.textContent).toContain('1 shortlisted');
 
     const applicantsLink = fixture.nativeElement.querySelector('.applicants-action');
     expect(applicantsLink.getAttribute('href')).toBe('/employer/jobs/12/applicants');

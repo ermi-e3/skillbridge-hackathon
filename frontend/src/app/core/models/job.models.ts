@@ -1,9 +1,28 @@
 import { SkillDto } from './profile.models';
 
+export interface JobMatchBreakdownDto {
+  requiredSkillsScore: number;
+  maxRequiredSkillsScore: number;
+  preferredSkillsScore: number;
+  maxPreferredSkillsScore: number;
+  experienceScore: number;
+  maxExperienceScore: number;
+  workArrangementScore: number;
+  maxWorkArrangementScore: number;
+  locationScore: number;
+  maxLocationScore: number;
+  jobTypeScore: number;
+  maxJobTypeScore: number;
+  explanation: string;
+}
+
 export interface JobMatchDto {
   percent: number;
   matchedSkills?: SkillDto[];
   missingSkills?: SkillDto[];
+  matchedPreferredSkills?: SkillDto[];
+  missingPreferredSkills?: SkillDto[];
+  breakdown?: JobMatchBreakdownDto | null;
 }
 
 export interface JobDto {
@@ -11,13 +30,20 @@ export interface JobDto {
   title: string;
   description: string;
   location?: string;
+  jobType?: string;
+  workArrangement?: string;
+  experienceLevel?: string;
+  minExperienceYears?: number;
   requiredSkills: SkillDto[];
+  preferredSkills?: SkillDto[];
   companyName: string;
   createdAt: string;
   isOpen?: boolean;
   myMatchPercent?: number;
   hasApplied?: boolean;
   match?: JobMatchDto | null;
+  applicationStatus?: string;
+  applicationId?: number;
 }
 
 export interface PagedJobsResponse {
@@ -31,10 +57,16 @@ export interface PagedJobsResponse {
 export interface EmployerJobDto {
   id: number;
   title: string;
+  description?: string;
   location?: string | null;
+  jobType?: string;
+  workArrangement?: string;
+  experienceLevel?: string;
+  minExperienceYears?: number;
   isOpen: boolean;
   createdAt: string;
   requiredSkills: SkillDto[];
+  preferredSkills?: SkillDto[];
   applicantCounts: {
     total: number;
     received: number;
@@ -44,10 +76,21 @@ export interface EmployerJobDto {
   };
 }
 
+export interface CreateJobSkillRequirementRequest {
+  skillId: number;
+  isRequired: boolean;
+  minProficiency: string;
+}
+
 export interface CreateJobRequest {
   title: string;
   description: string;
   location?: string | null;
+  jobType?: string;
+  workArrangement?: string;
+  experienceLevel?: string;
+  minExperienceYears?: number;
   requiredSkillIds: number[];
+  preferredSkillIds?: number[];
+  skillRequirements?: CreateJobSkillRequirementRequest[];
 }
-

@@ -33,6 +33,9 @@ export class JobListComponent implements OnInit {
   readonly allSkills = signal<SkillDto[]>([]);
   readonly selectedSkillIds = signal<number[]>([]);
   readonly skillFilterSearch = signal<string>('');
+  readonly selectedWorkArrangement = signal<string>('All');
+  readonly selectedJobType = signal<string>('All');
+  readonly selectedExperienceLevel = signal<string>('All');
   readonly jobs = signal<JobDto[]>([]);
 
   // Filter skills for chip bar search
@@ -98,8 +101,17 @@ export class JobListComponent implements OnInit {
     this.errorMessage.set(null);
 
     const filterIds = this.selectedSkillIds();
+    const arrangement = this.selectedWorkArrangement() === 'All' ? undefined : this.selectedWorkArrangement();
+    const type = this.selectedJobType() === 'All' ? undefined : this.selectedJobType();
+    const exp = this.selectedExperienceLevel() === 'All' ? undefined : this.selectedExperienceLevel();
 
-    this.jobsService.getJobs(filterIds).subscribe({
+    const hasExtraFilters = arrangement !== undefined || type !== undefined || exp !== undefined;
+
+    const call$ = hasExtraFilters
+      ? this.jobsService.getJobs(filterIds, undefined, 'newest', 1, 50, type, arrangement, exp)
+      : this.jobsService.getJobs(filterIds);
+
+    call$.subscribe({
       next: (jobsList) => {
         this.jobs.set(jobsList);
         this.isLoadingJobs.set(false);
@@ -110,6 +122,29 @@ export class JobListComponent implements OnInit {
         this.errorMessage.set(msg);
       },
     });
+  }
+
+  setWorkArrangement(val: string): void {
+    this.selectedWorkArrangement.set(val);
+    this.loadJobs();
+  }
+
+  setJobType(val: string): void {
+    this.selectedJobType.set(val);
+    this.loadJobs();
+  }
+
+  setExperienceLevel(val: string): void {
+    this.selectedExperienceLevel.set(val);
+    this.loadJobs();
+  }
+
+  clearAllFilters(): void {
+    this.selectedSkillIds.set([]);
+    this.selectedWorkArrangement.set('All');
+    this.selectedJobType.set('All');
+    this.selectedExperienceLevel.set('All');
+    this.loadJobs();
   }
 
   /**

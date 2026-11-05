@@ -163,12 +163,15 @@ describe('CandidateProfileComponent', () => {
 
     component.onSubmit();
 
-    expect(profileServiceSpy.updateMyProfile).toHaveBeenCalledWith({
-      headline: 'Senior Full Stack Specialist',
-      gitHubUrl: 'https://github.com/hana-dev',
-      bio: 'Updated bio description',
-      skillIds: [1, 2, 4],
-    });
+    expect(profileServiceSpy.updateMyProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headline: 'Senior Full Stack Specialist',
+        gitHubUrl: 'https://github.com/hana-dev',
+        bio: 'Updated bio description',
+        skillIds: [1, 2, 4],
+        preferredSkillIds: [],
+      })
+    );
 
     expect(component.successToast()).toBe('Profile updated successfully!');
     fixture.detectChanges();
@@ -182,6 +185,59 @@ describe('CandidateProfileComponent', () => {
     expect(component.successToast()).toBeNull();
 
     vi.useRealTimers();
+  });
+
+  it('should support selecting, toggling, and submitting preferred skills under nice-to-have category', () => {
+    component.profileForm.patchValue({
+      headline: 'Full Stack Engineer',
+      skillIds: [1, 2],
+    });
+    component.togglePreferredSkill(3);
+    expect(component.selectedPreferredSkillIds()).toEqual([3]);
+    expect(component.isPreferredSkillSelected(3)).toBe(true);
+
+    // Mutual exclusivity: selecting skill 3 as core removes it from preferred
+    component.toggleSkill(3);
+    expect(component.selectedSkillIds()).toContain(3);
+    expect(component.selectedPreferredSkillIds()).not.toContain(3);
+
+    // Re-add to preferred
+    component.togglePreferredSkill(4);
+    expect(component.selectedPreferredSkillIds()).toContain(4);
+
+    component.onSubmit();
+
+    expect(profileServiceSpy.updateMyProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headline: 'Full Stack Engineer',
+        preferredSkillIds: [4],
+      })
+    );
+  });
+
+  it('should support updating location, work arrangement, job type, and experience criteria', () => {
+    component.profileForm.patchValue({
+      headline: 'Principal Architect',
+      location: 'Hawassa, Ethiopia',
+      preferredWorkArrangement: 'Hybrid',
+      preferredJobType: 'FullTime',
+      experienceLevel: 'Senior',
+      yearsOfExperience: 7,
+      skillIds: [1, 2],
+    });
+
+    component.onSubmit();
+
+    expect(profileServiceSpy.updateMyProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headline: 'Principal Architect',
+        location: 'Hawassa, Ethiopia',
+        preferredWorkArrangement: 'Hybrid',
+        preferredJobType: 'FullTime',
+        experienceLevel: 'Senior',
+        yearsOfExperience: 7,
+      })
+    );
   });
 
   it('should show dismissible error banner when update fails', () => {

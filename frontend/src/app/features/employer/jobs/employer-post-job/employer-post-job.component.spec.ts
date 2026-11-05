@@ -144,14 +144,39 @@ describe('EmployerPostJobComponent', () => {
 
     component.onSubmit();
 
-    expect(jobsServiceSpy.postJob).toHaveBeenCalledWith({
-      title: 'Senior .NET Developer',
-      location: 'Remote',
-      description: 'We are seeking an experienced developer with solid C# skills to build scalable APIs.',
-      requiredSkillIds: [1, 3],
-    });
+    expect(jobsServiceSpy.postJob).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Senior .NET Developer',
+        location: 'Remote',
+        description: 'We are seeking an experienced developer with solid C# skills to build scalable APIs.',
+        requiredSkillIds: [1, 3],
+        preferredSkillIds: [],
+      })
+    );
     expect(component.isSubmitting()).toBe(false);
     expect(router.navigate).toHaveBeenCalledWith(['/employer/jobs']);
+  });
+
+  it('should toggle preferred skills and include them in submission payload', () => {
+    component.jobForm.patchValue({
+      title: 'Full Stack Engineer',
+      location: 'Addis Ababa',
+      description: 'Looking for a senior full stack engineer with great modern skills.',
+    });
+    component.toggleSkill(1);
+    component.togglePreferredSkill(2);
+
+    expect(component.selectedSkillIds()).toEqual([1]);
+    expect(component.selectedPreferredSkillIds()).toEqual([2]);
+
+    component.onSubmit();
+
+    expect(jobsServiceSpy.postJob).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requiredSkillIds: [1],
+        preferredSkillIds: [2],
+      })
+    );
   });
 
   it('should display error message and not navigate on submission error', () => {

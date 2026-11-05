@@ -227,6 +227,11 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0
         background-color: #ccfbf1;
         color: #0f766e;
       }
+
+      &.purple {
+        background-color: #f3e8ff;
+        color: #7c3aed;
+      }
     }
 
     .header-text-with-badge {
@@ -321,7 +326,14 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0
   }
 }
 
+.form-row-2col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
 .form-input,
+.form-select,
 .form-textarea {
   width: 100%;
   box-sizing: border-box;
@@ -747,6 +759,98 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0
     .btn-secondary,
     .btn-primary {
       width: 100%;
+    }
+  }
+}
+
+// Nice-to-Have / Preferred Skills card styling
+.preferred-skills-card {
+  border-left: 4px solid #8b5cf6;
+
+  .header-icon.purple {
+    background-color: #f3e8ff;
+    color: #7c3aed;
+  }
+
+  .category-badge-inline {
+    margin-bottom: 0.35rem;
+
+    .category-pill {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      font-size: 0.725rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background-color: #f3e8ff;
+      color: #6d28d9;
+      border: 1px solid #ddd6fe;
+      border-radius: 9999px;
+    }
+  }
+
+  .selection-badge.badge-preferred {
+    &.badge-valid {
+      background-color: #f3e8ff;
+      color: #6d28d9;
+      border-color: #ddd6fe;
+    }
+  }
+
+  .selected-ribbon.preferred-ribbon {
+    background-color: #faf5ff;
+    border-color: #e9d5ff;
+
+    .ribbon-label {
+      color: #6d28d9;
+    }
+
+    .selected-chip.chip-preferred {
+      border-color: #c4b5fd;
+      color: #6d28d9;
+
+      .chip-remove-btn {
+        color: #7c3aed;
+
+        &:hover {
+          background-color: #fee2e2;
+          color: #ef4444;
+        }
+      }
+    }
+  }
+
+  .skills-search-wrapper .skills-search-input:focus {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+  }
+
+  .skill-chip.chip-type-preferred {
+    &:hover {
+      border-color: #8b5cf6;
+      color: #6d28d9;
+      background-color: #f5f3ff;
+    }
+
+    &:focus-visible {
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+    }
+
+    &.chip-active {
+      background-color: #7c3aed;
+      border-color: #7c3aed;
+      color: #ffffff;
+      box-shadow: 0 2px 4px rgba(124, 58, 237, 0.25);
+
+      .chip-check svg {
+        stroke: #ffffff;
+      }
+    }
+
+    &.chip-in-required {
+      opacity: 0.6;
+      background-color: #f8fafc;
+      border-style: dashed;
     }
   }
 }

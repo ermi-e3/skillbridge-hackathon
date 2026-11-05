@@ -14,7 +14,8 @@ public sealed class JobsService(
     IIdentityService identityService,
     ICurrentUser currentUser,
     IClock clock,
-    IValidator<CreateJobRequest> createJobValidator)
+    IValidator<CreateJobRequest> createJobValidator,
+    IJobMatchingService jobMatchingService)
 {
     public async Task<PagedJobsResponse> GetJobsAsync(
         IEnumerable<int>? skillIds = null,
@@ -22,6 +23,10 @@ public sealed class JobsService(
         string? sort = "newest",
         int page = 1,
         int pageSize = 20,
+        JobType? jobType = null,
+        WorkArrangement? workArrangement = null,
+        ExperienceLevel? experienceLevel = null,
+        string? location = null,
         CancellationToken cancellationToken = default)
     {
         if (page < 1)
@@ -49,15 +54,39 @@ public sealed class JobsService(
             .ThenInclude(rs => rs.Skill)
             .AsQueryable();
 
+        // Optimized SQL filtering for skills
         if (filterSkillIds != null && filterSkillIds.Count > 0)
         {
             query = query.Where(j => j.RequiredSkills.Any(rs => filterSkillIds.Contains(rs.SkillId)));
         }
 
+        // Optimized SQL filtering for title / description search
         if (!string.IsNullOrWhiteSpace(search))
         {
             var lowerSearch = search.Trim().ToLower();
-            query = query.Where(j => j.Title.ToLower().Contains(lowerSearch));
+            query = query.Where(j => j.Title.ToLower().Contains(lowerSearch) || j.Description.ToLower().Contains(lowerSearch));
+        }
+
+        // Optimized SQL filtering for hiring factors
+        if (jobType.HasValue)
+        {
+            query = query.Where(j => j.JobType == jobType.Value);
+        }
+
+        if (workArrangement.HasValue)
+        {
+            query = query.Where(j => j.WorkArrangement == workArrangement.Value);
+        }
+
+        if (experienceLevel.HasValue)
+        {
+            query = query.Where(j => j.ExperienceLevel == experienceLevel.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(location))
+        {
+            var lowerLoc = location.Trim().ToLower();
+            query = query.Where(j => j.Location != null && j.Location.ToLower().Contains(lowerLoc));
         }
 
         var allMatchingJobs = await query.ToListAsync(cancellationToken);
@@ -66,24 +95,24 @@ public sealed class JobsService(
         var employers = await identityService.FindByIdsAsync(employerIds, cancellationToken);
 
         var isCandidate = currentUser.IsAuthenticated && currentUser.IsInRole(Roles.Candidate);
-        HashSet<int>? candidateSkillIds = null;
-        HashSet<int>? appliedJobIds = null;
+        CandidateProfile? candidateProfile = null;
+        Dictionary<int, (ApplicationStatus Status, int Id)>? appliedJobMap = null;
 
         if (isCandidate)
         {
-            var candidateSkills = await dbContext.CandidateSkills
+            candidateProfile = await dbContext.CandidateProfiles
                 .AsNoTracking()
-                .Where(cs => cs.CandidateId == currentUser.UserId)
-                .Select(cs => cs.SkillId)
-                .ToListAsync(cancellationToken);
-            candidateSkillIds = candidateSkills.ToHashSet();
+                .Include(cp => cp.Skills)
+                .ThenInclude(cs => cs.Skill)
+                .Include(cp => cp.ExperienceHistory)
+                .FirstOrDefaultAsync(cp => cp.UserId == currentUser.UserId, cancellationToken);
 
             var applied = await dbContext.Applications
                 .AsNoTracking()
                 .Where(a => a.CandidateId == currentUser.UserId)
-                .Select(a => a.JobId)
+                .Select(a => new { a.JobId, a.Status, a.Id })
                 .ToListAsync(cancellationToken);
-            appliedJobIds = applied.ToHashSet();
+            appliedJobMap = applied.ToDictionary(a => a.JobId, a => (a.Status, a.Id));
         }
 
         var jobDtos = allMatchingJobs.Select(job =>
@@ -92,7 +121,23 @@ public sealed class JobsService(
             var companyName = employer?.CompanyName ?? "Unknown Company";
 
             var requiredSkills = job.RequiredSkills
-                .Where(rs => rs.Skill != null)
+                .Where(rs => rs.Skill != null && rs.IsRequired)
+                .OrderBy(rs => rs.Skill.Name)
+                .Select(rs => new SkillDto(rs.SkillId, rs.Skill.Name))
+                .ToList();
+
+            // Fallback if none explicitly marked required
+            if (requiredSkills.Count == 0)
+            {
+                requiredSkills = job.RequiredSkills
+                    .Where(rs => rs.Skill != null)
+                    .OrderBy(rs => rs.Skill.Name)
+                    .Select(rs => new SkillDto(rs.SkillId, rs.Skill.Name))
+                    .ToList();
+            }
+
+            var preferredSkills = job.RequiredSkills
+                .Where(rs => rs.Skill != null && !rs.IsRequired)
                 .OrderBy(rs => rs.Skill.Name)
                 .Select(rs => new SkillDto(rs.SkillId, rs.Skill.Name))
                 .ToList();
@@ -100,18 +145,27 @@ public sealed class JobsService(
             JobMatchDto? match = null;
             int? myMatchPercent = null;
             bool? hasApplied = null;
+            string? applicationStatus = null;
+            int? applicationId = null;
 
-            if (isCandidate && candidateSkillIds != null)
+            if (isCandidate)
             {
-                var matchedSkills = requiredSkills.Where(s => candidateSkillIds.Contains(s.Id)).ToList();
-                var missingSkills = requiredSkills.Where(s => !candidateSkillIds.Contains(s.Id)).ToList();
-                var percent = requiredSkills.Count == 0
-                    ? 0
-                    : (int)Math.Round((double)matchedSkills.Count / requiredSkills.Count * 100.0, MidpointRounding.AwayFromZero);
+                if (candidateProfile != null)
+                {
+                    match = jobMatchingService.CalculateMatch(job, candidateProfile);
+                    myMatchPercent = match.Percent;
+                }
 
-                match = new JobMatchDto(percent, matchedSkills, missingSkills);
-                myMatchPercent = percent;
-                hasApplied = appliedJobIds?.Contains(job.Id) ?? false;
+                if (appliedJobMap != null && appliedJobMap.TryGetValue(job.Id, out var appInfo))
+                {
+                    hasApplied = true;
+                    applicationStatus = appInfo.Status.ToString();
+                    applicationId = appInfo.Id;
+                }
+                else
+                {
+                    hasApplied = false;
+                }
             }
 
             var isOwner = currentUser.IsAuthenticated && job.IsOwnedBy(currentUser.UserId);
@@ -128,7 +182,14 @@ public sealed class JobsService(
                 myMatchPercent,
                 hasApplied,
                 job.Description,
-                isOwner);
+                isOwner,
+                job.JobType,
+                job.WorkArrangement,
+                job.ExperienceLevel,
+                job.MinExperienceYears,
+                preferredSkills,
+                applicationStatus,
+                applicationId);
         }).ToList();
 
         // Sort
@@ -164,7 +225,22 @@ public sealed class JobsService(
         var companyName = employer?.CompanyName ?? "Unknown Company";
 
         var requiredSkills = job.RequiredSkills
-            .Where(rs => rs.Skill != null)
+            .Where(rs => rs.Skill != null && rs.IsRequired)
+            .OrderBy(rs => rs.Skill.Name)
+            .Select(rs => new SkillDto(rs.SkillId, rs.Skill.Name))
+            .ToList();
+
+        if (requiredSkills.Count == 0)
+        {
+            requiredSkills = job.RequiredSkills
+                .Where(rs => rs.Skill != null)
+                .OrderBy(rs => rs.Skill.Name)
+                .Select(rs => new SkillDto(rs.SkillId, rs.Skill.Name))
+                .ToList();
+        }
+
+        var preferredSkills = job.RequiredSkills
+            .Where(rs => rs.Skill != null && !rs.IsRequired)
             .OrderBy(rs => rs.Skill.Name)
             .Select(rs => new SkillDto(rs.SkillId, rs.Skill.Name))
             .ToList();
@@ -173,28 +249,38 @@ public sealed class JobsService(
         JobMatchDto? match = null;
         int? myMatchPercent = null;
         bool? hasApplied = null;
+        string? applicationStatus = null;
+        int? applicationId = null;
 
         if (isCandidate)
         {
-            var candidateSkills = await dbContext.CandidateSkills
+            var candidateProfile = await dbContext.CandidateProfiles
                 .AsNoTracking()
-                .Where(cs => cs.CandidateId == currentUser.UserId)
-                .Select(cs => cs.SkillId)
-                .ToListAsync(cancellationToken);
-            var candidateSkillIds = candidateSkills.ToHashSet();
+                .Include(cp => cp.Skills)
+                .ThenInclude(cs => cs.Skill)
+                .Include(cp => cp.ExperienceHistory)
+                .FirstOrDefaultAsync(cp => cp.UserId == currentUser.UserId, cancellationToken);
 
-            var matchedSkills = requiredSkills.Where(s => candidateSkillIds.Contains(s.Id)).ToList();
-            var missingSkills = requiredSkills.Where(s => !candidateSkillIds.Contains(s.Id)).ToList();
-            var percent = requiredSkills.Count == 0
-                ? 0
-                : (int)Math.Round((double)matchedSkills.Count / requiredSkills.Count * 100.0, MidpointRounding.AwayFromZero);
+            if (candidateProfile != null)
+            {
+                match = jobMatchingService.CalculateMatch(job, candidateProfile);
+                myMatchPercent = match.Percent;
+            }
 
-            match = new JobMatchDto(percent, matchedSkills, missingSkills);
-            myMatchPercent = percent;
-
-            hasApplied = await dbContext.Applications
+            var application = await dbContext.Applications
                 .AsNoTracking()
-                .AnyAsync(a => a.JobId == id && a.CandidateId == currentUser.UserId, cancellationToken);
+                .FirstOrDefaultAsync(a => a.JobId == id && a.CandidateId == currentUser.UserId, cancellationToken);
+
+            if (application != null)
+            {
+                hasApplied = true;
+                applicationStatus = application.Status.ToString();
+                applicationId = application.Id;
+            }
+            else
+            {
+                hasApplied = false;
+            }
         }
 
         var isOwner = currentUser.IsAuthenticated && job.IsOwnedBy(currentUser.UserId);
@@ -211,7 +297,14 @@ public sealed class JobsService(
             myMatchPercent,
             hasApplied,
             job.Description,
-            isOwner);
+            isOwner,
+            job.JobType,
+            job.WorkArrangement,
+            job.ExperienceLevel,
+            job.MinExperienceYears,
+            preferredSkills,
+            applicationStatus,
+            applicationId);
     }
 
     public async Task<JobDto> CreateJobAsync(CreateJobRequest request, CancellationToken cancellationToken = default)
@@ -227,7 +320,13 @@ public sealed class JobsService(
             throw new RequestValidationException(errors);
         }
 
-        var distinctSkillIds = request.RequiredSkillIds.Distinct().ToList();
+        var allSkillIds = new List<int>(request.RequiredSkillIds ?? []);
+        if (request.PreferredSkillIds != null)
+            allSkillIds.AddRange(request.PreferredSkillIds);
+        if (request.SkillRequirements != null)
+            allSkillIds.AddRange(request.SkillRequirements.Select(sr => sr.SkillId));
+
+        var distinctSkillIds = allSkillIds.Distinct().ToList();
         var existingSkillCount = await dbContext.Skills
             .Where(s => distinctSkillIds.Contains(s.Id))
             .CountAsync(cancellationToken);
@@ -237,19 +336,30 @@ public sealed class JobsService(
             throw new BusinessRuleException("skills.unknown", "Unknown skills", "Some selected skills do not exist.");
         }
 
+        IEnumerable<(int SkillId, bool IsRequired, SkillProficiency MinProficiency)>? skillDetails = null;
+        if (request.SkillRequirements != null && request.SkillRequirements.Count > 0)
+        {
+            skillDetails = request.SkillRequirements.Select(sr => (sr.SkillId, sr.IsRequired, sr.MinProficiency));
+        }
+
         var employerId = currentUser.UserId;
         var job = new Job(
             employerId,
             request.Title,
             request.Description,
             request.Location,
-            distinctSkillIds,
-            clock.UtcNow);
+            request.RequiredSkillIds,
+            clock.UtcNow,
+            request.JobType,
+            request.WorkArrangement,
+            request.ExperienceLevel,
+            request.MinExperienceYears,
+            request.PreferredSkillIds,
+            skillDetails);
 
         dbContext.Jobs.Add(job);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        // Fetch back with skills
         return await GetJobByIdAsync(job.Id, cancellationToken);
     }
 
@@ -271,7 +381,22 @@ public sealed class JobsService(
         return jobs.Select(job =>
         {
             var requiredSkills = job.RequiredSkills
-                .Where(rs => rs.Skill != null)
+                .Where(rs => rs.Skill != null && rs.IsRequired)
+                .OrderBy(rs => rs.Skill.Name)
+                .Select(rs => new SkillDto(rs.SkillId, rs.Skill.Name))
+                .ToList();
+
+            if (requiredSkills.Count == 0)
+            {
+                requiredSkills = job.RequiredSkills
+                    .Where(rs => rs.Skill != null)
+                    .OrderBy(rs => rs.Skill.Name)
+                    .Select(rs => new SkillDto(rs.SkillId, rs.Skill.Name))
+                    .ToList();
+            }
+
+            var preferredSkills = job.RequiredSkills
+                .Where(rs => rs.Skill != null && !rs.IsRequired)
                 .OrderBy(rs => rs.Skill.Name)
                 .Select(rs => new SkillDto(rs.SkillId, rs.Skill.Name))
                 .ToList();
@@ -290,7 +415,13 @@ public sealed class JobsService(
                 job.IsOpen,
                 job.CreatedAt,
                 requiredSkills,
-                counts);
+                counts,
+                preferredSkills,
+                job.JobType,
+                job.WorkArrangement,
+                job.ExperienceLevel,
+                job.MinExperienceYears,
+                job.Description);
         }).ToList();
     }
 
