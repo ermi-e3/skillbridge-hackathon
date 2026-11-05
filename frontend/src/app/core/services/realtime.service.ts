@@ -8,6 +8,7 @@ import {
   ApplicationWithdrawnRealtimeEvent,
   CandidateProfileUpdatedRealtimeEvent,
   JobCreatedRealtimeEvent,
+  JobStatusChangedRealtimeEvent,
   RealtimeNotification,
 } from '../models/realtime.models';
 import { AuthService } from './auth.service';
@@ -24,6 +25,7 @@ export class RealtimeService {
   private readonly applicationWithdrawnSubject = new Subject<ApplicationWithdrawnRealtimeEvent>();
   private readonly applicationStatusChangedSubject = new Subject<ApplicationStatusChangedRealtimeEvent>();
   private readonly jobCreatedSubject = new Subject<JobCreatedRealtimeEvent>();
+  private readonly jobStatusChangedSubject = new Subject<JobStatusChangedRealtimeEvent>();
   private readonly candidateProfileUpdatedSubject = new Subject<CandidateProfileUpdatedRealtimeEvent>();
   private readonly notificationSubject = new Subject<RealtimeNotification>();
 
@@ -36,6 +38,8 @@ export class RealtimeService {
     this.applicationStatusChangedSubject.asObservable();
   readonly jobCreated$: Observable<JobCreatedRealtimeEvent> =
     this.jobCreatedSubject.asObservable();
+  readonly jobStatusChanged$: Observable<JobStatusChangedRealtimeEvent> =
+    this.jobStatusChangedSubject.asObservable();
   readonly candidateProfileUpdated$: Observable<CandidateProfileUpdatedRealtimeEvent> =
     this.candidateProfileUpdatedSubject.asObservable();
   readonly notification$: Observable<RealtimeNotification> =
@@ -177,6 +181,10 @@ export class RealtimeService {
 
     this.hubConnection.on('JobCreated', (payload: JobCreatedRealtimeEvent) => {
       this.jobCreatedSubject.next(payload);
+    });
+
+    this.hubConnection.on('JobStatusChanged', (payload: JobStatusChangedRealtimeEvent) => {
+      this.jobStatusChangedSubject.next(payload);
     });
 
     this.hubConnection.on('CandidateProfileUpdated', (payload: CandidateProfileUpdatedRealtimeEvent) => {

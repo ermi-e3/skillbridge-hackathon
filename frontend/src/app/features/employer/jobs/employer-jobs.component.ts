@@ -7,6 +7,7 @@ import { ApplicantCounts } from '../../../core/models/realtime.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { JobsService } from '../../../core/services/jobs.service';
 import { RealtimeService } from '../../../core/services/realtime.service';
+import { calculateCountdown, CountdownDetails } from '../../../core/utils/countdown';
 import { extractErrorMessage } from '../../../core/utils/error-formatter';
 
 @Component({
@@ -25,6 +26,8 @@ export class EmployerJobsComponent implements OnInit {
   readonly jobs = signal<EmployerJobDto[]>([]);
   readonly isLoading = signal(true);
   readonly errorMessage = signal<string | null>(null);
+  readonly closingJobId = signal<number | null>(null);
+  readonly jobToClose = signal<EmployerJobDto | null>(null);
 
   ngOnInit(): void {
     this.loadJobs();
@@ -55,6 +58,51 @@ export class EmployerJobsComponent implements OnInit {
       .subscribe(() => {
         this.loadJobs();
       });
+
+    this.realtime.jobStatusChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        this.jobs.update((list) =>
+          list.map((job) =>
+            job.id === event.jobId
+              ? { ...job, isOpen: event.isOpen }
+              : job
+          )
+        );
+      });
+  }
+
+  openCloseConfirm(job: EmployerJobDto): void {
+    this.jobToClose.set(job);
+  }
+
+  dismissCloseConfirm(): void {
+    this.jobToClose.set(null);
+  }
+
+  confirmCloseJob(): void {
+    const job = this.jobToClose();
+    if (!job || this.closingJobId()) return;
+
+    this.closingJobId.set(job.id);
+    this.jobsService.closeJob(job.id).subscribe({
+      next: () => {
+        this.jobs.update((list) =>
+          list.map((j) => (j.id === job.id ? { ...j, isOpen: false } : j))
+        );
+        this.closingJobId.set(null);
+        this.jobToClose.set(null);
+      },
+      error: (err) => {
+        this.errorMessage.set(extractErrorMessage(err, 'Failed to close job.'));
+        this.closingJobId.set(null);
+        this.jobToClose.set(null);
+      },
+    });
+  }
+
+  getCountdown(deadline?: string | null, isOpen: boolean = true): CountdownDetails {
+    return calculateCountdown(deadline, isOpen);
   }
 
   private updateJobApplicantCounts(jobId: number, counts: ApplicantCounts): void {

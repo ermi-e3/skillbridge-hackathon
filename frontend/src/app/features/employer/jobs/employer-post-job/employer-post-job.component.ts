@@ -93,6 +93,7 @@ export class EmployerPostJobComponent implements OnInit {
     workArrangement: ['Remote', [Validators.required]],
     experienceLevel: ['MidLevel', [Validators.required]],
     minExperienceYears: [0, [Validators.min(0), Validators.max(50)]],
+    deadline: [''],
     description: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(4000)]],
     requiredSkillIds: [[], [requiredSkillsValidator(1, 15)]],
   });
@@ -265,6 +266,7 @@ export class EmployerPostJobComponent implements OnInit {
       minExperienceYears: Number(formValue.minExperienceYears || 0),
       requiredSkillIds: formValue.requiredSkillIds as number[],
       preferredSkillIds: this.selectedPreferredSkillIds(),
+      deadline: formValue.deadline ? new Date(formValue.deadline).toISOString() : null,
     };
 
     this.jobsService.postJob(payload).subscribe({

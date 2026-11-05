@@ -31,8 +31,21 @@ public sealed class ApplicationsService(
             .FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken)
             ?? throw new NotFoundException("jobs.not_found", "Job not found", "This job does not exist.");
 
-        if (!job.IsOpen)
+        if (!job.IsOpen || (job.Deadline.HasValue && clock.UtcNow >= job.Deadline.Value))
         {
+            if (job.IsOpen && job.Deadline.HasValue && clock.UtcNow >= job.Deadline.Value)
+            {
+                var trackedJob = await dbContext.Jobs.FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken);
+                if (trackedJob != null && trackedJob.IsOpen)
+                {
+                    trackedJob.Close();
+                    await dbContext.SaveChangesAsync(cancellationToken);
+                    if (notifier != null)
+                    {
+                        await notifier.NotifyJobStatusChangedAsync(new JobStatusChangedRealtimeEvent(jobId, false, trackedJob.Deadline, null), cancellationToken);
+                    }
+                }
+            }
             throw new BusinessRuleException("jobs.closed", "Job closed", "This job is no longer accepting applications.");
         }
 

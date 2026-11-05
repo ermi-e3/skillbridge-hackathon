@@ -17,4 +17,5 @@ public sealed record CreateJobRequest(
     ExperienceLevel ExperienceLevel = ExperienceLevel.EntryLevel,
     int MinExperienceYears = 0,
     IReadOnlyList<int>? PreferredSkillIds = null,
-    IReadOnlyList<JobSkillRequirementDto>? SkillRequirements = null);
+    IReadOnlyList<JobSkillRequirementDto>? SkillRequirements = null,
+    DateTime? Deadline = null);

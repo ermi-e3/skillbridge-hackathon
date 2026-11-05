@@ -55,6 +55,15 @@ public sealed class JobsController(
         return CreatedAtAction(nameof(GetById), new { id = job.Id }, job);
     }
 
+    [HttpPatch("{id:int}/close")]
+    [Authorize(Roles = Roles.Employer)]
+    [ProducesResponseType<JobDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<JobDto>> CloseJob(int id, CancellationToken ct) =>
+        Ok(await jobsService.CloseJobAsync(id, ct));
+
     [HttpPost("{jobId:int}/applications")]
     [Authorize(Roles = Roles.Candidate)]
     [ProducesResponseType<ApplicationDto>(StatusCodes.Status201Created)]

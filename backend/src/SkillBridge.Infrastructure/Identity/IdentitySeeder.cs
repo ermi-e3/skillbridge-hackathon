@@ -127,13 +127,13 @@ public sealed class IdentitySeeder(
             {
                 new Job(adminUser.Id, "Junior Backend Developer",
                     "Build and maintain REST APIs for our logistics platform using ASP.NET Core, C#, and PostgreSQL.",
-                    "Addis Ababa", [1, 3, 5], now.AddDays(-2)),
+                    "Addis Ababa", [1, 3, 5], now.AddDays(-2), deadline: now.AddDays(7)),
                 new Job(adminUser.Id, "Full-Stack Software Engineer",
                     "Join our agile product team building modern web applications with Angular, TypeScript, and .NET Core microservices.",
-                    "Remote", [1, 2, 3, 4, 12], now.AddDays(-1)),
+                    "Remote", [1, 2, 3, 4, 12], now.AddDays(-1), deadline: now.AddHours(18)),
                 new Job(adminUser.Id, "Frontend Angular Specialist",
                     "Design and implement intuitive, responsive user experiences and enterprise component libraries using Angular and TypeScript.",
-                    "Addis Ababa (Hybrid)", [2, 4, 8, 9, 10], now)
+                    "Addis Ababa (Hybrid)", [2, 4, 8, 9, 10], now, deadline: now.AddDays(14))
             };
 
             dbContext.Jobs.AddRange(jobs);

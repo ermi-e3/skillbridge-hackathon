@@ -44,6 +44,7 @@ export interface JobDto {
   match?: JobMatchDto | null;
   applicationStatus?: string;
   applicationId?: number;
+  deadline?: string | null;
 }
 
 export interface PagedJobsResponse {
@@ -74,6 +75,7 @@ export interface EmployerJobDto {
     rejected: number;
     withdrawn: number;
   };
+  deadline?: string | null;
 }
 
 export interface CreateJobSkillRequirementRequest {
@@ -93,4 +95,5 @@ export interface CreateJobRequest {
   requiredSkillIds: number[];
   preferredSkillIds?: number[];
   skillRequirements?: CreateJobSkillRequirementRequest[];
+  deadline?: string | null;
 }

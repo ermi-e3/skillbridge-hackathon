@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -11,6 +12,7 @@ using SkillBridge.Api;
 using SkillBridge.Api.Errors;
 using SkillBridge.Api.Hubs;
 using SkillBridge.Api.Realtime;
+using SkillBridge.Api.Services;
 using SkillBridge.Api.Swagger;
 using SkillBridge.Application;
 using SkillBridge.Application.Common.Interfaces;
@@ -18,6 +20,11 @@ using SkillBridge.Infrastructure;
 using SkillBridge.Infrastructure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
+
+if (OperatingSystem.IsWindows())
+{
+    builder.Logging.AddFilter<Microsoft.Extensions.Logging.EventLog.EventLogLoggerProvider>(null, LogLevel.None);
+}
 
 if (builder.Environment.IsDevelopment())
 {
@@ -59,6 +66,7 @@ builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, CustomUserIdProvider>();
 builder.Services.AddScoped<IRealtimeNotifier, SignalRNotifier>();
+builder.Services.AddHostedService<JobExpirationWorker>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
@@ -133,6 +141,9 @@ var app = builder.Build();
 
 await using (var scope = app.Services.CreateAsyncScope())
 {
+    var dbContext = scope.ServiceProvider.GetRequiredService<SkillBridge.Infrastructure.Persistence.AppDbContext>();
+    await dbContext.Database.MigrateAsync();
+
     var seedDemoUsers = app.Configuration.GetValue<bool?>("Seed:DemoUsers") ?? app.Environment.IsDevelopment();
     await scope.ServiceProvider.GetRequiredService<IdentitySeeder>().SeedAsync(seedDemoUsers);
 }

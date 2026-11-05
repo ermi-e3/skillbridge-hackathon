@@ -189,6 +189,26 @@
             </div>
           </div>
 
+          <!-- Application Deadline -->
+          <div class="form-group full-width">
+            <div class="label-row">
+              <label for="deadline" class="form-label">Application Deadline (Optional)</label>
+              <span class="field-hint">Job will automatically close when this deadline is reached.</span>
+            </div>
+            <div class="input-with-icon">
+              <svg class="leading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <input
+                id="deadline"
+                type="datetime-local"
+                class="form-input with-icon"
+                formControlName="deadline"
+              />
+            </div>
+          </div>
+
           <!-- Description -->
           <div class="form-group full-width">
             <div class="label-row">

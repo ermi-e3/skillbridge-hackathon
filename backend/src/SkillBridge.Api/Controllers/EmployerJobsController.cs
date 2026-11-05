@@ -16,4 +16,12 @@ public sealed class EmployerJobsController(JobsService jobsService) : Controller
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<IReadOnlyList<EmployerJobDto>>> GetJobs(CancellationToken ct) =>
         Ok(await jobsService.GetEmployerJobsAsync(ct));
+
+    [HttpPatch("{id:int}/close")]
+    [ProducesResponseType<JobDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<JobDto>> CloseJob(int id, CancellationToken ct) =>
+        Ok(await jobsService.CloseJobAsync(id, ct));
 }

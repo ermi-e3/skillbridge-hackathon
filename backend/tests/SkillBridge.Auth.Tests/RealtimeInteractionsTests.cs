@@ -20,6 +20,7 @@ public sealed class TestRealtimeNotifier : IRealtimeNotifier
     public List<ApplicationStatusChangedRealtimeEvent> StatusChangedEvents { get; } = [];
     public List<ApplicationWithdrawnRealtimeEvent> WithdrawnEvents { get; } = [];
     public List<JobCreatedRealtimeEvent> JobCreatedEvents { get; } = [];
+    public List<JobStatusChangedRealtimeEvent> JobStatusChangedEvents { get; } = [];
     public List<CandidateProfileUpdatedRealtimeEvent> ProfileUpdatedEvents { get; } = [];
 
     public Task NotifyApplicationSubmittedAsync(ApplicationSubmittedRealtimeEvent @event, CancellationToken cancellationToken = default)
@@ -43,6 +44,12 @@ public sealed class TestRealtimeNotifier : IRealtimeNotifier
     public Task NotifyJobCreatedAsync(JobCreatedRealtimeEvent @event, CancellationToken cancellationToken = default)
     {
         JobCreatedEvents.Add(@event);
+        return Task.CompletedTask;
+    }
+
+    public Task NotifyJobStatusChangedAsync(JobStatusChangedRealtimeEvent @event, CancellationToken cancellationToken = default)
+    {
+        JobStatusChangedEvents.Add(@event);
         return Task.CompletedTask;
     }
 

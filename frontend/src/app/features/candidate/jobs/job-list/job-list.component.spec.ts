@@ -231,4 +231,120 @@ describe('JobListComponent', () => {
     fixture.detectChanges();
     expect(component.errorMessage()).toBeNull();
   });
+
+  it('should display days remaining countdown on job cards with deadline', () => {
+    const futureDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 60000).toISOString();
+    jobsServiceSpy.getJobs.mockReturnValue(of([{ ...mockJobs[0], deadline: futureDate, isOpen: true }]));
+    component.loadJobs();
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.job-card');
+    const chip = card.querySelector('.countdown-chip');
+    expect(chip).toBeTruthy();
+    expect(chip.textContent).toContain('3 days left');
+  });
+
+  it('should display red urgent chip with warning icon when deadline is within 24 hours on job card', () => {
+    const nearDate = new Date(Date.now() + 12 * 60 * 60 * 1000 + 60000).toISOString();
+    jobsServiceSpy.getJobs.mockReturnValue(of([{ ...mockJobs[0], deadline: nearDate, isOpen: true }]));
+    component.loadJobs();
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.job-card');
+    const chip = card.querySelector('.countdown-chip.urgent');
+    expect(chip).toBeTruthy();
+    expect(chip.textContent).toContain('Closing soon: 12h left');
+  });
+
+  it('should display Closed badge when job.isOpen is false', () => {
+    jobsServiceSpy.getJobs.mockReturnValue(of([{ ...mockJobs[0], isOpen: false }]));
+    component.loadJobs();
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.job-card');
+    const closedBadge = card.querySelector('.badge-closed');
+    expect(closedBadge).toBeTruthy();
+    expect(closedBadge.textContent).toContain('Closed');
+  });
+
+  it('should toggle and filter skills in the searchable multi-select dropdown', () => {
+    // Open skills dropdown
+    component.toggleDropdown('skills');
+    expect(component.activeDropdown()).toBe('skills');
+
+    // Type query in skill search
+    component.skillFilterSearch.set('Angular');
+    expect(component.visibleSkills().length).toBe(1);
+    expect(component.visibleSkills()[0].name).toBe('Angular');
+
+    // Clear skill search
+    component.clearSkillSearch();
+    expect(component.visibleSkills().length).toBe(3);
+
+    // Escape closes dropdown
+    component.onEscape();
+    expect(component.activeDropdown()).toBeNull();
+  });
+
+  it('should render compact tags in the active filters tray and remove tags on click', () => {
+    // Select two skills
+    component.toggleSkillFilter(1); // ASP.NET Core
+    component.toggleSkillFilter(2); // Angular
+    fixture.detectChanges();
+
+    expect(component.hasActiveFilters()).toBe(true);
+    const tray = fixture.nativeElement.querySelector('.active-filters-tray');
+    expect(tray).toBeTruthy();
+
+    const skillTags = tray.querySelectorAll('.active-filter-tag.skill-tag');
+    expect(skillTags.length).toBe(2);
+    expect(skillTags[0].textContent).toContain('ASP.NET Core');
+
+    // Click remove button on the first tag
+    const removeBtn = skillTags[0].querySelector('.remove-tag-btn');
+    removeBtn.click();
+    fixture.detectChanges();
+
+    expect(component.selectedSkillIds()).toEqual([2]);
+    expect(jobsServiceSpy.getJobs).toHaveBeenCalledWith([2]);
+  });
+
+  it('should filter by primary search keyword, work arrangement, job type, and experience level', () => {
+    // Search keyword
+    component.searchKeyword.set('Full Stack');
+    component.setWorkArrangement('Remote');
+    component.setJobType('FullTime');
+    component.setExperienceLevel('Senior');
+    fixture.detectChanges();
+
+    expect(jobsServiceSpy.getJobs).toHaveBeenCalledWith(
+      [],
+      'Full Stack',
+      'newest',
+      1,
+      50,
+      'FullTime',
+      'Remote',
+      'Senior'
+    );
+
+    // Active tags show all selected filters
+    const tray = fixture.nativeElement.querySelector('.active-filters-tray');
+    expect(tray).toBeTruthy();
+    expect(tray.textContent).toContain('"Full Stack"');
+    expect(tray.textContent).toContain('Remote');
+    expect(tray.textContent).toContain('Full-time');
+    expect(tray.textContent).toContain('Senior');
+
+    // Reset all filters
+    component.clearAllFilters();
+    fixture.detectChanges();
+
+    expect(component.selectedSkillIds()).toEqual([]);
+    expect(component.selectedWorkArrangement()).toBe('All');
+    expect(component.selectedJobType()).toBe('All');
+    expect(component.selectedExperienceLevel()).toBe('All');
+    expect(component.searchKeyword()).toBe('');
+    expect(component.hasActiveFilters()).toBe(false);
+  });
 });

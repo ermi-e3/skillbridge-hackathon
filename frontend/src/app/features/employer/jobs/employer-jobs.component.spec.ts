@@ -8,7 +8,11 @@ import { EmployerJobsComponent } from './employer-jobs.component';
 
 describe('EmployerJobsComponent', () => {
   let fixture: ComponentFixture<EmployerJobsComponent>;
-  let jobsServiceSpy: { getEmployerJobs: ReturnType<typeof vi.fn> };
+  let component: EmployerJobsComponent;
+  let jobsServiceSpy: {
+    getEmployerJobs: ReturnType<typeof vi.fn>;
+    closeJob: ReturnType<typeof vi.fn>;
+  };
   let authServiceSpy: { logout: ReturnType<typeof vi.fn> };
 
   const mockJobs: EmployerJobDto[] = [
@@ -43,6 +47,7 @@ describe('EmployerJobsComponent', () => {
   beforeEach(async () => {
     jobsServiceSpy = {
       getEmployerJobs: vi.fn().mockReturnValue(of(mockJobs)),
+      closeJob: vi.fn().mockReturnValue(of({ ...mockJobs[0], isOpen: false })),
     };
     authServiceSpy = {
       logout: vi.fn(),
@@ -58,6 +63,7 @@ describe('EmployerJobsComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(EmployerJobsComponent);
+    component = fixture.componentInstance;
   });
 
   it('loads and renders the employer jobs and required skills', () => {
@@ -109,5 +115,42 @@ describe('EmployerJobsComponent', () => {
     signoutBtn.click();
 
     expect(authServiceSpy.logout).toHaveBeenCalledOnce();
+  });
+
+  it('displays countdown chip on active job cards and shows urgent badge when within 24 hours', () => {
+    const nearDeadline = new Date(Date.now() + 10 * 60 * 60 * 1000).toISOString();
+    jobsServiceSpy.getEmployerJobs.mockReturnValue(
+      of([{ ...mockJobs[0], deadline: nearDeadline, isOpen: true }])
+    );
+    fixture.detectChanges();
+
+    const chip = fixture.nativeElement.querySelector('.countdown-chip');
+    expect(chip).toBeTruthy();
+    expect(chip.classList).toContain('urgent');
+    expect(chip.textContent).toContain('Closing soon');
+  });
+
+  it('allows employer to manually close an active job with confirmation modal', () => {
+    jobsServiceSpy.getEmployerJobs.mockReturnValue(of([{ ...mockJobs[0], isOpen: true }]));
+    fixture.detectChanges();
+
+    const closeBtn = fixture.nativeElement.querySelector('.btn-close-job');
+    expect(closeBtn).toBeTruthy();
+
+    // Trigger close modal prompt
+    component.openCloseConfirm(mockJobs[0]);
+    fixture.detectChanges();
+    expect(component.jobToClose()?.id).toBe(12);
+
+    const modal = fixture.nativeElement.querySelector('.modal-dialog');
+    expect(modal).toBeTruthy();
+    expect(modal.textContent).toContain('Close Job Opening?');
+
+    // Confirm close
+    component.confirmCloseJob();
+    fixture.detectChanges();
+
+    expect(jobsServiceSpy.closeJob).toHaveBeenCalledWith(12);
+    expect(component.jobToClose()).toBeNull();
   });
 });

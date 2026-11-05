@@ -27,5 +27,10 @@ public sealed class CreateJobValidator : AbstractValidator<CreateJobRequest>
             .Must(skills => skills == null || skills.Distinct().Count() <= 15)
             .WithMessage("Select at most 15 preferred skills.")
             .When(x => x.PreferredSkillIds != null);
+
+        RuleFor(x => x.Deadline)
+            .Must(d => !d.HasValue || d.Value > DateTime.UtcNow)
+            .WithMessage("Deadline must be in the future.")
+            .When(x => x.Deadline.HasValue);
     }
 }
