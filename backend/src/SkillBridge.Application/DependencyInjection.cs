@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using SkillBridge.Application.Auth;
 using SkillBridge.Application.CandidateProfiles;
+using SkillBridge.Application.Common.Interfaces;
 using SkillBridge.Application.Jobs;
 using SkillBridge.Application.Skills;
 
@@ -17,6 +18,7 @@ public static class DependencyInjection
         services.AddScoped<IJobMatchingService, JobMatchingService>();
         services.AddScoped<Jobs.JobsService>();
         services.AddScoped<Applications.ApplicationsService>();
+        services.AddScoped<IRealtimeNotifier, NullRealtimeNotifier>();
         services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
         return services;
     }

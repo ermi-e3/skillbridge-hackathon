@@ -1,11 +1,13 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { JobDto } from '../../../../core/models/job.models';
 import { ApplicationsService } from '../../../../core/services/applications.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { JobsService } from '../../../../core/services/jobs.service';
+import { RealtimeService } from '../../../../core/services/realtime.service';
 import { extractErrorMessage } from '../../../../core/utils/error-formatter';
 
 @Component({
@@ -20,6 +22,8 @@ export class JobDetailComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly jobsService = inject(JobsService);
   private readonly applicationsService = inject(ApplicationsService);
+  private readonly realtime = inject(RealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
   readonly authService = inject(AuthService);
 
   // Component Signals
@@ -45,10 +49,42 @@ export class JobDetailComponent implements OnInit {
 
     if (jobId) {
       this.loadJobDetail(jobId);
+      this.setupRealtimeListeners(jobId);
     } else {
       this.isLoading.set(false);
       this.errorMessage.set('Invalid job identifier.');
     }
+  }
+
+  private setupRealtimeListeners(jobId: number): void {
+    this.realtime.applicationStatusChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        if (event.jobId === jobId) {
+          this.applicationStatusState.set(event.newStatus);
+        }
+      });
+
+    this.realtime.applicationWithdrawn$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        if (event.jobId === jobId) {
+          this.applicationStatusState.set('Withdrawn');
+        }
+      });
+
+    this.realtime.applicationSubmitted$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        const currentId = typeof this.authService?.currentUser === 'function'
+          ? this.authService.currentUser()?.userId
+          : (this.authService as any)?.getUserId?.();
+        if (event.jobId === jobId && (!currentId || event.candidateId === currentId)) {
+          this.hasAppliedState.set(true);
+          this.applicationStatusState.set('Received');
+          this.applicationIdState.set(event.applicationId);
+        }
+      });
   }
 
   get coverNoteControl() {

@@ -14,7 +14,8 @@ public sealed class ApplicationsService(
     IIdentityService identityService,
     ICurrentUser currentUser,
     IClock clock,
-    IJobMatchingService jobMatchingService)
+    IJobMatchingService jobMatchingService,
+    IRealtimeNotifier? notifier = null)
 {
     public async Task<ApplicationDto> ApplyAsync(
         int jobId,
@@ -88,6 +89,52 @@ public sealed class ApplicationsService(
 
         var employer = await identityService.FindByIdAsync(job.EmployerId, cancellationToken);
         var match = jobMatchingService.CalculateMatch(job, candidateProfile);
+
+        if (notifier != null)
+        {
+            var jobApps = await dbContext.Applications.AsNoTracking().Where(a => a.JobId == jobId).ToListAsync(cancellationToken);
+            var counts = new ApplicantCountsDto(
+                Total: jobApps.Count,
+                Received: jobApps.Count(a => a.Status == ApplicationStatus.Received),
+                Shortlisted: jobApps.Count(a => a.Status == ApplicationStatus.Shortlisted),
+                Rejected: jobApps.Count(a => a.Status == ApplicationStatus.Rejected),
+                Withdrawn: jobApps.Count(a => a.Status == ApplicationStatus.Withdrawn));
+
+            var candidateUser = await identityService.FindByIdAsync(currentUser.UserId, cancellationToken);
+            var profileSkills = candidateProfile?.Skills
+                .Where(cs => cs.Skill != null)
+                .OrderBy(cs => cs.Skill.Name)
+                .Select(cs => new SkillDto(cs.SkillId, cs.Skill.Name))
+                .ToList() ?? new List<SkillDto>();
+
+            var summary = new CandidateSummaryDto(
+                currentUser.UserId,
+                candidateUser?.FullName ?? "Applicant",
+                candidateUser?.Email ?? string.Empty,
+                candidateProfile?.Headline,
+                candidateProfile?.GitHubUrl,
+                profileSkills);
+
+            var applicantItem = new JobApplicantItemDto(
+                application.Id,
+                summary,
+                application.Status.ToString(),
+                application.AppliedAt,
+                application.StatusChangedAt,
+                application.CoverNote,
+                match);
+
+            await notifier.NotifyApplicationSubmittedAsync(new ApplicationSubmittedRealtimeEvent(
+                application.Id,
+                job.Id,
+                job.Title,
+                job.EmployerId,
+                currentUser.UserId,
+                candidateUser?.FullName ?? "Applicant",
+                match.Percent,
+                applicantItem,
+                counts), cancellationToken);
+        }
 
         return new ApplicationDto(
             application.Id,
@@ -391,6 +438,26 @@ public sealed class ApplicationsService(
         application.ChangeStatus(targetStatus, clock.UtcNow);
         await dbContext.SaveChangesAsync(cancellationToken);
 
+        if (notifier != null)
+        {
+            var jobApps = await dbContext.Applications.AsNoTracking().Where(a => a.JobId == application.JobId).ToListAsync(cancellationToken);
+            var counts = new ApplicantCountsDto(
+                Total: jobApps.Count,
+                Received: jobApps.Count(a => a.Status == ApplicationStatus.Received),
+                Shortlisted: jobApps.Count(a => a.Status == ApplicationStatus.Shortlisted),
+                Rejected: jobApps.Count(a => a.Status == ApplicationStatus.Rejected),
+                Withdrawn: jobApps.Count(a => a.Status == ApplicationStatus.Withdrawn));
+
+            await notifier.NotifyApplicationStatusChangedAsync(new ApplicationStatusChangedRealtimeEvent(
+                application.Id,
+                application.JobId,
+                application.Job.Title,
+                application.Job.EmployerId,
+                application.CandidateId,
+                application.Status.ToString(),
+                counts), cancellationToken);
+        }
+
         var employer = await identityService.FindByIdAsync(application.Job.EmployerId, cancellationToken);
         var candidateProfile = await dbContext.CandidateProfiles
             .AsNoTracking()
@@ -433,6 +500,25 @@ public sealed class ApplicationsService(
 
         application.Withdraw(clock.UtcNow);
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        if (notifier != null)
+        {
+            var jobApps = await dbContext.Applications.AsNoTracking().Where(a => a.JobId == application.JobId).ToListAsync(cancellationToken);
+            var counts = new ApplicantCountsDto(
+                Total: jobApps.Count,
+                Received: jobApps.Count(a => a.Status == ApplicationStatus.Received),
+                Shortlisted: jobApps.Count(a => a.Status == ApplicationStatus.Shortlisted),
+                Rejected: jobApps.Count(a => a.Status == ApplicationStatus.Rejected),
+                Withdrawn: jobApps.Count(a => a.Status == ApplicationStatus.Withdrawn));
+
+            await notifier.NotifyApplicationWithdrawnAsync(new ApplicationWithdrawnRealtimeEvent(
+                application.Id,
+                application.JobId,
+                application.Job.Title,
+                application.Job.EmployerId,
+                currentUser.UserId,
+                counts), cancellationToken);
+        }
 
         var employer = await identityService.FindByIdAsync(application.Job.EmployerId, cancellationToken);
         var candidateProfile = await dbContext.CandidateProfiles

@@ -1,11 +1,13 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { JobDto } from '../../../../core/models/job.models';
 import { SkillDto } from '../../../../core/models/profile.models';
 import { AuthService } from '../../../../core/services/auth.service';
 import { JobsService } from '../../../../core/services/jobs.service';
 import { ProfileService } from '../../../../core/services/profile.service';
+import { RealtimeService } from '../../../../core/services/realtime.service';
 import { SkillsService } from '../../../../core/services/skills.service';
 import { extractErrorMessage } from '../../../../core/utils/error-formatter';
 
@@ -20,6 +22,8 @@ export class JobListComponent implements OnInit {
   private readonly jobsService = inject(JobsService);
   private readonly skillsService = inject(SkillsService);
   private readonly profileService = inject(ProfileService);
+  private readonly realtime = inject(RealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   readonly authService = inject(AuthService);
 
@@ -57,6 +61,78 @@ export class JobListComponent implements OnInit {
     this.checkCandidateSkills();
     this.loadSkills();
     this.loadJobs();
+    this.setupRealtimeListeners();
+  }
+
+  private setupRealtimeListeners(): void {
+    this.realtime.jobCreated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.loadJobs();
+      });
+
+    this.realtime.candidateProfileUpdated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        const currentId = typeof this.authService?.currentUser === 'function'
+          ? this.authService.currentUser()?.userId
+          : (this.authService as any)?.getUserId?.();
+        if (currentId && event.candidateId === currentId) {
+          this.checkCandidateSkills();
+          this.loadJobs();
+        }
+      });
+
+    this.realtime.applicationSubmitted$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        const currentId = typeof this.authService?.currentUser === 'function'
+          ? this.authService.currentUser()?.userId
+          : (this.authService as any)?.getUserId?.();
+        if (currentId && event.candidateId === currentId) {
+          this.jobs.update((list) =>
+            list.map((job) =>
+              job.id === event.jobId
+                ? { ...job, hasApplied: true, applicationStatus: 'Received' }
+                : job
+            )
+          );
+        }
+      });
+
+    this.realtime.applicationWithdrawn$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        const currentId = typeof this.authService?.currentUser === 'function'
+          ? this.authService.currentUser()?.userId
+          : (this.authService as any)?.getUserId?.();
+        if (currentId && event.candidateId === currentId) {
+          this.jobs.update((list) =>
+            list.map((job) =>
+              job.id === event.jobId
+                ? { ...job, hasApplied: true, applicationStatus: 'Withdrawn' }
+                : job
+            )
+          );
+        }
+      });
+
+    this.realtime.applicationStatusChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        const currentId = typeof this.authService?.currentUser === 'function'
+          ? this.authService.currentUser()?.userId
+          : (this.authService as any)?.getUserId?.();
+        if (currentId && event.candidateId === currentId) {
+          this.jobs.update((list) =>
+            list.map((job) =>
+              job.id === event.jobId
+                ? { ...job, applicationStatus: event.newStatus }
+                : job
+            )
+          );
+        }
+      });
   }
 
   checkCandidateSkills(): void {

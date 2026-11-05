@@ -15,7 +15,8 @@ public sealed class JobsService(
     ICurrentUser currentUser,
     IClock clock,
     IValidator<CreateJobRequest> createJobValidator,
-    IJobMatchingService jobMatchingService)
+    IJobMatchingService jobMatchingService,
+    IRealtimeNotifier? notifier = null)
 {
     public async Task<PagedJobsResponse> GetJobsAsync(
         IEnumerable<int>? skillIds = null,
@@ -360,7 +361,12 @@ public sealed class JobsService(
         dbContext.Jobs.Add(job);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return await GetJobByIdAsync(job.Id, cancellationToken);
+        var created = await GetJobByIdAsync(job.Id, cancellationToken);
+        if (notifier != null)
+        {
+            await notifier.NotifyJobCreatedAsync(new JobCreatedRealtimeEvent(created), cancellationToken);
+        }
+        return created;
     }
 
     public async Task<IReadOnlyList<EmployerJobDto>> GetEmployerJobsAsync(CancellationToken cancellationToken = default)

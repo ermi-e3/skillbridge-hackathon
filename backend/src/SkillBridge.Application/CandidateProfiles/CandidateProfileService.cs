@@ -12,7 +12,8 @@ public sealed class CandidateProfileService(
     IAppDbContext dbContext,
     ICurrentUser currentUser,
     IClock clock,
-    IValidator<UpdateCandidateProfileRequest> validator) : ICandidateProfileService
+    IValidator<UpdateCandidateProfileRequest> validator,
+    IRealtimeNotifier? notifier = null) : ICandidateProfileService
 {
     public async Task<CandidateProfileResponse> GetMyProfileAsync(
         CancellationToken cancellationToken = default)
@@ -124,6 +125,11 @@ public sealed class CandidateProfileService(
             request.PreferredSkillIds);
 
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        if (notifier != null)
+        {
+            await notifier.NotifyCandidateProfileUpdatedAsync(new CandidateProfileUpdatedRealtimeEvent(userId), cancellationToken);
+        }
 
         var skillResponses = profile.Skills
             .OrderBy(s => s.SkillId)

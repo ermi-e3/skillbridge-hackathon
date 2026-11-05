@@ -9,6 +9,8 @@ using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using SkillBridge.Api;
 using SkillBridge.Api.Errors;
+using SkillBridge.Api.Hubs;
+using SkillBridge.Api.Realtime;
 using SkillBridge.Api.Swagger;
 using SkillBridge.Application;
 using SkillBridge.Application.Common.Interfaces;
@@ -53,6 +55,11 @@ builder.Services
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, CustomUserIdProvider>();
+builder.Services.AddScoped<IRealtimeNotifier, SignalRNotifier>();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
     .Configure<IOptions<JwtOptions>>((options, jwtOptions) =>
@@ -77,6 +84,16 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
         };
         options.Events = new JwtBearerEvents
         {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            },
             OnChallenge = context =>
             {
                 context.HandleResponse();
@@ -96,7 +113,8 @@ builder.Services.AddCors(o => o.AddPolicy("Angular", p => p
     .WithOrigins(builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? ["http://localhost:4200"])
     .AllowAnyHeader()
     .AllowAnyMethod()
-    .WithExposedHeaders("Location")));
+    .WithExposedHeaders("Location")
+    .AllowCredentials()));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -137,6 +155,7 @@ app.UseCors("Angular");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<SkillBridgeHub>("/hubs/app");
 
 app.Run();
 

@@ -1,1 +1,18 @@
 <router-outlet />
+
+<aside class="realtime-toast-container" aria-live="polite">
+  @for (toast of realtime.activeNotifications(); track toast.id) {
+    <div class="realtime-toast" [class]="'toast-' + toast.type">
+      <div class="toast-body">
+        <h4 class="toast-title">{{ toast.title }}</h4>
+        <p class="toast-msg">{{ toast.message }}</p>
+      </div>
+      <button
+        type="button"
+        class="toast-close"
+        (click)="realtime.dismissNotification(toast.id)"
+        aria-label="Dismiss notification"
+      >&times;</button>
+    </div>
+  }
+</aside>

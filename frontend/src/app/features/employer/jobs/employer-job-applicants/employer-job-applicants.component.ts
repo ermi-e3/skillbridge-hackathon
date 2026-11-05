@@ -1,5 +1,6 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   ApplicationStatus,
@@ -8,6 +9,7 @@ import {
 } from '../../../../core/models/application.models';
 import { ApplicationsService } from '../../../../core/services/applications.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { RealtimeService } from '../../../../core/services/realtime.service';
 import { extractErrorMessage } from '../../../../core/utils/error-formatter';
 
 @Component({
@@ -21,6 +23,8 @@ export class EmployerJobApplicantsComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly applicationsService = inject(ApplicationsService);
   private readonly authService = inject(AuthService);
+  private readonly realtime = inject(RealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly jobId = signal<number | null>(null);
   readonly jobSummary = signal<JobSummaryDto | null>(null);
@@ -42,6 +46,9 @@ export class EmployerJobApplicantsComponent implements OnInit {
   readonly rejectedCount = computed(
     () => this.applicants().filter((a) => a.status === 'Rejected').length
   );
+  readonly withdrawnCount = computed(
+    () => this.applicants().filter((a) => a.status === 'Withdrawn').length
+  );
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -54,7 +61,56 @@ export class EmployerJobApplicantsComponent implements OnInit {
     }
 
     this.jobId.set(parsedId);
+    this.realtime.joinJobRoom(parsedId);
+    this.destroyRef.onDestroy(() => {
+      this.realtime.leaveJobRoom(parsedId);
+    });
+
     this.loadApplicants();
+    this.setupRealtimeListeners(parsedId);
+  }
+
+  private setupRealtimeListeners(jobId: number): void {
+    this.realtime.applicationSubmitted$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        if (event.jobId === jobId) {
+          this.applicants.update((list) => {
+            if (list.some((a) => a.applicationId === event.applicationId)) {
+              return list;
+            }
+            return [event.applicant, ...list];
+          });
+        }
+      });
+
+    this.realtime.applicationWithdrawn$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        if (event.jobId === jobId) {
+          this.applicants.update((list) =>
+            list.map((applicant) =>
+              applicant.applicationId === event.applicationId
+                ? { ...applicant, status: 'Withdrawn' }
+                : applicant
+            )
+          );
+        }
+      });
+
+    this.realtime.applicationStatusChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        if (event.jobId === jobId) {
+          this.applicants.update((list) =>
+            list.map((applicant) =>
+              applicant.applicationId === event.applicationId
+                ? { ...applicant, status: event.newStatus }
+                : applicant
+            )
+          );
+        }
+      });
   }
 
   loadApplicants(): void {
