@@ -1,9 +1,12 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { EmployerJobDto } from '../../../core/models/job.models';
+import { ApplicantCounts } from '../../../core/models/realtime.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { JobsService } from '../../../core/services/jobs.service';
+import { RealtimeService } from '../../../core/services/realtime.service';
 import { extractErrorMessage } from '../../../core/utils/error-formatter';
 
 @Component({
@@ -16,6 +19,8 @@ import { extractErrorMessage } from '../../../core/utils/error-formatter';
 export class EmployerJobsComponent implements OnInit {
   private readonly jobsService = inject(JobsService);
   private readonly authService = inject(AuthService);
+  private readonly realtime = inject(RealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly jobs = signal<EmployerJobDto[]>([]);
   readonly isLoading = signal(true);
@@ -23,6 +28,52 @@ export class EmployerJobsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadJobs();
+    this.setupRealtimeListeners();
+  }
+
+  private setupRealtimeListeners(): void {
+    this.realtime.applicationSubmitted$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        this.updateJobApplicantCounts(event.jobId, event.counts);
+      });
+
+    this.realtime.applicationWithdrawn$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        this.updateJobApplicantCounts(event.jobId, event.counts);
+      });
+
+    this.realtime.applicationStatusChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        this.updateJobApplicantCounts(event.jobId, event.counts);
+      });
+
+    this.realtime.jobCreated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.loadJobs();
+      });
+  }
+
+  private updateJobApplicantCounts(jobId: number, counts: ApplicantCounts): void {
+    this.jobs.update((list) =>
+      list.map((job) =>
+        job.id === jobId
+          ? {
+              ...job,
+              applicantCounts: {
+                total: counts.total,
+                received: counts.received,
+                shortlisted: counts.shortlisted,
+                rejected: counts.rejected,
+                withdrawn: counts.withdrawn,
+              },
+            }
+          : job
+      )
+    );
   }
 
   signOut(): void {

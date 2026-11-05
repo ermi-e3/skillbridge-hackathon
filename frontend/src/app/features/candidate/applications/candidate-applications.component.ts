@@ -1,9 +1,11 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { ApplicationDto, ApplicationStatus } from '../../../core/models/application.models';
 import { ApplicationsService } from '../../../core/services/applications.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { RealtimeService } from '../../../core/services/realtime.service';
 import { extractErrorMessage } from '../../../core/utils/error-formatter';
 
 @Component({
@@ -15,6 +17,8 @@ import { extractErrorMessage } from '../../../core/utils/error-formatter';
 })
 export class CandidateApplicationsComponent implements OnInit {
   private readonly applicationsService = inject(ApplicationsService);
+  private readonly realtime = inject(RealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
   readonly authService = inject(AuthService);
 
   // State Signals
@@ -53,6 +57,39 @@ export class CandidateApplicationsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadApplications();
+    this.setupRealtimeListeners();
+  }
+
+  private setupRealtimeListeners(): void {
+    this.realtime.applicationStatusChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        this.applications.update((list) =>
+          list.map((app) =>
+            app.id === event.applicationId
+              ? { ...app, status: event.newStatus }
+              : app
+          )
+        );
+      });
+
+    this.realtime.applicationWithdrawn$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        this.applications.update((list) =>
+          list.map((app) =>
+            app.id === event.applicationId
+              ? { ...app, status: 'Withdrawn' }
+              : app
+          )
+        );
+      });
+
+    this.realtime.applicationSubmitted$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.loadApplications();
+      });
   }
 
   loadApplications(): void {
