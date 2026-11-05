@@ -359,62 +359,277 @@ $match-red-border: #fecaca;
   }
 }
 
-// Top Bar: Skills Filter Section
+// Top Bar: Modern Enterprise Job Search & Filter Section
 .filter-section {
   background: $neutral-card;
   border: 1px solid $neutral-border;
   border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(30, 41, 59, 0.03);
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05);
   padding: 1.25rem 1.5rem;
   margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 
-  .filter-header-row {
+  // 1. Primary Search Bar
+  .search-bar-row {
+    width: 100%;
+
+    .search-input-field {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+
+      .search-icon {
+        position: absolute;
+        left: 1rem;
+        width: 1.125rem;
+        height: 1.125rem;
+        color: $neutral-muted;
+        pointer-events: none;
+      }
+
+      .main-search-input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0.75rem 2.5rem 0.75rem 2.75rem;
+        font-size: 0.9375rem;
+        color: $neutral-text;
+        background: #f8fafc;
+        border: 1.5px solid $neutral-border;
+        border-radius: 12px;
+        outline: none;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+        &::placeholder {
+          color: #94a3b8;
+          font-weight: 400;
+        }
+
+        &:hover {
+          background: #ffffff;
+          border-color: #cbd5e1;
+        }
+
+        &:focus {
+          background: #ffffff;
+          border-color: $primary;
+          box-shadow: 0 0 0 3px $primary-focus;
+        }
+      }
+
+      .clear-search-btn {
+        position: absolute;
+        right: 0.85rem;
+        background: transparent;
+        border: none;
+        color: $neutral-muted;
+        cursor: pointer;
+        padding: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.15s ease;
+
+        svg {
+          width: 1rem;
+          height: 1rem;
+        }
+
+        &:hover {
+          color: $neutral-text;
+          background: #f1f5f9;
+        }
+      }
+    }
+  }
+
+  // 2. Filter Controls Bar
+  .filter-controls-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    gap: 0.75rem;
     flex-wrap: wrap;
 
-    .filter-title-group {
+    .filter-dropdowns-group {
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      flex-wrap: wrap;
+    }
 
-      .filter-icon {
-        width: 1.125rem;
-        height: 1.125rem;
-        color: $primary;
-      }
+    .filter-actions-right {
+      margin-left: auto;
 
-      .filter-label {
-        font-size: 0.9375rem;
-        font-weight: 700;
-        color: $neutral-text;
-      }
-
-      .filter-count-badge {
-        font-size: 0.75rem;
+      .reset-filters-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: transparent;
+        border: 1px solid #f1f5f9;
+        color: #64748b;
+        font-size: 0.8125rem;
         font-weight: 600;
-        background: $primary-light;
-        color: $primary;
-        padding: 0.15rem 0.55rem;
+        cursor: pointer;
+        padding: 0.45rem 0.75rem;
+        border-radius: 8px;
+        transition: all 0.15s ease;
+
+        svg {
+          width: 0.9rem;
+          height: 0.9rem;
+          stroke-width: 2.2;
+        }
+
+        &:hover {
+          background: #fef2f2;
+          color: $danger;
+          border-color: #fecaca;
+        }
+      }
+    }
+  }
+
+  // 3. Dropdown Containers & Trigger Buttons
+  .filter-dropdown-container {
+    position: relative;
+
+    .filter-trigger-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      height: 38px;
+      padding: 0 0.85rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: #334155;
+      background: #ffffff;
+      border: 1px solid $neutral-border;
+      border-radius: 9px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+      outline: none;
+
+      .trigger-icon {
+        width: 0.95rem;
+        height: 0.95rem;
+        color: $neutral-muted;
+        transition: color 0.15s ease;
+      }
+
+      .trigger-label {
+        line-height: 1;
+      }
+
+      .trigger-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: $primary;
+        color: #ffffff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.1rem 0.45rem;
         border-radius: 9999px;
+        line-height: 1;
+      }
+
+      .active-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: $primary;
+      }
+
+      .chevron-icon {
+        width: 0.85rem;
+        height: 0.85rem;
+        color: $neutral-muted;
+        transition: transform 0.2s ease, color 0.15s ease;
+      }
+
+      &:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: $neutral-text;
+
+        .trigger-icon,
+        .chevron-icon {
+          color: $neutral-text;
+        }
+      }
+
+      &:focus-visible {
+        box-shadow: 0 0 0 2px $primary-focus;
+      }
+
+      &.open {
+        border-color: $primary;
+        box-shadow: 0 0 0 2px $primary-focus;
+
+        .chevron-icon {
+          transform: rotate(180deg);
+          color: $primary;
+        }
+      }
+
+      &.active {
+        background: #f0fdfa;
+        border-color: #99f6e4;
+        color: $primary-hover;
+        font-weight: 600;
+
+        .trigger-icon {
+          color: $primary;
+        }
       }
     }
 
-    .filter-controls-right {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      flex-wrap: wrap;
+    // 4. Dropdown Popovers
+    .filter-dropdown-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      z-index: 60;
+      background: #ffffff;
+      border: 1px solid $neutral-border;
+      border-radius: 12px;
+      box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
+      animation: dropdownFadeIn 0.15s ease-out;
 
-      .chip-search-wrapper {
+      &.is-open {
+        display: flex;
+        flex-direction: column;
+      }
+
+      &.skills-menu {
+        width: 320px;
+        max-width: calc(100vw - 2.5rem);
+      }
+
+      &.simple-menu {
+        min-width: 190px;
+        padding: 0.35rem;
+        gap: 0.15rem;
+      }
+    }
+
+    // Dropdown Search
+    .dropdown-header {
+      padding: 0.65rem 0.75rem 0.5rem;
+      border-bottom: 1px solid #f1f5f9;
+
+      .dropdown-search-wrapper {
         position: relative;
         display: flex;
         align-items: center;
 
-        .chip-search-icon {
+        .dropdown-search-icon {
           position: absolute;
           left: 0.65rem;
           width: 0.9rem;
@@ -423,28 +638,28 @@ $match-red-border: #fecaca;
           pointer-events: none;
         }
 
-        .chip-search-input {
-          padding: 0.4rem 1.75rem 0.4rem 1.85rem;
+        .dropdown-search-input {
+          width: 100%;
+          box-sizing: border-box;
+          padding: 0.45rem 1.75rem 0.45rem 1.85rem;
           font-size: 0.8125rem;
           border: 1px solid $neutral-border;
-          border-radius: 6px;
+          border-radius: 8px;
           background: #f8fafc;
           color: $neutral-text;
           outline: none;
-          width: 140px;
           transition: all 0.15s ease;
 
           &:focus {
-            width: 180px;
             background: #ffffff;
             border-color: $primary;
             box-shadow: 0 0 0 2px $primary-focus;
           }
         }
 
-        .clear-search-btn {
+        .clear-input-btn {
           position: absolute;
-          right: 0.4rem;
+          right: 0.5rem;
           background: transparent;
           border: none;
           color: $neutral-muted;
@@ -456,154 +671,298 @@ $match-red-border: #fecaca;
             width: 0.8rem;
             height: 0.8rem;
           }
+
+          &:hover {
+            color: $neutral-text;
+          }
         }
       }
+    }
 
-      .clear-all-filters-btn {
-        background: transparent;
-        border: none;
-        color: $danger;
+    // Scrollable Options List
+    .dropdown-options-list {
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 0.35rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+
+      &::-webkit-scrollbar {
+        width: 5px;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+
+      .dropdown-loading-state,
+      .dropdown-empty-state {
+        padding: 1rem 0.75rem;
+        text-align: center;
         font-size: 0.8125rem;
-        font-weight: 600;
-        cursor: pointer;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        transition: background-color 0.15s ease;
-
-        &:hover {
-          background-color: $danger-bg;
-        }
+        color: $neutral-muted;
       }
     }
-  }
 
-  // Chips List
-  .skill-chips-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-    max-height: 180px;
-    overflow-y: auto;
-    padding-bottom: 0.25rem;
-
-    &::-webkit-scrollbar {
-      width: 5px;
-    }
-    &::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 3px;
-    }
-
-    .filter-chip {
-      display: inline-flex;
+    // Option Items (Checkboxes & Single-select)
+    .dropdown-option-item {
+      display: flex;
       align-items: center;
-      gap: 0.35rem;
-      padding: 0.35rem 0.75rem;
+      gap: 0.6rem;
+      padding: 0.45rem 0.65rem;
       font-size: 0.8125rem;
       font-weight: 500;
-      border-radius: 9999px;
-      border: 1px solid $neutral-border;
-      background: #ffffff;
-      color: $neutral-text;
+      color: #334155;
+      background: transparent;
+      border: none;
+      border-radius: 7px;
       cursor: pointer;
-      transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-      user-select: none;
-      outline: none;
+      width: 100%;
+      text-align: left;
+      transition: all 0.12s ease;
+      box-sizing: border-box;
 
-      .chip-icon {
-        width: 0.75rem;
-        height: 0.75rem;
+      .custom-checkbox {
+        width: 17px;
+        height: 17px;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: #ffffff;
+        transition: all 0.12s ease;
 
-        &.plus {
-          color: $neutral-muted;
+        svg {
+          width: 11px;
+          height: 11px;
+          stroke: currentColor;
         }
-        &.check {
+
+        &.checked {
+          background: $primary;
+          border-color: $primary;
           color: #ffffff;
         }
       }
 
+      .option-name {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
       &:hover {
-        border-color: #99f6e4;
+        background: #f8fafc;
+        color: $neutral-text;
+
+        .custom-checkbox:not(.checked) {
+          border-color: #94a3b8;
+        }
+      }
+
+      &.selected,
+      &.active {
         background: #f0fdfa;
         color: $primary-hover;
-      }
-
-      &:focus-visible {
-        box-shadow: 0 0 0 2px $primary;
-      }
-
-      // Selected Chips highlight in primary color (#0D9488)
-      &.active {
-        background-color: $primary;
-        border-color: $primary;
-        color: #ffffff;
         font-weight: 600;
-        box-shadow: 0 2px 4px rgba(13, 148, 136, 0.2);
+      }
 
-        &:hover {
-          background-color: $primary-hover;
-          border-color: $primary-hover;
+      // Single select row
+      &.single-select {
+        justify-content: space-between;
+        padding: 0.55rem 0.85rem;
+
+        .check-icon {
+          width: 0.95rem;
+          height: 0.95rem;
+          color: $primary;
+          flex-shrink: 0;
+        }
+
+        &.active {
+          background: #f0fdfa;
+          color: $primary-hover;
+          font-weight: 600;
         }
       }
     }
 
-    .no-filter-match {
-      font-size: 0.8125rem;
-      color: $neutral-muted;
-      padding: 0.5rem 0;
+    // Dropdown Footer
+    .dropdown-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.55rem 0.75rem;
+      border-top: 1px solid #f1f5f9;
+      background: #f8fafc;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+
+      .footer-count {
+        font-size: 0.75rem;
+        color: $neutral-muted;
+
+        strong {
+          color: $neutral-text;
+        }
+      }
+
+      .footer-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        .dropdown-action-btn {
+          font-size: 0.75rem;
+          font-weight: 600;
+          cursor: pointer;
+          border: none;
+          outline: none;
+          border-radius: 6px;
+          transition: all 0.15s ease;
+
+          &.text-btn {
+            background: transparent;
+            color: $danger;
+            padding: 0.25rem 0.5rem;
+
+            &:hover {
+              background: #fee2e2;
+            }
+          }
+
+          &.apply-btn {
+            background: $primary;
+            color: #ffffff;
+            padding: 0.35rem 0.75rem;
+
+            &:hover {
+              background: $primary-hover;
+            }
+          }
+        }
+      }
     }
   }
 
-  .secondary-filters-bar {
+  // 5. Active Filters Tray
+  .active-filters-tray {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 1.25rem;
+    gap: 0.6rem;
+    flex-wrap: wrap;
     padding-top: 0.85rem;
-    margin-top: 0.85rem;
     border-top: 1px solid #f1f5f9;
 
-    .filter-group-inline {
+    .active-tray-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .active-tags-list {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .active-filter-tag {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      font-size: 0.8125rem;
+      gap: 0.35rem;
+      padding: 0.25rem 0.6rem;
+      background: #f0fdfa;
+      border: 1px solid #ccfbf1;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #0f766e;
+      transition: all 0.15s ease;
 
-      .inline-filter-label {
-        font-weight: 600;
-        color: $neutral-muted;
+      .tag-icon {
+        width: 0.75rem;
+        height: 0.75rem;
+        color: $primary;
       }
 
-      .pill-group {
-        display: inline-flex;
-        gap: 0.25rem;
-        flex-wrap: wrap;
+      .tag-text {
+        line-height: 1;
+      }
 
-        .small-filter-pill {
-          padding: 0.2rem 0.55rem;
-          font-size: 0.75rem;
-          font-weight: 500;
-          border-radius: 6px;
-          border: 1px solid $neutral-border;
-          background: #ffffff;
-          color: $neutral-text;
-          cursor: pointer;
-          transition: all 0.15s ease;
+      .remove-tag-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: #0d9488;
+        font-size: 0.95rem;
+        line-height: 1;
+        padding: 0 0.15rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.15s ease;
+
+        &:hover {
+          color: $danger;
+          background: #fee2e2;
+        }
+      }
+
+      &.search-tag {
+        background: #f8fafc;
+        border-color: #e2e8f0;
+        color: #334155;
+
+        .tag-icon {
+          color: $neutral-muted;
+        }
+
+        .remove-tag-btn {
+          color: $neutral-muted;
 
           &:hover {
-            border-color: #99f6e4;
-            background: #f0fdfa;
-          }
-
-          &.active {
-            background: $primary;
-            color: #ffffff;
-            border-color: $primary;
-            font-weight: 600;
+            color: $danger;
+            background: #fee2e2;
           }
         }
       }
     }
+
+    .clear-all-link-btn {
+      background: transparent;
+      border: none;
+      color: $danger;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      transition: background-color 0.15s ease;
+
+      &:hover {
+        text-decoration: underline;
+        background: #fef2f2;
+      }
+    }
+  }
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -683,6 +1042,22 @@ $match-red-border: #fecaca;
     }
   }
 
+  &.closed-card {
+    border-color: #e2e8f0;
+    background: #fafafa;
+    opacity: 0.9;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: #ef4444;
+    }
+  }
+
   .card-top-bar {
     display: flex;
     align-items: center;
@@ -692,7 +1067,29 @@ $match-red-border: #fecaca;
 
     .badges-left {
       display: flex;
+      flex-wrap: wrap;
+      align-items: center;
       gap: 0.5rem;
+
+      .badge-closed {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.25rem 0.625rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border-radius: 9999px;
+        background: #fee2e2;
+        color: #b91c1c;
+        border: 1px solid #fca5a5;
+
+        .status-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background-color: #ef4444;
+        }
+      }
 
       .applied-badge {
         display: inline-flex;
@@ -727,6 +1124,56 @@ $match-red-border: #fecaca;
         svg {
           width: 0.85rem;
           height: 0.85rem;
+          color: #64748b;
+        }
+      }
+
+      .countdown-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #475569;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+
+        .countdown-icon {
+          width: 0.8rem;
+          height: 0.8rem;
+          color: #64748b;
+        }
+
+        &.urgent {
+          background: #fef2f2;
+          border-color: #fca5a5;
+          color: #b91c1c;
+          box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.15);
+
+          .countdown-icon,
+          .warning-icon {
+            color: #dc2626;
+          }
+
+          .urgent-text {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-weight: 700;
+          }
+
+          .warning-icon {
+            width: 0.85rem;
+            height: 0.85rem;
+            animation: pulse-urgent 1.5s infinite ease-in-out;
+          }
+        }
+
+        &.expired {
+          background: #f1f5f9;
+          border-color: #cbd5e1;
           color: #64748b;
         }
       }

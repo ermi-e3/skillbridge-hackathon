@@ -219,6 +219,37 @@ $match-red-border: #fecaca;
       }
     }
 
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.65rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 9999px;
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #22c55e;
+      }
+
+      &.closed {
+        background: #fee2e2;
+        color: #b91c1c;
+        border-color: #fca5a5;
+
+        .status-dot {
+          background-color: #ef4444;
+        }
+      }
+    }
+
+
     .applied-pill {
       display: inline-flex;
       align-items: center;
@@ -376,6 +407,243 @@ $match-red-border: #fecaca;
         color: $neutral-muted;
         border: 1px solid $neutral-border;
       }
+    }
+  }
+}
+
+// Application Deadline Real-Time Countdown Widget
+.deadline-countdown-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: all 0.2s ease;
+
+  &.urgent {
+    border-color: #fca5a5;
+    background: #fffafa;
+    box-shadow: 0 4px 16px rgba(220, 38, 38, 0.08);
+  }
+
+  &.closed {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+    opacity: 0.95;
+  }
+
+  .countdown-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+
+    .clock-label-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      .clock-icon-wrapper {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: #f0fdfa;
+        color: #0d9488;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        svg {
+          width: 1.35rem;
+          height: 1.35rem;
+        }
+
+        &.urgent {
+          background: #fee2e2;
+          color: #dc2626;
+        }
+      }
+
+      .countdown-heading {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: $neutral-text;
+        margin: 0 0 0.2rem;
+      }
+
+      .deadline-target-time {
+        font-size: 0.8125rem;
+        color: $neutral-muted;
+        margin: 0;
+      }
+    }
+
+    .status-indicator-tag {
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border-radius: 9999px;
+
+        &.tag-active {
+          background: #dcfce7;
+          color: #166534;
+          border: 1px solid #86efac;
+        }
+
+        &.tag-urgent {
+          background: #fee2e2;
+          color: #b91c1c;
+          border: 1px solid #fca5a5;
+
+          .tag-warn-icon {
+            width: 0.85rem;
+            height: 0.85rem;
+            animation: pulse-urgent 1.5s infinite ease-in-out;
+          }
+        }
+
+        &.tag-closed {
+          background: #f1f5f9;
+          color: #475569;
+          border: 1px solid #cbd5e1;
+        }
+      }
+    }
+  }
+
+  // Full countdown display: Days, Hours, Minutes, Seconds
+  .countdown-timer-board {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.15rem 1.5rem;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+
+    &.urgent {
+      background: #fef2f2;
+      border-color: #fca5a5;
+
+      .timer-segment .timer-digit {
+        color: #dc2626;
+      }
+
+      .timer-separator {
+        color: #ef4444;
+      }
+    }
+
+    .timer-segment {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 65px;
+
+      .timer-digit {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 2rem;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+
+      .timer-unit-label {
+        font-size: 0.6875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: $neutral-muted;
+        margin-top: 0.4rem;
+      }
+    }
+
+    .timer-separator {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #94a3b8;
+      margin-bottom: 0.85rem;
+      user-select: none;
+    }
+  }
+
+  // Visual Warning Alert Banner (<= 24 hours)
+  .urgent-alert-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    background: #fef2f2;
+    border: 1.5px solid #f87171;
+    border-radius: 10px;
+    padding: 0.85rem 1.15rem;
+    animation: pulse-border 2s infinite ease-in-out;
+
+    .urgent-banner-icon {
+      width: 1.35rem;
+      height: 1.35rem;
+      color: #dc2626;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+      animation: pulse-urgent 1.5s infinite ease-in-out;
+    }
+
+    .urgent-banner-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      font-size: 0.8125rem;
+      color: #991b1b;
+      line-height: 1.45;
+
+      strong {
+        font-weight: 700;
+        color: #7f1d1d;
+      }
+    }
+  }
+
+  // Closed Notice Box
+  .closed-notice-box {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    color: #475569;
+
+    svg {
+      width: 1.5rem;
+      height: 1.5rem;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+
+    strong {
+      display: block;
+      font-size: 0.9375rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 0.2rem;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.8125rem;
+      color: #64748b;
+      line-height: 1.4;
     }
   }
 }
@@ -576,6 +844,23 @@ $match-red-border: #fecaca;
     }
   }
 
+  &.closed-banner {
+    background: #fef2f2;
+    border-color: #fca5a5;
+
+    .banner-top {
+      color: #b91c1c;
+
+      .banner-icon {
+        color: #dc2626;
+      }
+    }
+
+    .banner-message {
+      color: #991b1b;
+    }
+  }
+
   .banner-top {
     display: flex;
     align-items: center;
@@ -652,6 +937,16 @@ $match-red-border: #fecaca;
 
       .btn-icon {
         color: #64748b;
+      }
+    }
+
+    &.closed-btn {
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #cbd5e1;
+
+      .btn-icon {
+        color: #dc2626;
       }
     }
   }
@@ -801,6 +1096,7 @@ $match-red-border: #fecaca;
       &:hover:not(:disabled) { background: $danger-hover; }
       &:disabled { opacity: 0.6; cursor: not-allowed; }
     }
+
   }
 }
 
@@ -1002,4 +1298,22 @@ $match-red-border: #fecaca;
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+  }
+}
+
+@keyframes pulse-urgent {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
 }

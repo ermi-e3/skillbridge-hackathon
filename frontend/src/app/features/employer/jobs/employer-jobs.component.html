@@ -92,10 +92,30 @@
           @for (job of jobs(); track job.id) {
             <article class="job-card">
               <div class="card-topline">
-                <span class="status-pill" [class.closed]="!job.isOpen">
-                  <span class="status-dot"></span>
-                  {{ job.isOpen ? 'Active' : 'Closed' }}
-                </span>
+                <div class="status-group">
+                  <span class="status-pill" [class.closed]="!job.isOpen">
+                    <span class="status-dot"></span>
+                    {{ job.isOpen ? 'Active' : 'Closed' }}
+                  </span>
+
+                  @if (job.deadline && job.isOpen) {
+                    @let cd = getCountdown(job.deadline, job.isOpen);
+                    <span class="countdown-chip" [class.urgent]="cd.isUrgent" [class.expired]="cd.isExpired">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="countdown-icon" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                      </svg>
+                      @if (cd.isUrgent) {
+                        <strong>Closing soon: {{ cd.daysRemainingText }}</strong>
+                      } @else if (!cd.isExpired) {
+                        <span>{{ cd.daysRemainingText }}</span>
+                      } @else {
+                        <span>Expired</span>
+                      }
+                    </span>
+                  }
+                </div>
+
                 <span class="applicant-count">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path>
@@ -211,16 +231,55 @@
                 </div>
               }
 
-              <a class="applicants-action" [routerLink]="['/employer/jobs', job.id, 'applicants']">
-                <span>View Applicants ({{ job.applicantCounts.total }})</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <path d="M5 12h14M13 6l6 6-6 6"></path>
-                </svg>
-              </a>
+              <div class="card-actions-row">
+                <a class="applicants-action" [routerLink]="['/employer/jobs', job.id, 'applicants']">
+                  <span>View Applicants ({{ job.applicantCounts.total }})</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6"></path>
+                  </svg>
+                </a>
+
+                @if (job.isOpen) {
+                  <button
+                    type="button"
+                    class="btn-close-job"
+                    (click)="openCloseConfirm(job)"
+                    [disabled]="closingJobId() === job.id"
+                  >
+                    @if (closingJobId() === job.id) {
+                      Closing...
+                    } @else {
+                      Close Job
+                    }
+                  </button>
+                } @else {
+                  <span class="badge-closed-notice">Closed</span>
+                }
+              </div>
             </article>
           }
         </div>
       </section>
     }
   </div>
+
+  @if (jobToClose()) {
+    <div class="modal-backdrop" role="dialog" aria-modal="true">
+      <div class="modal-dialog">
+        <h3>Close Job Opening?</h3>
+        <p>
+          Are you sure you want to close <strong>{{ jobToClose()?.title }}</strong>?
+          Once closed, candidates will no longer be able to submit applications.
+        </p>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="dismissCloseConfirm()" [disabled]="closingJobId() !== null">
+            Keep Open
+          </button>
+          <button type="button" class="btn-confirm-close" (click)="confirmCloseJob()" [disabled]="closingJobId() !== null">
+            @if (closingJobId()) { Closing... } @else { Yes, Close Job }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </main>

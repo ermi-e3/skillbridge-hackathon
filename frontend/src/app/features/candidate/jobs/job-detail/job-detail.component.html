@@ -135,6 +135,11 @@
                   <span>{{ j.companyName }}</span>
                 </span>
 
+                <span class="status-pill" [class.closed]="j.isOpen === false">
+                  <span class="status-dot"></span>
+                  {{ j.isOpen === false ? 'Closed' : 'Active' }}
+                </span>
+
                 @if (applicationStatusState() === 'Withdrawn') {
                   <span class="status-pill withdrawn-pill" title="Application Withdrawn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -232,6 +237,96 @@
             </div>
           </header>
 
+          <!-- Application Deadline Real-Time Countdown Widget -->
+          @if (j.deadline) {
+            @let cd = countdown();
+            <section class="deadline-countdown-card" [class.urgent]="cd?.isUrgent" [class.closed]="j.isOpen === false || cd?.isExpired">
+              <div class="countdown-card-header">
+                <div class="clock-label-group">
+                  <div class="clock-icon-wrapper" [class.urgent]="cd?.isUrgent">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="countdown-heading">Application Deadline</h3>
+                    <p class="deadline-target-time">Closes: {{ j.deadline | date: 'medium' }}</p>
+                  </div>
+                </div>
+
+                <div class="status-indicator-tag">
+                  @if (j.isOpen === false || cd?.isExpired) {
+                    <span class="tag tag-closed">Closed</span>
+                  } @else if (cd?.isUrgent) {
+                    <span class="tag tag-urgent">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="tag-warn-icon">
+                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                      </svg>
+                      Deadline Approaching
+                    </span>
+                  } @else {
+                    <span class="tag tag-active">Active</span>
+                  }
+                </div>
+              </div>
+
+              @if (j.isOpen !== false && !cd?.isExpired && cd) {
+                <!-- Full countdown displaying Days, Hours, Minutes, Seconds -->
+                <div class="countdown-timer-board" [class.urgent]="cd.isUrgent">
+                  <div class="timer-segment">
+                    <span class="timer-digit">{{ cd.formattedDays }}</span>
+                    <span class="timer-unit-label">Days</span>
+                  </div>
+                  <span class="timer-separator">:</span>
+                  <div class="timer-segment">
+                    <span class="timer-digit">{{ cd.formattedHours }}</span>
+                    <span class="timer-unit-label">Hours</span>
+                  </div>
+                  <span class="timer-separator">:</span>
+                  <div class="timer-segment">
+                    <span class="timer-digit">{{ cd.formattedMinutes }}</span>
+                    <span class="timer-unit-label">Minutes</span>
+                  </div>
+                  <span class="timer-separator">:</span>
+                  <div class="timer-segment">
+                    <span class="timer-digit">{{ cd.formattedSeconds }}</span>
+                    <span class="timer-unit-label">Seconds</span>
+                  </div>
+                </div>
+
+                <!-- Visual Warning when remaining time is 24 hours or less -->
+                @if (cd.isUrgent) {
+                  <div class="urgent-alert-banner" role="alert">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="urgent-banner-icon">
+                      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                      <line x1="12" y1="9" x2="12" y2="13"></line>
+                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <div class="urgent-banner-copy">
+                      <strong>⚠️ Deadline Approaching: Less than 24 hours remaining to apply!</strong>
+                      <span>Applications for this opening will close automatically. Be sure to submit your application before time expires.</span>
+                    </div>
+                  </div>
+                }
+              } @else {
+                <div class="closed-notice-box" role="status">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                  </svg>
+                  <div>
+                    <strong>Application Deadline Passed / Position Closed</strong>
+                    <p>New applications are no longer accepted for this role.</p>
+                  </div>
+                </div>
+              }
+            </section>
+          }
+
           <!-- Match Breakdown (Matched vs Missing Skills) if available -->
           @if (j.match && (j.match.matchedSkills?.length || j.match.missingSkills?.length || j.match.matchedPreferredSkills?.length)) {
             <div class="match-breakdown-card">
@@ -327,8 +422,35 @@
             </div>
           </div>
 
-          <!-- If application status is Withdrawn: Show Withdrawn state -->
-          @if (applicationStatusState() === 'Withdrawn') {
+          <!-- If job is closed or deadline expired: Application Restricted -->
+          @if (j.isOpen === false || (j.deadline && countdown()?.isExpired)) {
+            <div class="already-applied-banner closed-banner" role="status">
+              <div class="banner-top">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="banner-icon">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="15" y1="9" x2="9" y2="15"></line>
+                  <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+                <span class="banner-title">Job Closed</span>
+              </div>
+              <p class="banner-message">
+                This job position is closed and is no longer accepting applications.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              class="apply-submit-btn already-applied-btn closed-btn"
+              disabled
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+              </svg>
+              <span>Job Closed</span>
+            </button>
+          } @else if (applicationStatusState() === 'Withdrawn') {
             <div class="already-applied-banner withdrawn-banner" role="status">
               <div class="banner-top">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="banner-icon">

@@ -22,6 +22,7 @@ describe('JobDetailComponent', () => {
   };
   let authServiceSpy: {
     currentUser: ReturnType<typeof vi.fn>;
+    getRole?: ReturnType<typeof vi.fn>;
   };
 
   const mockJob: JobDto = {
@@ -67,7 +68,8 @@ describe('JobDetailComponent', () => {
       withdraw: vi.fn().mockReturnValue(of({ ...mockApplicationResponse, status: 'Withdrawn' })),
     };
     authServiceSpy = {
-      currentUser: vi.fn().mockReturnValue({ userId: 'u-1', fullName: 'Hana' }),
+      currentUser: vi.fn().mockReturnValue({ userId: 'u-1', fullName: 'Hana', role: 'Candidate' }),
+      getRole: vi.fn().mockReturnValue('Candidate'),
     };
 
     await TestBed.configureTestingModule({
@@ -257,5 +259,75 @@ describe('JobDetailComponent', () => {
     const withdrawnPill = fixture.nativeElement.querySelector('.withdrawn-pill');
     expect(withdrawnPill).toBeTruthy();
     expect(withdrawnPill.textContent).toContain('Withdrawn');
+  });
+
+  it('should display full countdown timer with days, hours, minutes, seconds when deadline is set', () => {
+    const futureDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString();
+    jobsServiceSpy.getJobById.mockReturnValue(of({ ...mockJob, deadline: futureDate, isOpen: true }));
+    component.loadJobDetail(12);
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement;
+    const countdownCard = el.querySelector('.deadline-countdown-card');
+    expect(countdownCard).toBeTruthy();
+    expect(countdownCard.classList).not.toContain('urgent');
+
+    const timerBoard = el.querySelector('.countdown-timer-board');
+    expect(timerBoard).toBeTruthy();
+
+    const units = el.querySelectorAll('.timer-segment .timer-unit-label');
+    expect(units.length).toBe(4);
+    expect(units[0].textContent).toContain('Days');
+    expect(units[1].textContent).toContain('Hours');
+    expect(units[2].textContent).toContain('Minutes');
+    expect(units[3].textContent).toContain('Seconds');
+  });
+
+  it('should display urgent red styling and warning alert when deadline is within 24 hours', () => {
+    const nearDeadline = new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(); // 6 hours left
+    jobsServiceSpy.getJobById.mockReturnValue(of({ ...mockJob, deadline: nearDeadline, isOpen: true }));
+    component.loadJobDetail(12);
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement;
+    const countdownCard = el.querySelector('.deadline-countdown-card');
+    expect(countdownCard).toBeTruthy();
+    expect(countdownCard.classList).toContain('urgent');
+
+    const urgentBanner = el.querySelector('.urgent-alert-banner');
+    expect(urgentBanner).toBeTruthy();
+    expect(urgentBanner.textContent).toContain('Deadline Approaching: Less than 24 hours remaining to apply!');
+  });
+
+  it('should display closed status and disable application submit when job is closed', () => {
+    jobsServiceSpy.getJobById.mockReturnValue(of({ ...mockJob, isOpen: false }));
+    component.loadJobDetail(12);
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement;
+    const closedStatus = el.querySelector('.status-pill.closed');
+    expect(closedStatus).toBeTruthy();
+    expect(closedStatus.textContent).toContain('Closed');
+
+    const closedBanner = el.querySelector('.already-applied-banner.closed-banner');
+    expect(closedBanner).toBeTruthy();
+    expect(closedBanner.textContent).toContain('Job Closed');
+
+    const submitBtn = el.querySelector('.apply-submit-btn.closed-btn');
+    expect(submitBtn).toBeTruthy();
+    expect(submitBtn.disabled).toBe(true);
+  });
+
+  it('should NOT render Close Job button or modal on candidate job details view', () => {
+    authServiceSpy.currentUser.mockReturnValue({ userId: 'emp-1', fullName: 'Acme HR', role: 'Employer' });
+    jobsServiceSpy.getJobById.mockReturnValue(of({ ...mockJob, isOpen: true }));
+    component.loadJobDetail(12);
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement;
+    expect(el.querySelector('.btn-manual-close')).toBeNull();
+    expect(el.querySelector('.btn-close-job')).toBeNull();
+    expect(el.querySelector('.close-modal')).toBeNull();
+    expect(el.textContent).not.toContain('Close Job');
   });
 });

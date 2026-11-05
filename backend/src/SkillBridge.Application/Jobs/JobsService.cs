@@ -46,6 +46,26 @@ public sealed class JobsService(
             });
         }
 
+        // Auto-close expired jobs
+        var expiredJobs = await dbContext.Jobs
+            .Where(j => j.IsOpen && j.Deadline != null && j.Deadline <= clock.UtcNow)
+            .ToListAsync(cancellationToken);
+        if (expiredJobs.Count > 0)
+        {
+            foreach (var expired in expiredJobs)
+            {
+                expired.Close();
+            }
+            await dbContext.SaveChangesAsync(cancellationToken);
+            if (notifier != null)
+            {
+                foreach (var expired in expiredJobs)
+                {
+                    await notifier.NotifyJobStatusChangedAsync(new JobStatusChangedRealtimeEvent(expired.Id, false, expired.Deadline, null), cancellationToken);
+                }
+            }
+        }
+
         var filterSkillIds = skillIds?.Distinct().ToList();
 
         var query = dbContext.Jobs
@@ -190,7 +210,8 @@ public sealed class JobsService(
                 job.MinExperienceYears,
                 preferredSkills,
                 applicationStatus,
-                applicationId);
+                applicationId,
+                job.Deadline);
         }).ToList();
 
         // Sort
@@ -221,6 +242,22 @@ public sealed class JobsService(
             .ThenInclude(rs => rs.Skill)
             .FirstOrDefaultAsync(j => j.Id == id, cancellationToken)
             ?? throw new NotFoundException("jobs.not_found", "Job not found", "This job does not exist.");
+
+        var isOpen = job.IsOpen;
+        if (isOpen && job.Deadline.HasValue && clock.UtcNow >= job.Deadline.Value)
+        {
+            var trackedJob = await dbContext.Jobs.FirstOrDefaultAsync(j => j.Id == id, cancellationToken);
+            if (trackedJob != null && trackedJob.IsOpen)
+            {
+                trackedJob.Close();
+                await dbContext.SaveChangesAsync(cancellationToken);
+                isOpen = false;
+                if (notifier != null)
+                {
+                    await notifier.NotifyJobStatusChangedAsync(new JobStatusChangedRealtimeEvent(trackedJob.Id, false, trackedJob.Deadline, null), cancellationToken);
+                }
+            }
+        }
 
         var employer = await identityService.FindByIdAsync(job.EmployerId, cancellationToken);
         var companyName = employer?.CompanyName ?? "Unknown Company";
@@ -291,7 +328,7 @@ public sealed class JobsService(
             job.Title,
             companyName,
             job.Location,
-            job.IsOpen,
+            isOpen,
             job.CreatedAt,
             requiredSkills,
             match,
@@ -305,7 +342,8 @@ public sealed class JobsService(
             job.MinExperienceYears,
             preferredSkills,
             applicationStatus,
-            applicationId);
+            applicationId,
+            job.Deadline);
     }
 
     public async Task<JobDto> CreateJobAsync(CreateJobRequest request, CancellationToken cancellationToken = default)
@@ -356,7 +394,8 @@ public sealed class JobsService(
             request.ExperienceLevel,
             request.MinExperienceYears,
             request.PreferredSkillIds,
-            skillDetails);
+            skillDetails,
+            request.Deadline);
 
         dbContext.Jobs.Add(job);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -374,6 +413,26 @@ public sealed class JobsService(
         EnsureEmployer();
 
         var employerId = currentUser.UserId;
+
+        // Auto-close expired jobs
+        var expiredJobs = await dbContext.Jobs
+            .Where(j => j.IsOpen && j.Deadline != null && j.Deadline <= clock.UtcNow)
+            .ToListAsync(cancellationToken);
+        if (expiredJobs.Count > 0)
+        {
+            foreach (var expired in expiredJobs)
+            {
+                expired.Close();
+            }
+            await dbContext.SaveChangesAsync(cancellationToken);
+            if (notifier != null)
+            {
+                foreach (var expired in expiredJobs)
+                {
+                    await notifier.NotifyJobStatusChangedAsync(new JobStatusChangedRealtimeEvent(expired.Id, false, expired.Deadline, null), cancellationToken);
+                }
+            }
+        }
 
         var jobs = await dbContext.Jobs
             .AsNoTracking()
@@ -427,8 +486,37 @@ public sealed class JobsService(
                 job.WorkArrangement,
                 job.ExperienceLevel,
                 job.MinExperienceYears,
-                job.Description);
+                job.Description,
+                job.Deadline);
         }).ToList();
+    }
+
+    public async Task<JobDto> CloseJobAsync(int id, CancellationToken cancellationToken = default)
+    {
+        EnsureEmployer();
+
+        var job = await dbContext.Jobs
+            .FirstOrDefaultAsync(j => j.Id == id, cancellationToken)
+            ?? throw new NotFoundException("jobs.not_found", "Job not found", "This job does not exist.");
+
+        if (job.EmployerId != currentUser.UserId)
+        {
+            throw new ForbiddenException("jobs.not_owner", "Not job owner", "You can only close your own jobs.");
+        }
+
+        if (job.IsOpen)
+        {
+            job.Close();
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        var jobDto = await GetJobByIdAsync(id, cancellationToken);
+        if (notifier != null)
+        {
+            await notifier.NotifyJobStatusChangedAsync(new JobStatusChangedRealtimeEvent(id, false, job.Deadline, jobDto), cancellationToken);
+        }
+
+        return jobDto;
     }
 
     private void EnsureEmployer()

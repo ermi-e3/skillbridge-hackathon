@@ -44,6 +44,13 @@ export interface JobCreatedRealtimeEvent {
   job: JobDto;
 }
 
+export interface JobStatusChangedRealtimeEvent {
+  jobId: number;
+  isOpen: boolean;
+  deadline?: string | null;
+  job?: JobDto | null;
+}
+
 export interface CandidateProfileUpdatedRealtimeEvent {
   candidateId: string;
 }

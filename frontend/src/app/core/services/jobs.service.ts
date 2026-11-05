@@ -99,4 +99,12 @@ export class JobsService {
   createJob(payload: CreateJobRequest): Observable<JobDto> {
     return this.postJob(payload);
   }
+
+  /**
+   * Manually close a job opening before deadline
+   * PATCH /api/jobs/:id/close
+   */
+  closeJob(id: number): Observable<JobDto> {
+    return this.http.patch<JobDto>(`${this.baseUrl}/${id}/close`, {});
+  }
 }

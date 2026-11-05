@@ -23,4 +23,5 @@ public sealed record EmployerJobDto(
     WorkArrangement WorkArrangement = WorkArrangement.OnSite,
     ExperienceLevel ExperienceLevel = ExperienceLevel.EntryLevel,
     int MinExperienceYears = 0,
-    string? Description = null);
+    string? Description = null,
+    DateTime? Deadline = null);

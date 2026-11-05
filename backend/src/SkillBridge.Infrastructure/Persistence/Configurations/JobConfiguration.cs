@@ -19,6 +19,7 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
         builder.Property(j => j.Location).HasMaxLength(100);
         builder.Property(j => j.IsOpen).IsRequired();
         builder.Property(j => j.CreatedAt).IsRequired();
+        builder.Property(j => j.Deadline).IsRequired(false);
 
         builder.Property(j => j.JobType).HasDefaultValue(JobType.FullTime);
         builder.Property(j => j.WorkArrangement).HasDefaultValue(WorkArrangement.OnSite);

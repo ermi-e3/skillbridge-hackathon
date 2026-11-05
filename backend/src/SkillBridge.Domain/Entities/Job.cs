@@ -26,7 +26,8 @@ public class Job
         ExperienceLevel experienceLevel = ExperienceLevel.EntryLevel,
         int minExperienceYears = 0,
         IEnumerable<int>? preferredSkillIds = null,
-        IEnumerable<(int SkillId, bool IsRequired, SkillProficiency MinProficiency)>? skillDetails = null)
+        IEnumerable<(int SkillId, bool IsRequired, SkillProficiency MinProficiency)>? skillDetails = null,
+        DateTime? deadline = null)
     {
         EmployerId = employerId;
         Title = title.Trim();
@@ -34,6 +35,7 @@ public class Job
         Location = string.IsNullOrWhiteSpace(location) ? null : location.Trim();
         IsOpen = true;
         CreatedAt = createdAt;
+        Deadline = deadline;
         JobType = jobType;
         ExperienceLevel = experienceLevel;
         MinExperienceYears = Math.Max(0, minExperienceYears);
@@ -98,6 +100,7 @@ public class Job
     public string? Location { get; private set; }
     public bool IsOpen { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public DateTime? Deadline { get; private set; }
     public JobType JobType { get; private set; } = JobType.FullTime;
     public WorkArrangement WorkArrangement { get; private set; } = WorkArrangement.OnSite;
     public ExperienceLevel ExperienceLevel { get; private set; } = ExperienceLevel.EntryLevel;
@@ -107,6 +110,18 @@ public class Job
     public IReadOnlyCollection<JobApplication> Applications => _applications;
 
     public bool IsOwnedBy(string userId) => EmployerId == userId;
+
+    public bool IsExpired(DateTime utcNow) => Deadline.HasValue && utcNow >= Deadline.Value;
+
+    public bool CheckExpiration(DateTime utcNow)
+    {
+        if (IsOpen && IsExpired(utcNow))
+        {
+            IsOpen = false;
+            return true;
+        }
+        return false;
+    }
 
     public void Close() => IsOpen = false;
 }

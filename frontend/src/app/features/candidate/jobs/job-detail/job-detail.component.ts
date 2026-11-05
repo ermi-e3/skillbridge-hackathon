@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -8,6 +8,7 @@ import { ApplicationsService } from '../../../../core/services/applications.serv
 import { AuthService } from '../../../../core/services/auth.service';
 import { JobsService } from '../../../../core/services/jobs.service';
 import { RealtimeService } from '../../../../core/services/realtime.service';
+import { calculateCountdown, CountdownDetails } from '../../../../core/utils/countdown';
 import { extractErrorMessage } from '../../../../core/utils/error-formatter';
 
 @Component({
@@ -32,11 +33,23 @@ export class JobDetailComponent implements OnInit {
   readonly isWithdrawing = signal<boolean>(false);
   readonly showWithdrawModal = signal<boolean>(false);
   readonly job = signal<JobDto | null>(null);
+  readonly countdown = signal<CountdownDetails | null>(null);
   readonly hasAppliedState = signal<boolean>(false);
   readonly applicationStatusState = signal<string | null>(null);
   readonly applicationIdState = signal<number | null>(null);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
+
+  private countdownIntervalId: any = null;
+
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      if (this.countdownIntervalId) {
+        clearInterval(this.countdownIntervalId);
+        this.countdownIntervalId = null;
+      }
+    });
+  }
 
   // Reactive Apply Form
   readonly applyForm: FormGroup = this.fb.group({
@@ -50,6 +63,9 @@ export class JobDetailComponent implements OnInit {
     if (jobId) {
       this.loadJobDetail(jobId);
       this.setupRealtimeListeners(jobId);
+      this.countdownIntervalId = setInterval(() => {
+        this.updateCountdown();
+      }, 1000);
     } else {
       this.isLoading.set(false);
       this.errorMessage.set('Invalid job identifier.');
@@ -85,6 +101,17 @@ export class JobDetailComponent implements OnInit {
           this.applicationIdState.set(event.applicationId);
         }
       });
+
+    this.realtime.jobStatusChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        if (event.jobId === jobId) {
+          this.job.update((current) =>
+            current ? { ...current, isOpen: event.isOpen, deadline: event.deadline ?? current.deadline } : null
+          );
+          this.updateCountdown();
+        }
+      });
   }
 
   get coverNoteControl() {
@@ -106,6 +133,7 @@ export class JobDetailComponent implements OnInit {
         this.applicationStatusState.set(data.applicationStatus || (data.hasApplied ? 'Received' : null));
         this.applicationIdState.set(data.applicationId || null);
         this.isLoading.set(false);
+        this.updateCountdown();
       },
       error: (err) => {
         this.isLoading.set(false);
@@ -113,6 +141,21 @@ export class JobDetailComponent implements OnInit {
         this.errorMessage.set(msg);
       },
     });
+  }
+
+  updateCountdown(): void {
+    const j = this.job();
+    if (!j) {
+      this.countdown.set(null);
+      return;
+    }
+
+    const cd = calculateCountdown(j.deadline, j.isOpen ?? true);
+    this.countdown.set(cd);
+
+    if (j.deadline && cd.isExpired && j.isOpen !== false) {
+      this.job.update((curr) => (curr ? { ...curr, isOpen: false } : null));
+    }
   }
 
   getMatchPercent(job: JobDto): number | null {
@@ -148,7 +191,14 @@ export class JobDetailComponent implements OnInit {
 
   onApplySubmit(): void {
     const currentJob = this.job();
-    if (!currentJob || this.hasAppliedState() || this.isSubmitting() || this.applyForm.invalid) {
+    if (
+      !currentJob ||
+      currentJob.isOpen === false ||
+      (currentJob.deadline && this.countdown()?.isExpired) ||
+      this.hasAppliedState() ||
+      this.isSubmitting() ||
+      this.applyForm.invalid
+    ) {
       return;
     }
 

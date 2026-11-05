@@ -34,6 +34,12 @@ public sealed record ApplicationStatusChangedRealtimeEvent(
 public sealed record JobCreatedRealtimeEvent(
     JobDto Job);
 
+public sealed record JobStatusChangedRealtimeEvent(
+    int JobId,
+    bool IsOpen,
+    DateTime? Deadline,
+    JobDto? Job);
+
 public sealed record CandidateProfileUpdatedRealtimeEvent(
     string CandidateId);
 
@@ -51,6 +57,7 @@ public interface IRealtimeNotifier
     Task NotifyApplicationWithdrawnAsync(ApplicationWithdrawnRealtimeEvent @event, CancellationToken cancellationToken = default);
     Task NotifyApplicationStatusChangedAsync(ApplicationStatusChangedRealtimeEvent @event, CancellationToken cancellationToken = default);
     Task NotifyJobCreatedAsync(JobCreatedRealtimeEvent @event, CancellationToken cancellationToken = default);
+    Task NotifyJobStatusChangedAsync(JobStatusChangedRealtimeEvent @event, CancellationToken cancellationToken = default);
     Task NotifyCandidateProfileUpdatedAsync(CandidateProfileUpdatedRealtimeEvent @event, CancellationToken cancellationToken = default);
     Task SendNotificationAsync(string userId, NotificationRealtimeEvent @event, CancellationToken cancellationToken = default);
 }
