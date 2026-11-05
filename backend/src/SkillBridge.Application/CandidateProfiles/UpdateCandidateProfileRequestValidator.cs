@@ -15,6 +15,25 @@ public sealed class UpdateCandidateProfileRequestValidator : AbstractValidator<U
         RuleFor(request => request.Bio)
             .MaximumLength(2000);
 
+        RuleFor(request => request.Location)
+            .MaximumLength(100);
+
+        RuleFor(request => request.YearsOfExperience)
+            .GreaterThanOrEqualTo(0)
+            .When(r => r.YearsOfExperience.HasValue);
+
+        RuleFor(request => request.PreferredWorkArrangement)
+            .IsInEnum()
+            .When(r => r.PreferredWorkArrangement.HasValue);
+
+        RuleFor(request => request.PreferredJobType)
+            .IsInEnum()
+            .When(r => r.PreferredJobType.HasValue);
+
+        RuleFor(request => request.ExperienceLevel)
+            .IsInEnum()
+            .When(r => r.ExperienceLevel.HasValue);
+
         RuleFor(request => request.GitHubUrl)
             .Cascade(CascadeMode.Stop)
             .MaximumLength(300)
@@ -30,6 +49,16 @@ public sealed class UpdateCandidateProfileRequestValidator : AbstractValidator<U
             .WithMessage("Skill IDs must be positive.")
             .Must(ids => ids.Distinct().Count() == ids.Count)
             .WithMessage("Skill IDs must be unique.");
+
+        RuleFor(request => request.PreferredSkillIds)
+            .Cascade(CascadeMode.Stop)
+            .Must(ids => ids == null || ids.Distinct().Count() <= 15)
+            .WithMessage("Select at most 15 preferred skills.")
+            .Must(ids => ids == null || ids.All(id => id > 0))
+            .WithMessage("Preferred skill IDs must be positive.")
+            .Must(ids => ids == null || ids.Distinct().Count() == ids.Count)
+            .WithMessage("Preferred skill IDs must be unique.")
+            .When(request => request.PreferredSkillIds != null);
     }
 
     private static bool BeAbsoluteHttpUrl(string? value) =>

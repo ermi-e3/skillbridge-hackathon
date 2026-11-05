@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SkillBridge.Application.Applications;
 using SkillBridge.Application.Jobs;
 using SkillBridge.Domain.Common;
+using SkillBridge.Domain.Enums;
 
 namespace SkillBridge.Api.Controllers;
 
@@ -22,10 +23,15 @@ public sealed class JobsController(
         [FromQuery] string? sort = "newest",
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
+        [FromQuery] JobType? jobType = null,
+        [FromQuery] WorkArrangement? workArrangement = null,
+        [FromQuery] ExperienceLevel? experienceLevel = null,
+        [FromQuery] string? location = null,
         CancellationToken ct = default)
     {
         var skillIdList = ParseSkillIds(Request.Query["skillIds"]);
-        var response = await jobsService.GetJobsAsync(skillIdList, search, sort, page, pageSize, ct);
+        var response = await jobsService.GetJobsAsync(
+            skillIdList, search, sort, page, pageSize, jobType, workArrangement, experienceLevel, location, ct);
         return Ok(response);
     }
 

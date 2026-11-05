@@ -878,6 +878,267 @@ $success-border: #bbf7d0; // Green-200
   }
 }
 
+// Category Badges & Ribbons
+.category-badge-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+
+  .category-pill {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    &.primary-pill {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    &.preferred-pill {
+      background: #f5f3ff;
+      color: #6d28d9;
+      border: 1px solid #ddd6fe;
+    }
+
+    &.criteria-pill {
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+    }
+  }
+
+  .bonus-badge {
+    background: #ede9fe;
+    color: #5b21b6;
+    padding: 0.15rem 0.55rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .scoring-pill {
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 0.15rem 0.55rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+}
+
+.matching-criteria-card {
+  border: 1px solid #e2e8f0;
+
+  .matching-icon-box {
+    background: #ecfdf5;
+    color: #059669;
+  }
+}
+
+.form-row-2col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 0.25rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+.weight-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #0d9488;
+  background: #f0fdfa;
+  border: 1px solid #ccfbf1;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  margin-left: 0.35rem;
+}
+
+.field-hint {
+  display: block;
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+  line-height: 1.4;
+}
+
+.select-wrapper {
+  position: relative;
+
+  .form-select {
+    width: 100%;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    padding-right: 2.25rem;
+
+    option {
+      color: $neutral-text;
+      background: #ffffff;
+    }
+  }
+}
+
+.selected-ribbon {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+
+  .ribbon-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    margin-right: 0.25rem;
+  }
+
+  .selected-chips-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .selected-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+
+    .chip-remove-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.125rem;
+      height: 1.125rem;
+      padding: 0;
+      border: none;
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      cursor: pointer;
+      color: inherit;
+      transition: background 0.15s ease;
+
+      svg {
+        width: 0.7rem;
+        height: 0.7rem;
+      }
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.25);
+      }
+    }
+  }
+
+  &.core-ribbon {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    .ribbon-label {
+      color: #166534;
+    }
+    .chip-core {
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #86efac;
+    }
+  }
+
+  &.preferred-ribbon {
+    background: #faf5ff;
+    border: 1px solid #e9d5ff;
+    .ribbon-label {
+      color: #6b21a8;
+    }
+    .chip-preferred {
+      background: #f3e8ff;
+      color: #7e22ce;
+      border: 1px solid #d8b4fe;
+    }
+  }
+}
+
+// Preferred Skills Card
+.preferred-skills-card {
+  border: 1px dashed #d8b4fe;
+  background: linear-gradient(180deg, #ffffff 0%, #faf5ff 100%);
+
+  .preferred-icon-box {
+    background: #f3e8ff;
+    color: #7e22ce;
+  }
+
+  .preferred-counter-pill {
+    background: #f3e8ff;
+    color: #6b21a8;
+    border: 1px solid #d8b4fe;
+  }
+
+  .tab-preferred.active {
+    background: #7e22ce;
+    border-color: #7e22ce;
+    color: #ffffff;
+  }
+
+  .chip-preferred-item {
+    &.selected-preferred {
+      background: #7e22ce;
+      border-color: #7e22ce;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(126, 34, 206, 0.25);
+
+      &:hover {
+        background: #6b21a8;
+        border-color: #6b21a8;
+      }
+    }
+  }
+}
+
+.chip-tag-pref {
+  font-size: 0.65rem;
+  background: #ede9fe;
+  color: #6d28d9;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-weight: 700;
+  margin-left: 0.25rem;
+}
+
+.chip-tag-core {
+  font-size: 0.65rem;
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-weight: 700;
+  margin-left: 0.25rem;
+}
+
+.in-preferred {
+  border-style: dashed;
+}
+
+.in-core {
+  border-style: dashed;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

@@ -234,12 +234,60 @@
 }
 
 .job-title {
-  margin: 1.1rem 0 0.75rem;
+  margin: 1.1rem 0 0.6rem;
   color: #1e293b;
   font-size: 1.15rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.35;
+}
+
+.job-attributes-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.attr-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  padding: 0.22rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+
+  .chip-icon {
+    width: 0.78rem;
+    height: 0.78rem;
+    flex-shrink: 0;
+  }
+
+  &.arrangement-chip {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+  }
+
+  &.type-chip {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+  }
+
+  &.exp-chip {
+    background: #fefce8;
+    color: #a16207;
+    border: 1px solid #fef08a;
+  }
+
+  &.years-chip {
+    background: #f8fafc;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+  }
 }
 
 .job-meta {
@@ -260,6 +308,17 @@
   }
 }
 
+.job-description-excerpt {
+  margin: 0.75rem 0 0.25rem;
+  color: #475569;
+  font-size: 0.835rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .skills-block {
   margin: 1.25rem 0 1.3rem;
 
@@ -270,6 +329,39 @@
     font-weight: 700;
     letter-spacing: 0.025em;
     text-transform: uppercase;
+  }
+
+  &.preferred-skills-block {
+    margin: -0.5rem 0 1.3rem;
+
+    .skills-title-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+
+      h3 {
+        margin: 0;
+        color: #6d28d9;
+      }
+
+      .nice-to-have-badge {
+        font-size: 0.68rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        padding: 0.1rem 0.4rem;
+        border-radius: 9999px;
+        background: #f3e8ff;
+        color: #7c3aed;
+        border: 1px solid #ddd6fe;
+      }
+    }
+
+    .skill-tag.preferred-tag {
+      background: #faf5ff;
+      color: #6d28d9;
+      border: 1px dashed #d8b4fe;
+    }
   }
 }
 
@@ -294,6 +386,33 @@
   color: #94a3b8;
   font-size: 0.82rem;
   font-style: italic;
+}
+
+.applicant-breakdown {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: auto;
+  margin-bottom: 0.75rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #64748b;
+
+  .breakdown-divider {
+    color: #cbd5e1;
+  }
+
+  .breakdown-item.received {
+    color: #2563eb;
+  }
+
+  .breakdown-item.shortlisted {
+    color: #0d9488;
+  }
+
+  .breakdown-item.rejected {
+    color: #ef4444;
+  }
 }
 
 .applicants-action {

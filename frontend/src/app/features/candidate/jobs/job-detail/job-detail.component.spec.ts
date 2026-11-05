@@ -18,6 +18,7 @@ describe('JobDetailComponent', () => {
   };
   let applicationsServiceSpy: {
     apply: ReturnType<typeof vi.fn>;
+    withdraw: ReturnType<typeof vi.fn>;
   };
   let authServiceSpy: {
     currentUser: ReturnType<typeof vi.fn>;
@@ -63,6 +64,7 @@ describe('JobDetailComponent', () => {
     };
     applicationsServiceSpy = {
       apply: vi.fn().mockReturnValue(of(mockApplicationResponse)),
+      withdraw: vi.fn().mockReturnValue(of({ ...mockApplicationResponse, status: 'Withdrawn' })),
     };
     authServiceSpy = {
       currentUser: vi.fn().mockReturnValue({ userId: 'u-1', fullName: 'Hana' }),
@@ -127,6 +129,16 @@ describe('JobDetailComponent', () => {
     expect(missingChip.textContent).toContain('PostgreSQL');
   });
 
+  it('should not display internal score breakdown points or factor grid to candidates', () => {
+    const el = fixture.nativeElement;
+
+    expect(el.querySelector('.factor-scores-grid')).toBeNull();
+    expect(el.textContent).not.toContain('50 pts');
+    expect(el.textContent).not.toContain('15 pts');
+    expect(el.textContent).not.toContain('10 pts');
+    expect(el.textContent).not.toContain('5 pts');
+  });
+
   it('should submit application with cover note and display success state', () => {
     component.applyForm.patchValue({
       coverNote: 'I have 1 year experience in ASP.NET Core.',
@@ -189,5 +201,61 @@ describe('JobDetailComponent', () => {
     component.dismissAlert();
     fixture.detectChanges();
     expect(component.errorMessage()).toBeNull();
+  });
+
+  it('should display Withdrawn banner and pill when applicationStatus is Withdrawn', () => {
+    jobsServiceSpy.getJobById.mockReturnValue(
+      of({ ...mockJob, hasApplied: true, applicationStatus: 'Withdrawn' })
+    );
+    component.loadJobDetail(12);
+    fixture.detectChanges();
+
+    expect(component.applicationStatusState()).toBe('Withdrawn');
+
+    const withdrawnPill = fixture.nativeElement.querySelector('.withdrawn-pill');
+    expect(withdrawnPill).toBeTruthy();
+    expect(withdrawnPill.textContent).toContain('Withdrawn');
+
+    const withdrawnBanner = fixture.nativeElement.querySelector('.withdrawn-banner');
+    expect(withdrawnBanner).toBeTruthy();
+    expect(withdrawnBanner.textContent).toContain('Application Withdrawn');
+
+    const withdrawnBtn = fixture.nativeElement.querySelector('.withdrawn-btn');
+    expect(withdrawnBtn).toBeTruthy();
+    expect(withdrawnBtn.disabled).toBe(true);
+    expect(withdrawnBtn.textContent).toContain('Withdrawn');
+  });
+
+  it('should allow candidate to withdraw application from Job Details page and update status to Withdrawn', () => {
+    jobsServiceSpy.getJobById.mockReturnValue(
+      of({ ...mockJob, hasApplied: true, applicationStatus: 'Received', applicationId: 31 })
+    );
+    component.loadJobDetail(12);
+    fixture.detectChanges();
+
+    expect(component.applicationStatusState()).toBe('Received');
+    expect(component.applicationIdState()).toBe(31);
+
+    // Prompt withdraw opens modal
+    component.promptWithdraw();
+    fixture.detectChanges();
+    expect(component.showWithdrawModal()).toBe(true);
+
+    const modal = fixture.nativeElement.querySelector('.modal-card');
+    expect(modal).toBeTruthy();
+    expect(modal.textContent).toContain('Withdraw Application');
+
+    // Confirm withdraw calls service and transitions status
+    component.confirmWithdraw();
+    fixture.detectChanges();
+
+    expect(applicationsServiceSpy.withdraw).toHaveBeenCalledWith(31);
+    expect(component.applicationStatusState()).toBe('Withdrawn');
+    expect(component.showWithdrawModal()).toBe(false);
+    expect(component.successMessage()).toContain('Application withdrawn successfully');
+
+    const withdrawnPill = fixture.nativeElement.querySelector('.withdrawn-pill');
+    expect(withdrawnPill).toBeTruthy();
+    expect(withdrawnPill.textContent).toContain('Withdrawn');
   });
 });

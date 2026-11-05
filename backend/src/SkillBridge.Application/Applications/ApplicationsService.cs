@@ -13,7 +13,8 @@ public sealed class ApplicationsService(
     IAppDbContext dbContext,
     IIdentityService identityService,
     ICurrentUser currentUser,
-    IClock clock)
+    IClock clock,
+    IJobMatchingService jobMatchingService)
 {
     public async Task<ApplicationDto> ApplyAsync(
         int jobId,
@@ -34,11 +35,19 @@ public sealed class ApplicationsService(
             throw new BusinessRuleException("jobs.closed", "Job closed", "This job is no longer accepting applications.");
         }
 
-        var candidateSkills = await dbContext.CandidateSkills
+        var candidateProfile = await dbContext.CandidateProfiles
             .AsNoTracking()
-            .Where(cs => cs.CandidateId == currentUser.UserId)
-            .Include(cs => cs.Skill)
-            .ToListAsync(cancellationToken);
+            .Include(p => p.Skills)
+            .ThenInclude(cs => cs.Skill)
+            .Include(p => p.ExperienceHistory)
+            .FirstOrDefaultAsync(p => p.UserId == currentUser.UserId, cancellationToken);
+
+        var candidateSkills = candidateProfile?.Skills
+            ?? await dbContext.CandidateSkills
+                .AsNoTracking()
+                .Where(cs => cs.CandidateId == currentUser.UserId)
+                .Include(cs => cs.Skill)
+                .ToListAsync(cancellationToken);
 
         if (candidateSkills.Count == 0)
         {
@@ -78,7 +87,7 @@ public sealed class ApplicationsService(
         }
 
         var employer = await identityService.FindByIdAsync(job.EmployerId, cancellationToken);
-        var match = ComputeMatch(job.RequiredSkills, candidateSkills.Select(cs => cs.SkillId).ToHashSet());
+        var match = jobMatchingService.CalculateMatch(job, candidateProfile);
 
         return new ApplicationDto(
             application.Id,
@@ -139,17 +148,17 @@ public sealed class ApplicationsService(
         var employerIds = applications.Select(a => a.Job.EmployerId).Distinct().ToList();
         var employers = await identityService.FindByIdsAsync(employerIds, cancellationToken);
 
-        var candidateSkills = await dbContext.CandidateSkills
+        var candidateProfile = await dbContext.CandidateProfiles
             .AsNoTracking()
-            .Where(cs => cs.CandidateId == currentUser.UserId)
-            .Select(cs => cs.SkillId)
-            .ToListAsync(cancellationToken);
-        var candidateSkillSet = candidateSkills.ToHashSet();
+            .Include(p => p.Skills)
+            .ThenInclude(cs => cs.Skill)
+            .Include(p => p.ExperienceHistory)
+            .FirstOrDefaultAsync(p => p.UserId == currentUser.UserId, cancellationToken);
 
         return applications.Select(a =>
         {
             employers.TryGetValue(a.Job.EmployerId, out var employer);
-            var match = ComputeMatch(a.Job.RequiredSkills, candidateSkillSet);
+            var match = jobMatchingService.CalculateMatch(a.Job, candidateProfile);
 
             return new ApplicationDto(
                 a.Id,
@@ -192,12 +201,14 @@ public sealed class ApplicationsService(
 
         var employer = await identityService.FindByIdAsync(application.Job.EmployerId, cancellationToken);
 
-        var candidateSkills = await dbContext.CandidateSkills
+        var candidateProfile = await dbContext.CandidateProfiles
             .AsNoTracking()
-            .Where(cs => cs.CandidateId == application.CandidateId)
-            .Select(cs => cs.SkillId)
-            .ToListAsync(cancellationToken);
-        var match = ComputeMatch(application.Job.RequiredSkills, candidateSkills.ToHashSet());
+            .Include(p => p.Skills)
+            .ThenInclude(cs => cs.Skill)
+            .Include(p => p.ExperienceHistory)
+            .FirstOrDefaultAsync(p => p.UserId == application.CandidateId, cancellationToken);
+
+        var match = jobMatchingService.CalculateMatch(application.Job, candidateProfile);
 
         return new ApplicationDto(
             application.Id,
@@ -267,13 +278,23 @@ public sealed class ApplicationsService(
             .Where(p => candidateIds.Contains(p.UserId))
             .Include(p => p.Skills)
             .ThenInclude(cs => cs.Skill)
+            .Include(p => p.ExperienceHistory)
             .ToDictionaryAsync(p => p.UserId, cancellationToken);
 
         var jobRequiredSkills = job.RequiredSkills
-            .Where(rs => rs.Skill != null)
+            .Where(rs => rs.Skill != null && rs.IsRequired)
             .OrderBy(rs => rs.Skill.Name)
             .Select(rs => new SkillDto(rs.SkillId, rs.Skill.Name))
             .ToList();
+
+        if (jobRequiredSkills.Count == 0)
+        {
+            jobRequiredSkills = job.RequiredSkills
+                .Where(rs => rs.Skill != null)
+                .OrderBy(rs => rs.Skill.Name)
+                .Select(rs => new SkillDto(rs.SkillId, rs.Skill.Name))
+                .ToList();
+        }
 
         var applicantItems = new List<JobApplicantItemDto>();
 
@@ -288,7 +309,7 @@ public sealed class ApplicationsService(
                 .Select(cs => new SkillDto(cs.SkillId, cs.Skill.Name))
                 .ToList() ?? new List<SkillDto>();
 
-            var match = ComputeMatch(job.RequiredSkills, candidateSkills.Select(s => s.Id).ToHashSet());
+            var match = jobMatchingService.CalculateMatch(job, profile);
 
             if (fullMatchOnly && match.Percent < 100)
             {
@@ -319,7 +340,13 @@ public sealed class ApplicationsService(
             .ThenBy(a => a.AppliedAt)
             .ToList();
 
-        var jobSummary = new JobSummaryDto(job.Id, job.Title, job.IsOpen, jobRequiredSkills);
+        var jobPreferredSkills = job.RequiredSkills
+            .Where(rs => rs.Skill != null && !rs.IsRequired)
+            .OrderBy(rs => rs.Skill.Name)
+            .Select(rs => new SkillDto(rs.SkillId, rs.Skill.Name))
+            .ToList();
+
+        var jobSummary = new JobSummaryDto(job.Id, job.Title, job.IsOpen, jobRequiredSkills, jobPreferredSkills);
         return new JobApplicantsDto(jobSummary, applicantItems);
     }
 
@@ -365,12 +392,13 @@ public sealed class ApplicationsService(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var employer = await identityService.FindByIdAsync(application.Job.EmployerId, cancellationToken);
-        var candidateSkills = await dbContext.CandidateSkills
+        var candidateProfile = await dbContext.CandidateProfiles
             .AsNoTracking()
-            .Where(cs => cs.CandidateId == application.CandidateId)
-            .Select(cs => cs.SkillId)
-            .ToListAsync(cancellationToken);
-        var match = ComputeMatch(application.Job.RequiredSkills, candidateSkills.ToHashSet());
+            .Include(p => p.Skills)
+            .ThenInclude(cs => cs.Skill)
+            .Include(p => p.ExperienceHistory)
+            .FirstOrDefaultAsync(p => p.UserId == application.CandidateId, cancellationToken);
+        var match = jobMatchingService.CalculateMatch(application.Job, candidateProfile);
 
         return new ApplicationDto(
             application.Id,
@@ -407,12 +435,13 @@ public sealed class ApplicationsService(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var employer = await identityService.FindByIdAsync(application.Job.EmployerId, cancellationToken);
-        var candidateSkills = await dbContext.CandidateSkills
+        var candidateProfile = await dbContext.CandidateProfiles
             .AsNoTracking()
-            .Where(cs => cs.CandidateId == application.CandidateId)
-            .Select(cs => cs.SkillId)
-            .ToListAsync(cancellationToken);
-        var match = ComputeMatch(application.Job.RequiredSkills, candidateSkills.ToHashSet());
+            .Include(p => p.Skills)
+            .ThenInclude(cs => cs.Skill)
+            .Include(p => p.ExperienceHistory)
+            .FirstOrDefaultAsync(p => p.UserId == application.CandidateId, cancellationToken);
+        var match = jobMatchingService.CalculateMatch(application.Job, candidateProfile);
 
         return new ApplicationDto(
             application.Id,
@@ -451,25 +480,6 @@ public sealed class ApplicationsService(
         {
             throw new ForbiddenException("auth.forbidden", "Forbidden", "Your account type cannot do this.");
         }
-    }
-
-    private static JobMatchDto ComputeMatch(
-        IEnumerable<JobSkill> jobSkills,
-        HashSet<int> candidateSkillIds)
-    {
-        var requiredSkills = jobSkills
-            .Where(rs => rs.Skill != null)
-            .OrderBy(rs => rs.Skill.Name)
-            .Select(rs => new SkillDto(rs.SkillId, rs.Skill.Name))
-            .ToList();
-
-        var matched = requiredSkills.Where(s => candidateSkillIds.Contains(s.Id)).ToList();
-        var missing = requiredSkills.Where(s => !candidateSkillIds.Contains(s.Id)).ToList();
-        var percent = requiredSkills.Count == 0
-            ? 0
-            : (int)Math.Round((double)matched.Count / requiredSkills.Count * 100.0, MidpointRounding.AwayFromZero);
-
-        return new JobMatchDto(percent, matched, missing);
     }
 
     private static bool IsUniqueConstraintViolation(DbUpdateException ex)

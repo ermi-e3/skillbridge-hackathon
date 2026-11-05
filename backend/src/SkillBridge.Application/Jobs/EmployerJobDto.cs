@@ -1,4 +1,5 @@
 using SkillBridge.Application.Skills;
+using SkillBridge.Domain.Enums;
 
 namespace SkillBridge.Application.Jobs;
 
@@ -16,4 +17,10 @@ public sealed record EmployerJobDto(
     bool IsOpen,
     DateTime CreatedAt,
     IReadOnlyList<SkillDto> RequiredSkills,
-    ApplicantCountsDto ApplicantCounts);
+    ApplicantCountsDto ApplicantCounts,
+    IReadOnlyList<SkillDto>? PreferredSkills = null,
+    JobType JobType = JobType.FullTime,
+    WorkArrangement WorkArrangement = WorkArrangement.OnSite,
+    ExperienceLevel ExperienceLevel = ExperienceLevel.EntryLevel,
+    int MinExperienceYears = 0,
+    string? Description = null);

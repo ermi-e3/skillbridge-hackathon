@@ -73,6 +73,18 @@ describe('JobListComponent', () => {
       myMatchPercent: 33, // Red < 50%
       hasApplied: false,
     },
+    {
+      id: 104,
+      title: 'DevOps Engineer',
+      description: 'Manage cloud infrastructure.',
+      companyName: 'Cloud Ethio',
+      location: 'Remote',
+      createdAt: '2026-10-07T12:00:00Z',
+      requiredSkills: [{ id: 1, name: 'ASP.NET Core' }],
+      myMatchPercent: 70,
+      hasApplied: true,
+      applicationStatus: 'Withdrawn',
+    },
   ];
 
   beforeEach(async () => {
@@ -146,7 +158,7 @@ describe('JobListComponent', () => {
 
   it('should display color-coded match % badges (Green >= 75%, Yellow 50-74%, Red < 50%)', () => {
     const cards = fixture.nativeElement.querySelectorAll('.job-card');
-    expect(cards.length).toBe(3);
+    expect(cards.length).toBe(4);
 
     // Job 1: 85% -> match-high (Green)
     const matchBadge1 = cards[0].querySelector('.match-badge');
@@ -176,6 +188,16 @@ describe('JobListComponent', () => {
     expect(appliedBadge).toBeTruthy();
     expect(appliedBadge.textContent).toContain('Applied');
     expect(cards[1].classList).toContain('has-applied-card');
+  });
+
+  it('should display withdrawn badge and styling when application is withdrawn', () => {
+    const cards = fixture.nativeElement.querySelectorAll('.job-card');
+    const withdrawnCard = cards[3];
+
+    expect(withdrawnCard.querySelector('.badge-withdrawn')).toBeTruthy();
+    expect(withdrawnCard.querySelector('.badge-withdrawn').textContent).toContain('Withdrawn');
+    expect(withdrawnCard.querySelector('.applied-badge')).toBeNull();
+    expect(withdrawnCard.classList).toContain('withdrawn-card');
   });
 
   it('should render View Job link with correct routerLink', () => {

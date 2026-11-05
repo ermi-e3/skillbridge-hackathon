@@ -140,6 +140,55 @@
             }
           </div>
 
+          <!-- Matching Criteria: Arrangement, Job Type, Experience Level, Min Years -->
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="workArrangement" class="form-label required">Work Arrangement</label>
+              <select id="workArrangement" class="form-input form-select" formControlName="workArrangement">
+                <option value="Remote">Remote</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="OnSite">On-site</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="jobType" class="form-label required">Job Type</label>
+              <select id="jobType" class="form-input form-select" formControlName="jobType">
+                <option value="FullTime">Full-time</option>
+                <option value="PartTime">Part-time</option>
+                <option value="Contract">Contract</option>
+                <option value="Internship">Internship</option>
+                <option value="Freelance">Freelance</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="experienceLevel" class="form-label required">Experience Level</label>
+              <select id="experienceLevel" class="form-input form-select" formControlName="experienceLevel">
+                <option value="EntryLevel">Entry Level</option>
+                <option value="Junior">Junior</option>
+                <option value="MidLevel">Mid Level</option>
+                <option value="Senior">Senior</option>
+                <option value="Lead">Lead / Architect</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="minExperienceYears" class="form-label">Min. Experience (Years)</label>
+              <input
+                id="minExperienceYears"
+                type="number"
+                min="0"
+                max="50"
+                class="form-input"
+                formControlName="minExperienceYears"
+                placeholder="e.g. 3"
+              />
+            </div>
+          </div>
+
           <!-- Description -->
           <div class="form-group full-width">
             <div class="label-row">
@@ -305,6 +354,128 @@
               <span>Select at least 1 required skill so candidates can be matched to this job.</span>
             } @else if (requiredSkillIdsControl?.errors?.['maxSkills']) {
               <span>You can select a maximum of 15 skills for a single opening.</span>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Section 3: Preferred Skills / Nice-to-Have Skills Category -->
+      <section class="form-card preferred-skills-card">
+        <div class="card-header">
+          <div class="header-icon purple">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+            </svg>
+          </div>
+          <div class="header-text-with-badge">
+            <div>
+              <div class="category-badge-inline">
+                <span class="category-pill">Nice-to-Have Skills</span>
+              </div>
+              <h2 class="card-title">Preferred Skills (Optional)</h2>
+              <p class="card-desc">
+                Select bonus competencies and secondary tools. Candidates with these skills receive up to 15% bonus match points without penalizing candidates who don't have them.
+              </p>
+            </div>
+            <div class="selection-badge badge-preferred" [class.badge-valid]="selectedPreferredSkillIds().length > 0">
+              <span>{{ selectedPreferredSkillIds().length }}</span> / 15 preferred
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Preferred Skills Ribbon -->
+        @if (selectedPreferredSkills().length > 0) {
+          <div class="selected-ribbon preferred-ribbon">
+            <span class="ribbon-label">Selected Nice-to-Have:</span>
+            <div class="selected-chips-list">
+              @for (skill of selectedPreferredSkills(); track skill.id) {
+                <span class="selected-chip chip-preferred">
+                  {{ skill.name }}
+                  <button
+                    type="button"
+                    class="chip-remove-btn"
+                    [attr.aria-label]="'Remove preferred skill ' + skill.name"
+                    (click)="removePreferredSkill(skill.id)"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </span>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Preferred Skill Search Box -->
+        <div class="skills-search-wrapper">
+          <div class="search-input-box">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="text"
+              class="skills-search-input"
+              placeholder="Search preferred skills (e.g. Docker, Redis, GraphQL, CI/CD)..."
+              [value]="preferredSkillSearchQuery()"
+              (input)="onPreferredSearchChange($event)"
+              aria-label="Filter preferred skills catalog"
+            />
+            @if (preferredSkillSearchQuery()) {
+              <button
+                type="button"
+                class="search-clear-btn"
+                (click)="clearPreferredSearch()"
+                aria-label="Clear preferred skill search"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Preferred Skills Chips Container -->
+        @if (isLoadingSkills()) {
+          <div class="skills-loading" aria-live="polite">
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Loading skills catalog...</span>
+          </div>
+        } @else {
+          <div class="skills-chip-grid" role="group" aria-label="Available preferred skill tags">
+            @for (skill of filteredPreferredSkills(); track skill.id) {
+              <button
+                type="button"
+                class="skill-chip chip-type-preferred"
+                [class.chip-active]="isPreferredSkillSelected(skill.id)"
+                [class.chip-in-required]="isSkillSelected(skill.id)"
+                [attr.aria-pressed]="isPreferredSkillSelected(skill.id)"
+                (click)="togglePreferredSkill(skill.id)"
+                [title]="isSkillSelected(skill.id) ? 'Already selected as Required (click to move to Preferred)' : ''"
+              >
+                <span class="chip-check" aria-hidden="true">
+                  @if (isPreferredSkillSelected(skill.id)) {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  } @else {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  }
+                </span>
+                <span class="chip-text">{{ skill.name }}</span>
+              </button>
+            } @empty {
+              <div class="skills-empty">
+                <p>No skills match "{{ preferredSkillSearchQuery() }}".</p>
+                <button type="button" class="btn-text-clear" (click)="clearPreferredSearch()">Show all skills</button>
+              </div>
             }
           </div>
         }

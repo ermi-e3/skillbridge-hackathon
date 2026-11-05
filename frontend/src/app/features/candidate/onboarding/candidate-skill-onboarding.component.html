@@ -237,6 +237,9 @@
                     }
                   </div>
                   <span class="skill-name">{{ skill.name }}</span>
+                  @if (isPreferredSkillSelected(skill.id)) {
+                    <span class="pref-mini-tag">Preferred</span>
+                  }
                 </div>
               </button>
             } @empty {
@@ -250,7 +253,203 @@
           </div>
         </section>
 
-        <!-- 3. Optional Additional Details (Accordion/Toggle) -->
+        <!-- 2b. Nice-to-Have Skills (Preferred Competencies) -->
+        <section class="form-section skills-section preferred-onboarding-section">
+          <div class="section-header">
+            <div class="section-heading">
+              <div class="section-icon preferred-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+              </div>
+              <div>
+                <div class="category-badge-inline">
+                  <span class="category-pill preferred-pill">Nice-to-Have Skills</span>
+                  <span class="bonus-badge">Bonus Match Points</span>
+                </div>
+                <h2 class="section-title">Nice-to-Have Skills (Preferred Competencies)</h2>
+                <p class="section-desc">Select secondary tools or skills you are learning (up to 15). Employers mark these as nice-to-have to give you extra match score boost!</p>
+              </div>
+            </div>
+
+            <div
+              class="skills-counter preferred-counter"
+              [class.counter-valid]="selectedPreferredSkillIds().length > 0"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="counter-check">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+              <span>Selected: <strong>{{ selectedPreferredSkillIds().length }}</strong> / 15</span>
+            </div>
+          </div>
+
+          @if (selectedPreferredSkillsList().length > 0) {
+            <div class="selected-skills-tray preferred-tray">
+              <span class="tray-label">Your Nice-to-Have Skills:</span>
+              <div class="tray-chips">
+                @for (skill of selectedPreferredSkillsList(); track skill.id) {
+                  <span class="selected-chip chip-pref">
+                    {{ skill.name }}
+                    <button
+                      type="button"
+                      class="remove-chip-btn"
+                      (click)="removePreferredSkill(skill.id)"
+                      [attr.aria-label]="'Remove ' + skill.name"
+                    >
+                      &times;
+                    </button>
+                  </span>
+                }
+              </div>
+            </div>
+          }
+
+          <div class="catalog-controls">
+            <div class="category-tabs" role="tablist" aria-label="Preferred Skill Categories">
+              @for (cat of categories; track cat.id) {
+                <button
+                  type="button"
+                  class="cat-tab tab-pref"
+                  [class.active]="activePreferredCategory() === cat.id"
+                  (click)="setPreferredCategory(cat.id)"
+                  role="tab"
+                  [attr.aria-selected]="activePreferredCategory() === cat.id"
+                >
+                  {{ cat.name }}
+                </button>
+              }
+            </div>
+
+            <div class="search-wrapper">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input
+                type="text"
+                [value]="preferredSearchQuery()"
+                (input)="onPreferredSearchChange($event)"
+                placeholder="Search nice-to-have skills..."
+                class="search-input"
+              />
+              @if (preferredSearchQuery()) {
+                <button type="button" class="clear-btn" (click)="clearPreferredSearch()" aria-label="Clear search">
+                  &times;
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="skills-grid" role="group" aria-label="Nice-to-have skills selection">
+            @for (skill of filteredPreferredSkills(); track skill.id) {
+              <button
+                type="button"
+                class="skill-card card-pref"
+                [class.selected-pref]="isPreferredSkillSelected(skill.id)"
+                [class.in-core-list]="isSkillSelected(skill.id)"
+                (click)="togglePreferredSkill(skill.id)"
+                [attr.aria-pressed]="isPreferredSkillSelected(skill.id)"
+                [title]="isSkillSelected(skill.id) ? 'Selected in Core Skills (click to move to Nice-to-Have)' : ''"
+              >
+                <div class="skill-card-inner">
+                  <div class="checkbox-box pref-box" [class.checked]="isPreferredSkillSelected(skill.id)">
+                    @if (isPreferredSkillSelected(skill.id)) {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    }
+                  </div>
+                  <span class="skill-name">{{ skill.name }}</span>
+                  @if (isSkillSelected(skill.id)) {
+                    <span class="core-mini-tag">Core</span>
+                  }
+                </div>
+              </button>
+            } @empty {
+              <div class="no-results">
+                <p>No skills match "{{ preferredSearchQuery() }}" in this category.</p>
+                <button type="button" class="reset-filter-btn" (click)="clearPreferredSearch(); setPreferredCategory('all')">
+                  Show All Skills
+                </button>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- 3. Matching Preferences & Criteria -->
+        <section class="form-section preferences-section">
+          <div class="section-heading">
+            <div class="section-icon preferences-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+            </div>
+            <div>
+              <h2 class="section-title">Matching Preferences & Seniority</h2>
+              <p class="section-desc">Tailors job match scores to your preferred work arrangement, location, and experience tier.</p>
+            </div>
+          </div>
+
+          <div class="preferences-grid">
+            <div class="form-group">
+              <label for="onboardingLocation" class="form-label">City / Location</label>
+              <input
+                id="onboardingLocation"
+                type="text"
+                formControlName="location"
+                placeholder="e.g. Addis Ababa, Ethiopia"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="onboardingArrangement" class="form-label">Work Arrangement</label>
+              <select id="onboardingArrangement" formControlName="preferredWorkArrangement" class="form-input form-select">
+                <option value="Remote">Remote</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="OnSite">On-site</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="onboardingJobType" class="form-label">Job Type</label>
+              <select id="onboardingJobType" formControlName="preferredJobType" class="form-input form-select">
+                <option value="FullTime">Full-time</option>
+                <option value="PartTime">Part-time</option>
+                <option value="Contract">Contract</option>
+                <option value="Internship">Internship</option>
+                <option value="Freelance">Freelance</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="onboardingExperienceLevel" class="form-label">Experience Level</label>
+              <select id="onboardingExperienceLevel" formControlName="experienceLevel" class="form-input form-select">
+                <option value="EntryLevel">Entry Level (0-1 yrs)</option>
+                <option value="Junior">Junior (1-3 yrs)</option>
+                <option value="MidLevel">Mid Level (3-5 yrs)</option>
+                <option value="Senior">Senior (5-8 yrs)</option>
+                <option value="Lead">Lead / Architect (8+ yrs)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="onboardingYears" class="form-label">Years of Experience</label>
+              <input
+                id="onboardingYears"
+                type="number"
+                min="0"
+                max="50"
+                formControlName="yearsOfExperience"
+                class="form-input"
+                placeholder="0"
+              />
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Optional Additional Details (Accordion/Toggle) -->
         <section class="form-section optional-section">
           <button
             type="button"

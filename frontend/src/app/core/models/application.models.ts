@@ -1,3 +1,4 @@
+import { JobMatchBreakdownDto, JobMatchDto } from './job.models';
 import { SkillDto } from './profile.models';
 
 export type ApplicationStatus = 'Received' | 'Shortlisted' | 'Rejected' | 'Withdrawn';
@@ -6,11 +7,7 @@ export interface ApplyRequest {
   coverNote?: string | null;
 }
 
-export interface JobMatchDto {
-  percent: number;
-  matchedSkills: SkillDto[];
-  missingSkills: SkillDto[];
-}
+export type { JobMatchBreakdownDto, JobMatchDto };
 
 export interface ApplicationDto {
   id: number;
@@ -30,6 +27,7 @@ export interface JobSummaryDto {
   title: string;
   isOpen: boolean;
   requiredSkills: SkillDto[];
+  preferredSkills?: SkillDto[];
 }
 
 export interface CandidateApplicantSummary {

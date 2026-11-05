@@ -2,9 +2,11 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SkillBridge.Domain.Common;
+using SkillBridge.Domain.Enums;
 using SkillBridge.Infrastructure.Persistence;
 using Xunit;
 
@@ -90,6 +92,45 @@ public sealed class CandidateProfileIntegrationTests(AuthFixture fixture)
         Assert.Equal(profile.Headline, repeatedProfile.Headline);
         Assert.Equal(profile.Skills.Select(skill => skill.Id), repeatedProfile.Skills.Select(skill => skill.Id));
         await AssertPersistedAsync(repeatedProfile);
+    }
+
+    [Fact]
+    public async Task Update_supports_preferred_skills_under_nice_to_have_category()
+    {
+        var candidate = await RegisterAsync();
+        using var response = await SendAsync("PUT", candidate.AccessToken, new ProfileInput(
+            "Full Stack Developer", "Loves coding", "https://github.com/developer", [1, 2], [3, 4]));
+        var profile = await ReadProfileAsync(response);
+
+        Assert.Equal(4, profile.Skills.Length);
+        Assert.NotNull(profile.PreferredSkills);
+        Assert.Equal(2, profile.PreferredSkills.Length);
+        Assert.Equal([3, 4], profile.PreferredSkills.Select(s => s.Id).OrderBy(id => id).ToArray());
+        Assert.Contains(profile.Skills, s => s.Id == 3 && s.IsPreferred);
+        Assert.Contains(profile.Skills, s => s.Id == 1 && !s.IsPreferred);
+    }
+
+    [Fact]
+    public async Task Update_supports_location_work_arrangement_job_type_and_experience_criteria()
+    {
+        var candidate = await RegisterAsync();
+        using var response = await SendAsync("PUT", candidate.AccessToken, new ProfileInput(
+            "Senior Backend Engineer",
+            "Specialized in distributed systems",
+            "https://github.com/senior-eng",
+            [1, 2],
+            Location: "Addis Ababa, Ethiopia",
+            ExperienceLevel: ExperienceLevel.Senior,
+            YearsOfExperience: 6,
+            PreferredWorkArrangement: WorkArrangement.Hybrid,
+            PreferredJobType: JobType.FullTime));
+
+        var profile = await ReadProfileAsync(response);
+        Assert.Equal("Addis Ababa, Ethiopia", profile.Location);
+        Assert.Equal(ExperienceLevel.Senior, profile.ExperienceLevel);
+        Assert.Equal(6, profile.YearsOfExperience);
+        Assert.Equal(WorkArrangement.Hybrid, profile.PreferredWorkArrangement);
+        Assert.Equal(JobType.FullTime, profile.PreferredJobType);
     }
 
     public static IEnumerable<object[]> InvalidUpdates()
@@ -301,7 +342,9 @@ public sealed class CandidateProfileIntegrationTests(AuthFixture fixture)
         using var document = JsonDocument.Parse(json);
         foreach (var field in new[] { "userId", "headline", "bio", "gitHubUrl", "updatedAt", "skills" })
             Assert.True(document.RootElement.TryGetProperty(field, out _), $"Profile is missing {field}.");
-        var profile = JsonSerializer.Deserialize<ProfileResponse>(json, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        options.Converters.Add(new JsonStringEnumConverter());
+        var profile = JsonSerializer.Deserialize<ProfileResponse>(json, options);
         Assert.NotNull(profile);
         Assert.NotNull(profile.Skills);
         Assert.Equal(profile.Skills.Select(skill => skill.Id).OrderBy(id => id), profile.Skills.Select(skill => skill.Id));
@@ -368,9 +411,30 @@ public sealed class CandidateProfileIntegrationTests(AuthFixture fixture)
         }
     }
 
-    public sealed record ProfileInput(string? Headline, string? Bio, string? GitHubUrl, int[]? SkillIds);
+    public sealed record ProfileInput(
+        string? Headline,
+        string? Bio,
+        string? GitHubUrl,
+        int[]? SkillIds,
+        int[]? PreferredSkillIds = null,
+        string? Location = null,
+        ExperienceLevel? ExperienceLevel = null,
+        int? YearsOfExperience = null,
+        WorkArrangement? PreferredWorkArrangement = null,
+        JobType? PreferredJobType = null);
     private sealed record Account(string UserId, string AccessToken);
-    private sealed record ProfileResponse(string UserId, string? Headline, string? Bio, string? GitHubUrl,
-        DateTimeOffset? UpdatedAt, SkillResponse[] Skills);
-    private sealed record SkillResponse(int Id, string Name);
+    private sealed record ProfileResponse(
+        string UserId,
+        string? Headline,
+        string? Bio,
+        string? GitHubUrl,
+        DateTimeOffset? UpdatedAt,
+        SkillResponse[] Skills,
+        SkillResponse[]? PreferredSkills = null,
+        string? Location = null,
+        ExperienceLevel? ExperienceLevel = null,
+        int? YearsOfExperience = null,
+        WorkArrangement? PreferredWorkArrangement = null,
+        JobType? PreferredJobType = null);
+    private sealed record SkillResponse(int Id, string Name, bool IsPreferred = false);
 }

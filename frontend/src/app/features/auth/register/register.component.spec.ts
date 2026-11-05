@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { AuthResponse } from '../../../core/models/auth.models';
 import { AuthService } from '../../../core/services/auth.service';
@@ -9,6 +9,7 @@ import { RegisterComponent } from './register.component';
 describe('RegisterComponent', () => {
   let component: RegisterComponent;
   let fixture: ComponentFixture<RegisterComponent>;
+  let router: Router;
   let authServiceSpy: {
     register: ReturnType<typeof vi.fn>;
     redirectAfterAuth: ReturnType<typeof vi.fn>;
@@ -37,6 +38,9 @@ describe('RegisterComponent', () => {
         { provide: AuthService, useValue: authServiceSpy },
       ],
     }).compileComponents();
+
+    router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     fixture = TestBed.createComponent(RegisterComponent);
     component = fixture.componentInstance;
@@ -118,7 +122,7 @@ describe('RegisterComponent', () => {
       role: 'Candidate',
       companyName: null,
     });
-    expect(authServiceSpy.redirectAfterAuth).toHaveBeenCalledWith('Candidate');
+    expect(router.navigate).toHaveBeenCalledWith(['/candidate/onboarding/skills']);
   });
 
   it('should display dismissible red alert banner when registration returns 400 error', () => {

@@ -16,6 +16,7 @@ $accent-hover: #ea580c; // Orange-600
 $accent-light: #ffedd5; // Orange-100
 
 $danger: #dc2626; // Red-600
+$danger-hover: #b91c1c; // Red-700
 $danger-bg: #fef2f2; // Red-50
 $danger-border: #fecaca; // Red-200
 
@@ -235,6 +236,25 @@ $match-red-border: #fecaca;
         height: 0.85rem;
       }
     }
+
+    .status-pill.withdrawn-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem 0.625rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 9999px;
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+
+      svg {
+        width: 0.85rem;
+        height: 0.85rem;
+        color: #64748b;
+      }
+    }
   }
 
   .job-title {
@@ -244,6 +264,46 @@ $match-red-border: #fecaca;
     letter-spacing: -0.025em;
     margin: 0 0 0.65rem;
     line-height: 1.25;
+  }
+
+  .job-attributes-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+
+    .attr-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 9999px;
+
+      .chip-icon {
+        width: 0.8rem;
+        height: 0.8rem;
+      }
+
+      &.arrangement-chip {
+        background: #f0fdf4;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+      }
+
+      &.type-chip {
+        background: #eff6ff;
+        color: #1e40af;
+        border: 1px solid #bfdbfe;
+      }
+
+      &.exp-chip {
+        background: #faf5ff;
+        color: #6b21a8;
+        border: 1px solid #e9d5ff;
+      }
+    }
   }
 
   .meta-row {
@@ -389,6 +449,12 @@ $match-red-border: #fecaca;
           color: #64748b;
           border: 1px dashed #cbd5e1;
         }
+
+        &.preferred {
+          background: #eff6ff;
+          color: #1d4ed8;
+          border: 1px solid #bfdbfe;
+        }
       }
     }
   }
@@ -422,6 +488,12 @@ $match-red-border: #fecaca;
       font-weight: 600;
       border-radius: 8px;
       border: 1px solid $neutral-border;
+
+      &.preferred-pill {
+        background: #fafaf9;
+        color: #57534e;
+        border: 1px dashed #d6d3d1;
+      }
     }
   }
 
@@ -486,6 +558,23 @@ $match-red-border: #fecaca;
   border-radius: 10px;
   padding: 1rem;
   margin-bottom: 1.25rem;
+
+  &.withdrawn-banner {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+
+    .banner-top {
+      color: #475569;
+
+      .banner-icon {
+        color: #64748b;
+      }
+    }
+
+    .banner-message {
+      color: #64748b;
+    }
+  }
 
   .banner-top {
     display: flex;
@@ -555,6 +644,16 @@ $match-red-border: #fecaca;
       height: 1.125rem;
       color: #15803d;
     }
+
+    &.withdrawn-btn {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+
+      .btn-icon {
+        color: #64748b;
+      }
+    }
   }
 
   .spinner {
@@ -564,6 +663,144 @@ $match-red-border: #fecaca;
     border-top-color: #ffffff;
     border-radius: 50%;
     animation: spin 0.6s linear infinite;
+  }
+}
+
+.withdraw-section {
+  margin-top: 0.875rem;
+  text-align: center;
+
+  .btn-withdraw-job {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+
+    svg {
+      width: 0.95rem;
+      height: 0.95rem;
+    }
+
+    &:hover {
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+  }
+}
+
+// Modal Backdrop & Card
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.15s ease;
+}
+
+.modal-card {
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 440px;
+  padding: 1.5rem;
+  box-sizing: border-box;
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+
+    .modal-warning-icon {
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 50%;
+      background: #fef2f2;
+      color: $danger;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      svg { width: 1.25rem; height: 1.25rem; }
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: $neutral-text;
+      margin: 0;
+    }
+  }
+
+  .modal-body {
+    font-size: 0.9375rem;
+    color: #334155;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+
+    p { margin: 0 0 0.5rem; }
+
+    .modal-subtext {
+      font-size: 0.8125rem;
+      color: #b45309;
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-radius: 8px;
+      padding: 0.625rem 0.75rem;
+      margin: 0.75rem 0 0;
+    }
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+
+    .btn-cancel {
+      padding: 0.625rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      background: #ffffff;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      cursor: pointer;
+
+      &:hover:not(:disabled) { background: #f8fafc; }
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+
+    .btn-confirm-withdraw {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.625rem 1.125rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      background: $danger;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+
+      &:hover:not(:disabled) { background: $danger-hover; }
+      &:disabled { opacity: 0.6; cursor: not-allowed; }
+    }
   }
 }
 

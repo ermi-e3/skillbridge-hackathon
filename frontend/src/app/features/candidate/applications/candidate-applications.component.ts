@@ -45,6 +45,9 @@ export class CandidateApplicationsComponent implements OnInit {
   readonly rejectedCount = computed(
     () => this.applications().filter((a) => a.status === 'Rejected').length
   );
+  readonly withdrawnCount = computed(
+    () => this.applications().filter((a) => a.status === 'Withdrawn').length
+  );
 
   private toastTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
