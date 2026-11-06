@@ -23,6 +23,7 @@ describe('AuthService', () => {
 
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
     routerSpy = { navigate: vi.fn().mockResolvedValue(true) };
 
     TestBed.configureTestingModule({
@@ -41,13 +42,14 @@ describe('AuthService', () => {
   afterEach(() => {
     httpTesting.verify();
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should post login request and store session in localStorage', () => {
+  it('should post login request with credentials and store access token in memory only', () => {
     const creds: LoginRequest = { email: 'user@hackathon.local', password: 'Password1' };
 
     service.login(creds).subscribe((res) => {
@@ -57,17 +59,19 @@ describe('AuthService', () => {
     const req = httpTesting.expectOne(`${environment.apiUrl}/auth/login`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(creds);
+    expect(req.request.withCredentials).toBe(true);
     req.flush(mockResponse);
 
-    expect(localStorage.getItem('accessToken')).toBe(mockResponse.accessToken);
-    expect(localStorage.getItem('role')).toBe('Candidate');
-    expect(localStorage.getItem('userId')).toBe(mockResponse.userId);
+    // Stored in Angular memory only - not in localStorage or sessionStorage
+    expect(localStorage.getItem('accessToken')).toBeNull();
+    expect(sessionStorage.getItem('accessToken')).toBeNull();
     expect(service.getToken()).toBe(mockResponse.accessToken);
     expect(service.getRole()).toBe('Candidate');
     expect(service.isAuthenticated()).toBe(true);
+    expect(service.getUserId()).toBe(mockResponse.userId);
   });
 
-  it('should post register request and store session in localStorage', () => {
+  it('should post register request with credentials and store session in memory only', () => {
     const payload: RegisterRequest = {
       email: 'hana@example.com',
       password: 'Password1',
@@ -83,10 +87,31 @@ describe('AuthService', () => {
     const req = httpTesting.expectOne(`${environment.apiUrl}/auth/register`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(payload);
+    expect(req.request.withCredentials).toBe(true);
     req.flush(mockResponse);
 
-    expect(localStorage.getItem('accessToken')).toBe(mockResponse.accessToken);
-    expect(localStorage.getItem('userId')).toBe(mockResponse.userId);
+    expect(localStorage.getItem('accessToken')).toBeNull();
+    expect(sessionStorage.getItem('accessToken')).toBeNull();
+    expect(service.getToken()).toBe(mockResponse.accessToken);
+  });
+
+  it('should call refresh token endpoint and update in-memory session', () => {
+    const rotatedResponse: AuthResponse = {
+      ...mockResponse,
+      accessToken: 'new-rotated-token',
+    };
+
+    service.refreshToken().subscribe((res) => {
+      expect(res).toEqual(rotatedResponse);
+    });
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/auth/refresh`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.withCredentials).toBe(true);
+    req.flush(rotatedResponse);
+
+    expect(service.getToken()).toBe('new-rotated-token');
+    expect(service.isAuthenticated()).toBe(true);
   });
 
   it('should redirect Candidate to /jobs', () => {
@@ -99,13 +124,19 @@ describe('AuthService', () => {
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/employer/jobs']);
   });
 
-  it('should clear localStorage and navigate to /login on logout', () => {
-    service.saveSession(mockResponse);
-    expect(localStorage.getItem('accessToken')).toBe('test-jwt-token');
+  it('should clear in-memory state, call logout endpoint, and navigate to /login on logout', () => {
+    service.handleAuthSuccess(mockResponse);
+    expect(service.isAuthenticated()).toBe(true);
 
     service.logout();
-    expect(localStorage.getItem('accessToken')).toBeNull();
-    expect(localStorage.getItem('role')).toBeNull();
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/auth/logout`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.withCredentials).toBe(true);
+    req.flush(null);
+
+    expect(service.getToken()).toBeNull();
+    expect(service.currentUser()).toBeNull();
     expect(service.isAuthenticated()).toBe(false);
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/login']);
   });

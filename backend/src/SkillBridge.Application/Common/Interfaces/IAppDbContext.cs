@@ -16,6 +16,7 @@ public interface IAppDbContext
     DbSet<Job> Jobs { get; }
     DbSet<JobSkill> JobSkills { get; }
     DbSet<JobApplication> Applications { get; }
+    DbSet<RefreshToken> RefreshTokens { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

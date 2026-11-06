@@ -8,12 +8,14 @@ namespace SkillBridge.Application.Auth;
 public sealed class AuthService(
     IIdentityService identityService,
     IJwtTokenService jwtTokenService,
+    IRefreshTokenService refreshTokenService,
     ICurrentUser currentUser,
     IValidator<RegisterRequest> registerValidator,
     IValidator<LoginRequest> loginValidator)
 {
-    public async Task<AuthResponse> RegisterAsync(
+    public async Task<AuthResult> RegisterWithRefreshTokenAsync(
         RegisterRequest request,
+        string? ipAddress = null,
         CancellationToken cancellationToken = default)
     {
         var normalized = request with
@@ -39,11 +41,25 @@ public sealed class AuthService(
         }
 
         var user = await identityService.RegisterAsync(normalized, cancellationToken);
-        return CreateResponse(user);
+        var refreshResult = await refreshTokenService.CreateRefreshTokenAsync(
+            user.UserId,
+            ipAddress: ipAddress,
+            cancellationToken: cancellationToken);
+
+        return new AuthResult(CreateResponse(user), refreshResult.RawToken, refreshResult.ExpiresAt);
     }
 
-    public async Task<AuthResponse> LoginAsync(
+    public async Task<AuthResponse> RegisterAsync(
+        RegisterRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await RegisterWithRefreshTokenAsync(request, cancellationToken: cancellationToken);
+        return result.Response;
+    }
+
+    public async Task<AuthResult> LoginWithRefreshTokenAsync(
         LoginRequest request,
+        string? ipAddress = null,
         CancellationToken cancellationToken = default)
     {
         var normalized = request with { Email = (request.Email ?? string.Empty).Trim() };
@@ -56,7 +72,48 @@ public sealed class AuthService(
                 "auth.invalid_credentials", "Invalid credentials", "Invalid email or password.");
         }
 
-        return CreateResponse(user);
+        var refreshResult = await refreshTokenService.CreateRefreshTokenAsync(
+            user.UserId,
+            ipAddress: ipAddress,
+            cancellationToken: cancellationToken);
+
+        return new AuthResult(CreateResponse(user), refreshResult.RawToken, refreshResult.ExpiresAt);
+    }
+
+    public async Task<AuthResponse> LoginAsync(
+        LoginRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await LoginWithRefreshTokenAsync(request, cancellationToken: cancellationToken);
+        return result.Response;
+    }
+
+    public async Task<AuthResult> RefreshTokenAsync(
+        string rawRefreshToken,
+        string? ipAddress = null,
+        CancellationToken cancellationToken = default)
+    {
+        var (user, newRefreshToken) = await refreshTokenService.RotateRefreshTokenAsync(
+            rawRefreshToken,
+            ipAddress,
+            cancellationToken);
+
+        return new AuthResult(CreateResponse(user), newRefreshToken.RawToken, newRefreshToken.ExpiresAt);
+    }
+
+    public async Task LogoutAsync(
+        string? rawRefreshToken,
+        string? ipAddress = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (!string.IsNullOrWhiteSpace(rawRefreshToken))
+        {
+            await refreshTokenService.RevokeRefreshTokenAsync(
+                rawRefreshToken,
+                "Logout",
+                ipAddress,
+                cancellationToken);
+        }
     }
 
     public async Task<AuthUser> GetCurrentUserAsync(CancellationToken cancellationToken = default)

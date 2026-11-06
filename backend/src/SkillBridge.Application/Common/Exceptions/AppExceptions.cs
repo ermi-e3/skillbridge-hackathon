@@ -12,3 +12,6 @@ public sealed class ForbiddenException(string code, string title, string detail)
 
 public sealed class UnauthorizedException(string code, string title, string detail)
     : AppException(code, title, detail, 401);
+
+public sealed class LockedException(string code, string title, string detail)
+    : AppException(code, title, detail, 423);

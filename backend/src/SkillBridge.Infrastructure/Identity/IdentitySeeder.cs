@@ -107,6 +107,11 @@ public sealed class IdentitySeeder(
             user.CompanyName = request.CompanyName;
             updateUser = true;
         }
+        if (!user.LockoutEnabled)
+        {
+            user.LockoutEnabled = true;
+            updateUser = true;
+        }
         if (updateUser && !(await userManager.UpdateAsync(user)).Succeeded)
             throw new InvalidOperationException("A demo account could not be initialized.");
 

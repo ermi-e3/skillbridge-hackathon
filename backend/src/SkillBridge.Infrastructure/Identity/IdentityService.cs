@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using SkillBridge.Application.Auth;
+using SkillBridge.Application.Common.Exceptions;
 using SkillBridge.Application.Common.Interfaces;
 using SkillBridge.Domain.Common;
 using SkillBridge.Domain.Entities;
@@ -26,7 +27,8 @@ public sealed class IdentityService(UserManager<AppUser> userManager, AppDbConte
             UserName = email,
             Email = email,
             FullName = request.FullName.Trim(),
-            CompanyName = request.Role == Roles.Employer ? request.CompanyName?.Trim() : null
+            CompanyName = request.Role == Roles.Employer ? request.CompanyName?.Trim() : null,
+            LockoutEnabled = true
         };
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
@@ -59,8 +61,38 @@ public sealed class IdentityService(UserManager<AppUser> userManager, AppDbConte
     {
         cancellationToken.ThrowIfCancellationRequested();
         var user = await userManager.FindByEmailAsync(request.Email.Trim());
-        if (user is null || !await userManager.CheckPasswordAsync(user, request.Password))
+        if (user is null)
             return null;
+
+        if (await userManager.IsLockedOutAsync(user))
+        {
+            throw new LockedException(
+                "auth.account_locked",
+                "Account locked",
+                "Your account has been temporarily locked due to 5 consecutive failed login attempts. Please try again later.");
+        }
+
+        var passwordValid = await userManager.CheckPasswordAsync(user, request.Password);
+        if (!passwordValid)
+        {
+            if (await userManager.GetLockoutEnabledAsync(user))
+            {
+                await userManager.AccessFailedAsync(user);
+                if (await userManager.IsLockedOutAsync(user))
+                {
+                    throw new LockedException(
+                        "auth.account_locked",
+                        "Account locked",
+                        "Your account has been temporarily locked due to 5 consecutive failed login attempts. Please try again later.");
+                }
+            }
+            return null;
+        }
+
+        if (await userManager.GetAccessFailedCountAsync(user) > 0)
+        {
+            await userManager.ResetAccessFailedCountAsync(user);
+        }
 
         return await LoadAuthUserAsync(user, cancellationToken);
     }
