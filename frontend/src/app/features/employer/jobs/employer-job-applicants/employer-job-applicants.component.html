@@ -50,6 +50,21 @@
       </div>
     }
 
+    <!-- 2-Hour Window Warning / Active Banner -->
+    @if (!canManageApplications() && !isLoading()) {
+      <div class="alert-banner alert-warning-banner" role="alert">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <div class="alert-banner-text">
+          <strong>Application Management Window Expired (2-Hour Limit)</strong>
+          <p>The 2-hour window after job creation for managing candidate applications has ended. Applicant statuses can no longer be updated.</p>
+        </div>
+      </div>
+    }
+
     <!-- Job Header Summary Card -->
     @if (jobSummary()) {
       <section class="job-header-card" aria-label="Job Overview">
@@ -363,8 +378,9 @@
                   <button
                     type="button"
                     class="action-btn shortlist-btn"
-                    [disabled]="updatingApplicationId() === applicant.applicationId"
+                    [disabled]="!canManageApplications() || updatingApplicationId() === applicant.applicationId"
                     (click)="updateStatus(applicant, 'Shortlisted')"
+                    [title]="!canManageApplications() ? 'Management window expired (2-hour limit)' : 'Shortlist applicant'"
                     aria-label="Shortlist applicant"
                   >
                     @if (updatingApplicationId() === applicant.applicationId) {
@@ -381,8 +397,9 @@
                   <button
                     type="button"
                     class="action-btn reject-btn"
-                    [disabled]="updatingApplicationId() === applicant.applicationId"
+                    [disabled]="!canManageApplications() || updatingApplicationId() === applicant.applicationId"
                     (click)="updateStatus(applicant, 'Rejected')"
+                    [title]="!canManageApplications() ? 'Management window expired (2-hour limit)' : 'Reject applicant'"
                     aria-label="Reject applicant"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">

@@ -19,9 +19,12 @@ public sealed class CreateJobValidator : AbstractValidator<CreateJobRequest>
             .When(x => !string.IsNullOrEmpty(x.Location));
 
         RuleFor(x => x.RequiredSkillIds)
-            .NotNull().WithMessage("Required skills are required.")
-            .Must(skills => skills != null && skills.Distinct().Count() is >= 1 and <= 15)
-            .WithMessage("Select between 1 and 15 required skills.");
+            .Must((req, skills) =>
+            {
+                var total = (skills?.Distinct().Count() ?? 0) + (req.CustomSkills?.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().Count() ?? 0);
+                return total is >= 1 and <= 25;
+            })
+            .WithMessage("Select or add between 1 and 25 required skills.");
 
         RuleFor(x => x.PreferredSkillIds)
             .Must(skills => skills == null || skills.Distinct().Count() <= 15)

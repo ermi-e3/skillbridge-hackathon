@@ -44,6 +44,10 @@ export interface JobCreatedRealtimeEvent {
   job: JobDto;
 }
 
+export interface JobUpdatedRealtimeEvent {
+  job: JobDto;
+}
+
 export interface JobStatusChangedRealtimeEvent {
   jobId: number;
   isOpen: boolean;

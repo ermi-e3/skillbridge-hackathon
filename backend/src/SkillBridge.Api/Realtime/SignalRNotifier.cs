@@ -81,6 +81,14 @@ public sealed class SignalRNotifier(IHubContext<SkillBridgeHub> hubContext) : IR
         await hubContext.Clients.All.SendAsync("JobCreated", @event, cancellationToken);
     }
 
+    public async Task NotifyJobUpdatedAsync(
+        JobUpdatedRealtimeEvent @event,
+        CancellationToken cancellationToken = default)
+    {
+        await hubContext.Clients.All.SendAsync("JobUpdated", @event, cancellationToken);
+        await hubContext.Clients.Group($"job-{@event.Job.Id}").SendAsync("JobUpdated", @event, cancellationToken);
+    }
+
     public async Task NotifyJobStatusChangedAsync(
         JobStatusChangedRealtimeEvent @event,
         CancellationToken cancellationToken = default)

@@ -50,6 +50,32 @@ export class EmployerJobApplicantsComponent implements OnInit {
     () => this.applicants().filter((a) => a.status === 'Withdrawn').length
   );
 
+  readonly canManageApplications = computed(() => {
+    const summary = this.jobSummary();
+    if (!summary) return false;
+    if (typeof summary.canManageApplications === 'boolean') {
+      return summary.canManageApplications;
+    }
+    if (summary.createdAt) {
+      const created = new Date(summary.createdAt).getTime();
+      return Date.now() - created <= 2 * 60 * 60 * 1000;
+    }
+    return true;
+  });
+
+  readonly remainingManagementTime = computed(() => {
+    const summary = this.jobSummary();
+    if (!summary?.createdAt) return '';
+    const created = new Date(summary.createdAt).getTime();
+    const twoHoursMs = 2 * 60 * 60 * 1000;
+    const remainingMs = created + twoHoursMs - Date.now();
+    if (remainingMs <= 0) return 'Expired';
+    const totalMins = Math.floor(remainingMs / 60000);
+    const hrs = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+    return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+  });
+
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
     const parsedId = Number(idParam);
@@ -111,6 +137,14 @@ export class EmployerJobApplicantsComponent implements OnInit {
           );
         }
       });
+
+    this.realtime.jobUpdated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        if (event.job.id === jobId) {
+          this.loadApplicants();
+        }
+      });
   }
 
   loadApplicants(): void {
@@ -153,6 +187,14 @@ export class EmployerJobApplicantsComponent implements OnInit {
 
   updateStatus(applicant: JobApplicantItemDto, newStatus: 'Shortlisted' | 'Rejected'): void {
     if (applicant.status !== 'Received' || this.updatingApplicationId()) {
+      return;
+    }
+
+    if (!this.canManageApplications()) {
+      this.feedbackMessage.set({
+        type: 'error',
+        text: 'The 2-hour window for managing job applications has expired. Applicant statuses can no longer be updated.',
+      });
       return;
     }
 

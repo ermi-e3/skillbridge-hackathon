@@ -16,7 +16,8 @@ public sealed class JobsService(
     IClock clock,
     IValidator<CreateJobRequest> createJobValidator,
     IJobMatchingService jobMatchingService,
-    IRealtimeNotifier? notifier = null)
+    IRealtimeNotifier? notifier = null,
+    IValidator<UpdateJobRequest>? updateJobValidator = null)
 {
     public async Task<PagedJobsResponse> GetJobsAsync(
         IEnumerable<int>? skillIds = null,
@@ -359,9 +360,15 @@ public sealed class JobsService(
             throw new RequestValidationException(errors);
         }
 
-        var allSkillIds = new List<int>(request.RequiredSkillIds ?? []);
-        if (request.PreferredSkillIds != null)
-            allSkillIds.AddRange(request.PreferredSkillIds);
+        var customReqIds = await ResolveCustomSkillsAsync(request.CustomSkills, cancellationToken);
+        var customPrefIds = await ResolveCustomSkillsAsync(request.CustomPreferredSkills, cancellationToken);
+
+        var finalRequiredSkillIds = (request.RequiredSkillIds ?? []).Concat(customReqIds).Distinct().ToList();
+        var finalPreferredSkillIds = (request.PreferredSkillIds ?? []).Concat(customPrefIds).Distinct().Where(id => !finalRequiredSkillIds.Contains(id)).ToList();
+
+        var allSkillIds = new List<int>(finalRequiredSkillIds);
+        if (finalPreferredSkillIds != null)
+            allSkillIds.AddRange(finalPreferredSkillIds);
         if (request.SkillRequirements != null)
             allSkillIds.AddRange(request.SkillRequirements.Select(sr => sr.SkillId));
 
@@ -387,13 +394,13 @@ public sealed class JobsService(
             request.Title,
             request.Description,
             request.Location,
-            request.RequiredSkillIds,
+            finalRequiredSkillIds,
             clock.UtcNow,
             request.JobType,
             request.WorkArrangement,
             request.ExperienceLevel,
             request.MinExperienceYears,
-            request.PreferredSkillIds,
+            finalPreferredSkillIds,
             skillDetails,
             request.Deadline);
 
@@ -406,6 +413,123 @@ public sealed class JobsService(
             await notifier.NotifyJobCreatedAsync(new JobCreatedRealtimeEvent(created), cancellationToken);
         }
         return created;
+    }
+
+    public async Task<JobDto> UpdateJobAsync(int id, UpdateJobRequest request, CancellationToken cancellationToken = default)
+    {
+        EnsureEmployer();
+
+        var job = await dbContext.Jobs
+            .Include(j => j.RequiredSkills)
+            .FirstOrDefaultAsync(j => j.Id == id, cancellationToken)
+            ?? throw new NotFoundException("jobs.not_found", "Job not found", "This job does not exist.");
+
+        if (job.EmployerId != currentUser.UserId)
+        {
+            throw new ForbiddenException("jobs.not_owner", "Not job owner", "You can only edit your own jobs.");
+        }
+
+        if (!job.IsEditingAllowed(clock.UtcNow))
+        {
+            throw new ForbiddenException("jobs.editing_expired", "Editing window expired", "Jobs can only be edited within the first 2 hours after posting.");
+        }
+
+        if (updateJobValidator != null)
+        {
+            var validationResult = await updateJobValidator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                var errors = validationResult.Errors
+                    .GroupBy(e => char.ToLowerInvariant(e.PropertyName[0]) + e.PropertyName[1..])
+                    .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).Distinct().ToArray());
+                throw new RequestValidationException(errors);
+            }
+        }
+
+        var customReqIds = await ResolveCustomSkillsAsync(request.CustomSkills, cancellationToken);
+        var customPrefIds = await ResolveCustomSkillsAsync(request.CustomPreferredSkills, cancellationToken);
+
+        var finalRequiredSkillIds = (request.RequiredSkillIds ?? []).Concat(customReqIds).Distinct().ToList();
+        var finalPreferredSkillIds = (request.PreferredSkillIds ?? []).Concat(customPrefIds).Distinct().Where(id => !finalRequiredSkillIds.Contains(id)).ToList();
+
+        var allSkillIds = new List<int>(finalRequiredSkillIds);
+        if (finalPreferredSkillIds != null)
+            allSkillIds.AddRange(finalPreferredSkillIds);
+        if (request.SkillRequirements != null)
+            allSkillIds.AddRange(request.SkillRequirements.Select(sr => sr.SkillId));
+
+        var distinctSkillIds = allSkillIds.Distinct().ToList();
+        var existingSkillCount = await dbContext.Skills
+            .Where(s => distinctSkillIds.Contains(s.Id))
+            .CountAsync(cancellationToken);
+
+        if (existingSkillCount != distinctSkillIds.Count)
+        {
+            throw new BusinessRuleException("skills.unknown", "Unknown skills", "Some selected skills do not exist.");
+        }
+
+        IEnumerable<(int SkillId, bool IsRequired, SkillProficiency MinProficiency)>? skillDetails = null;
+        if (request.SkillRequirements != null && request.SkillRequirements.Count > 0)
+        {
+            skillDetails = request.SkillRequirements.Select(sr => (sr.SkillId, sr.IsRequired, sr.MinProficiency));
+        }
+
+        job.Update(
+            request.Title,
+            request.Description,
+            request.Location,
+            finalRequiredSkillIds,
+            request.JobType,
+            request.WorkArrangement,
+            request.ExperienceLevel,
+            request.MinExperienceYears,
+            finalPreferredSkillIds,
+            skillDetails,
+            request.Deadline);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var updated = await GetJobByIdAsync(job.Id, cancellationToken);
+        if (notifier != null)
+        {
+            await notifier.NotifyJobUpdatedAsync(new JobUpdatedRealtimeEvent(updated), cancellationToken);
+            await notifier.NotifyJobStatusChangedAsync(new JobStatusChangedRealtimeEvent(job.Id, job.IsOpen, job.Deadline, updated), cancellationToken);
+        }
+        return updated;
+    }
+
+    private async Task<List<int>> ResolveCustomSkillsAsync(
+        IReadOnlyList<string>? customSkills,
+        CancellationToken cancellationToken)
+    {
+        var resolvedIds = new List<int>();
+        if (customSkills == null || customSkills.Count == 0)
+        {
+            return resolvedIds;
+        }
+
+        foreach (var rawName in customSkills)
+        {
+            if (string.IsNullOrWhiteSpace(rawName)) continue;
+            var trimmed = rawName.Trim();
+            if (trimmed.Length > 50) trimmed = trimmed[..50];
+            var normalized = Skill.Normalize(trimmed);
+
+            var existing = await dbContext.Skills
+                .FirstOrDefaultAsync(s => s.NormalizedName == normalized, cancellationToken)
+                ?? dbContext.Skills.Local.FirstOrDefault(s => s.NormalizedName == normalized);
+
+            if (existing == null)
+            {
+                existing = new Skill(trimmed);
+                dbContext.Skills.Add(existing);
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+
+            resolvedIds.Add(existing.Id);
+        }
+
+        return resolvedIds;
     }
 
     public async Task<IReadOnlyList<EmployerJobDto>> GetEmployerJobsAsync(CancellationToken cancellationToken = default)

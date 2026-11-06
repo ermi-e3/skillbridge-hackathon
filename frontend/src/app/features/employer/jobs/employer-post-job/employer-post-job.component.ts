@@ -9,24 +9,26 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { CreateJobRequest } from '../../../../core/models/job.models';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { CreateJobRequest, UpdateJobRequest } from '../../../../core/models/job.models';
 import { SkillDto } from '../../../../core/models/profile.models';
 import { JobsService } from '../../../../core/services/jobs.service';
 import { SkillsService } from '../../../../core/services/skills.service';
 import { extractErrorMessage } from '../../../../core/utils/error-formatter';
 
 /**
- * Custom validator ensuring at least 1 and at most 15 skills are selected
+ * Custom validator ensuring at least 1 and at most 25 skills (including custom tags) are selected
  */
-export const requiredSkillsValidator = (min = 1, max = 15): ValidatorFn => {
+export const requiredSkillsValidator = (min = 1, max = 25, getCustomCount?: () => number): ValidatorFn => {
   return (control: AbstractControl): ValidationErrors | null => {
     const ids = control.value as number[] | null;
-    if (!ids || !Array.isArray(ids) || ids.length < min) {
-      return { minSkills: { min, actual: ids?.length ?? 0 } };
+    const customCount = getCustomCount ? getCustomCount() : 0;
+    const total = (ids?.length ?? 0) + customCount;
+    if (total < min) {
+      return { minSkills: { min, actual: total } };
     }
-    if (ids.length > max) {
-      return { maxSkills: { max, actual: ids.length } };
+    if (total > max) {
+      return { maxSkills: { max, actual: total } };
     }
     return null;
   };
@@ -44,12 +46,23 @@ export class EmployerPostJobComponent implements OnInit {
   readonly jobsService = inject(JobsService);
   readonly skillsService = inject(SkillsService);
   readonly router = inject(Router);
+  readonly route = inject(ActivatedRoute);
 
-  // State Signals
+  // Edit Mode & State Signals
+  readonly jobId = signal<number | null>(null);
+  readonly isEditMode = computed(() => this.jobId() !== null);
+  readonly isEditingExpired = signal<boolean>(false);
+  readonly editingTimeRemaining = signal<string>('');
+
   readonly isLoadingSkills = signal<boolean>(true);
+  readonly isLoadingJob = signal<boolean>(false);
   readonly isSubmitting = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
   readonly skillSearchQuery = signal<string>('');
+
+  // Custom Skills
+  readonly customSkillInput = signal<string>('');
+  readonly customSkills = signal<string[]>([]);
 
   // Skills Catalog & Selected IDs
   readonly allSkills = signal<SkillDto[]>([]);
@@ -69,6 +82,11 @@ export class EmployerPostJobComponent implements OnInit {
   readonly selectedSkills = computed(() => {
     const selectedIds = new Set(this.selectedSkillIds());
     return this.allSkills().filter((s) => selectedIds.has(s.id));
+  });
+
+  // Total required skills count (catalog + custom tags)
+  readonly totalRequiredSkillsCount = computed(() => {
+    return this.selectedSkillIds().length + this.customSkills().length;
   });
 
   // Filtered preferred skills based on preferred search input
@@ -95,11 +113,77 @@ export class EmployerPostJobComponent implements OnInit {
     minExperienceYears: [0, [Validators.min(0), Validators.max(50)]],
     deadline: [''],
     description: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(4000)]],
-    requiredSkillIds: [[], [requiredSkillsValidator(1, 15)]],
+    requiredSkillIds: [[], [requiredSkillsValidator(1, 25, () => this.customSkills().length)]],
   });
 
   ngOnInit(): void {
+    const idParam = this.route.snapshot.paramMap.get('id');
+    if (idParam) {
+      const parsedId = Number(idParam);
+      if (!isNaN(parsedId) && parsedId > 0) {
+        this.jobId.set(parsedId);
+      }
+    }
+
     this.loadSkills();
+    if (this.isEditMode()) {
+      this.loadJobForEdit(this.jobId()!);
+    }
+  }
+
+  loadJobForEdit(id: number): void {
+    this.isLoadingJob.set(true);
+    this.jobsService.getJobById(id).subscribe({
+      next: (job) => {
+        this.isLoadingJob.set(false);
+        const created = new Date(job.createdAt).getTime();
+        const now = Date.now();
+        const twoHoursMs = 2 * 60 * 60 * 1000;
+
+        if (now - created > twoHoursMs) {
+          this.isEditingExpired.set(true);
+          this.jobForm.disable();
+        } else {
+          const remainingMs = created + twoHoursMs - now;
+          const mins = Math.floor(remainingMs / 60000);
+          const hrs = Math.floor(mins / 60);
+          const remMins = mins % 60;
+          this.editingTimeRemaining.set(hrs > 0 ? `${hrs}h ${remMins}m` : `${remMins}m`);
+        }
+
+        const reqIds = job.requiredSkills.map((s) => s.id);
+        const prefIds = job.preferredSkills ? job.preferredSkills.map((s) => s.id) : [];
+
+        this.selectedSkillIds.set(reqIds);
+        this.selectedPreferredSkillIds.set(prefIds);
+
+        this.jobForm.patchValue({
+          title: job.title,
+          description: job.description,
+          location: job.location || '',
+          jobType: job.jobType || 'FullTime',
+          workArrangement: job.workArrangement || 'Remote',
+          experienceLevel: job.experienceLevel || 'MidLevel',
+          minExperienceYears: job.minExperienceYears || 0,
+          deadline: job.deadline ? this.formatDateForInput(job.deadline) : '',
+          requiredSkillIds: reqIds,
+        });
+
+        if (this.isEditingExpired()) {
+          this.jobForm.disable();
+        }
+      },
+      error: (err) => {
+        this.isLoadingJob.set(false);
+        this.errorMessage.set(extractErrorMessage(err, 'Failed to load job details for editing.'));
+      },
+    });
+  }
+
+  formatDateForInput(dateStr: string): string {
+    const d = new Date(dateStr);
+    const pad = (n: number) => (n < 10 ? '0' + n : n);
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
   get titleControl() {
@@ -221,6 +305,53 @@ export class EmployerPostJobComponent implements OnInit {
     }
   }
 
+  onCustomSkillInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.customSkillInput.set(input.value);
+  }
+
+  addCustomSkill(): void {
+    if (this.isEditingExpired()) return;
+    const raw = this.customSkillInput().trim();
+    if (!raw) return;
+
+    const normalized = raw.toLowerCase();
+    const current = this.customSkills();
+    if (current.some((s) => s.toLowerCase() === normalized)) {
+      this.customSkillInput.set('');
+      return;
+    }
+
+    // If exists in catalog, select it from catalog instead
+    const catalogMatch = this.allSkills().find((s) => s.name.toLowerCase() === normalized);
+    if (catalogMatch) {
+      if (!this.isSkillSelected(catalogMatch.id)) {
+        this.toggleSkill(catalogMatch.id);
+      }
+      this.customSkillInput.set('');
+      return;
+    }
+
+    if (current.length + this.selectedSkillIds().length >= 25) {
+      return;
+    }
+
+    this.customSkills.set([...current, raw]);
+    this.customSkillInput.set('');
+    this.updateRequiredSkillsValidity();
+  }
+
+  removeCustomSkill(tag: string): void {
+    if (this.isEditingExpired()) return;
+    const current = this.customSkills().filter((s) => s.toLowerCase() !== tag.toLowerCase());
+    this.customSkills.set(current);
+    this.updateRequiredSkillsValidity();
+  }
+
+  private updateRequiredSkillsValidity(): void {
+    this.requiredSkillIdsControl?.updateValueAndValidity();
+  }
+
   onSearchChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.skillSearchQuery.set(input.value);
@@ -247,6 +378,10 @@ export class EmployerPostJobComponent implements OnInit {
    * Submit job post form
    */
   onSubmit(): void {
+    if (this.isEditingExpired()) {
+      return;
+    }
+
     if (this.jobForm.invalid || this.isSubmitting()) {
       this.jobForm.markAllAsTouched();
       return;
@@ -256,32 +391,66 @@ export class EmployerPostJobComponent implements OnInit {
     this.isSubmitting.set(true);
 
     const formValue = this.jobForm.value;
-    const payload: CreateJobRequest = {
-      title: formValue.title.trim(),
-      description: formValue.description.trim(),
-      location: formValue.location?.trim() ? formValue.location.trim() : null,
-      jobType: formValue.jobType,
-      workArrangement: formValue.workArrangement,
-      experienceLevel: formValue.experienceLevel,
-      minExperienceYears: Number(formValue.minExperienceYears || 0),
-      requiredSkillIds: formValue.requiredSkillIds as number[],
-      preferredSkillIds: this.selectedPreferredSkillIds(),
-      deadline: formValue.deadline ? new Date(formValue.deadline).toISOString() : null,
-    };
+    const custom = this.customSkills().length > 0 ? this.customSkills() : undefined;
 
-    this.jobsService.postJob(payload).subscribe({
-      next: () => {
-        this.isSubmitting.set(false);
-        this.router.navigate(['/employer/jobs']);
-      },
-      error: (err) => {
-        this.isSubmitting.set(false);
-        const msg = extractErrorMessage(
-          err,
-          'Failed to publish job opening. Please check your inputs and try again.'
-        );
-        this.errorMessage.set(msg);
-      },
-    });
+    if (this.isEditMode()) {
+      const editPayload: UpdateJobRequest = {
+        title: formValue.title.trim(),
+        description: formValue.description.trim(),
+        location: formValue.location?.trim() ? formValue.location.trim() : null,
+        jobType: formValue.jobType,
+        workArrangement: formValue.workArrangement,
+        experienceLevel: formValue.experienceLevel,
+        minExperienceYears: Number(formValue.minExperienceYears || 0),
+        requiredSkillIds: formValue.requiredSkillIds as number[],
+        preferredSkillIds: this.selectedPreferredSkillIds(),
+        customSkills: custom,
+        deadline: formValue.deadline ? new Date(formValue.deadline).toISOString() : null,
+      };
+
+      this.jobsService.updateJob(this.jobId()!, editPayload).subscribe({
+        next: () => {
+          this.isSubmitting.set(false);
+          this.router.navigate(['/employer/jobs']);
+        },
+        error: (err) => {
+          this.isSubmitting.set(false);
+          const msg = extractErrorMessage(
+            err,
+            'Failed to update job opening. Please check your inputs and try again.'
+          );
+          this.errorMessage.set(msg);
+        },
+      });
+    } else {
+      const createPayload: CreateJobRequest = {
+        title: formValue.title.trim(),
+        description: formValue.description.trim(),
+        location: formValue.location?.trim() ? formValue.location.trim() : null,
+        jobType: formValue.jobType,
+        workArrangement: formValue.workArrangement,
+        experienceLevel: formValue.experienceLevel,
+        minExperienceYears: Number(formValue.minExperienceYears || 0),
+        requiredSkillIds: formValue.requiredSkillIds as number[],
+        preferredSkillIds: this.selectedPreferredSkillIds(),
+        customSkills: custom,
+        deadline: formValue.deadline ? new Date(formValue.deadline).toISOString() : null,
+      };
+
+      this.jobsService.postJob(createPayload).subscribe({
+        next: () => {
+          this.isSubmitting.set(false);
+          this.router.navigate(['/employer/jobs']);
+        },
+        error: (err) => {
+          this.isSubmitting.set(false);
+          const msg = extractErrorMessage(
+            err,
+            'Failed to publish job opening. Please check your inputs and try again.'
+          );
+          this.errorMessage.set(msg);
+        },
+      });
+    }
   }
 }

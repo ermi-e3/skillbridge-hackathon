@@ -176,4 +176,30 @@ describe('EmployerJobApplicantsComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Senior Software Engineer');
   });
+
+  it('displays warning banner and disables shortlist/reject buttons when management window is expired', () => {
+    const expiredResponse: JobApplicantsResponse = {
+      ...mockApplicantsResponse,
+      job: {
+        ...mockApplicantsResponse.job,
+        canManageApplications: false,
+        createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+      },
+    };
+    applicationsServiceSpy.getJobApplicants.mockReturnValue(of(expiredResponse));
+
+    fixture.detectChanges();
+
+    expect(component.canManageApplications()).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('Application Management Window Expired');
+
+    const shortlistBtn = fixture.nativeElement.querySelector('.shortlist-btn');
+    const rejectBtn = fixture.nativeElement.querySelector('.reject-btn');
+    expect(shortlistBtn.hasAttribute('disabled')).toBe(true);
+    expect(rejectBtn.hasAttribute('disabled')).toBe(true);
+
+    // Clicking should not trigger changeStatus
+    shortlistBtn.click();
+    expect(applicationsServiceSpy.changeStatus).not.toHaveBeenCalled();
+  });
 });
