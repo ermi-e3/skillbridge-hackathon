@@ -18,4 +18,6 @@ public sealed record CreateJobRequest(
     int MinExperienceYears = 0,
     IReadOnlyList<int>? PreferredSkillIds = null,
     IReadOnlyList<JobSkillRequirementDto>? SkillRequirements = null,
-    DateTime? Deadline = null);
+    DateTime? Deadline = null,
+    IReadOnlyList<string>? CustomSkills = null,
+    IReadOnlyList<string>? CustomPreferredSkills = null);

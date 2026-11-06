@@ -80,6 +80,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'employer/jobs/:id/edit',
+    //canActivate: [authGuard, roleGuard('Employer')],
+    loadComponent: () =>
+      import('./features/employer/jobs/employer-post-job/employer-post-job.component').then(
+        (m) => m.EmployerPostJobComponent
+      ),
+  },
+  {
     path: 'employer/jobs/:id/applicants',
     //canActivate: [authGuard, roleGuard('Employer')],
     loadComponent: () =>
@@ -100,4 +108,5 @@ export const routes: Routes = [
     redirectTo: 'login',
   },
 ];
+
 

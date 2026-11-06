@@ -90,6 +90,18 @@ export class CandidateApplicationsComponent implements OnInit {
       .subscribe(() => {
         this.loadApplications();
       });
+
+    this.realtime.jobUpdated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        this.applications.update((list) =>
+          list.map((app) =>
+            app.jobId === event.job.id
+              ? { ...app, jobTitle: event.job.title }
+              : app
+          )
+        );
+      });
   }
 
   loadApplications(): void {

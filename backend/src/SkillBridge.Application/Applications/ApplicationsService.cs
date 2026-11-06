@@ -406,7 +406,8 @@ public sealed class ApplicationsService(
             .Select(rs => new SkillDto(rs.SkillId, rs.Skill.Name))
             .ToList();
 
-        var jobSummary = new JobSummaryDto(job.Id, job.Title, job.IsOpen, jobRequiredSkills, jobPreferredSkills);
+        var canManage = clock.UtcNow - job.CreatedAt <= TimeSpan.FromHours(2);
+        var jobSummary = new JobSummaryDto(job.Id, job.Title, job.IsOpen, jobRequiredSkills, jobPreferredSkills, job.CreatedAt, canManage);
         return new JobApplicantsDto(jobSummary, applicantItems);
     }
 
@@ -446,6 +447,11 @@ public sealed class ApplicationsService(
         if (application.Job.EmployerId != currentUser.UserId)
         {
             throw new ForbiddenException("applications.not_owner", "Forbidden", "You cannot access this application.");
+        }
+
+        if (clock.UtcNow - application.Job.CreatedAt > TimeSpan.FromHours(2))
+        {
+            throw new ForbiddenException("applications.editing_expired", "Application management window expired", "Job applications can only be managed within the first 2 hours after the job is posted.");
         }
 
         application.ChangeStatus(targetStatus, clock.UtcNow);

@@ -11,7 +11,11 @@ import { EmployerPostJobComponent } from './employer-post-job.component';
 describe('EmployerPostJobComponent', () => {
   let component: EmployerPostJobComponent;
   let fixture: ComponentFixture<EmployerPostJobComponent>;
-  let jobsServiceSpy: { postJob: ReturnType<typeof vi.fn> };
+  let jobsServiceSpy: {
+    postJob: ReturnType<typeof vi.fn>;
+    updateJob: ReturnType<typeof vi.fn>;
+    getJobById: ReturnType<typeof vi.fn>;
+  };
   let skillsServiceSpy: { getSkills: ReturnType<typeof vi.fn> };
   let router: Router;
 
@@ -38,6 +42,8 @@ describe('EmployerPostJobComponent', () => {
   beforeEach(async () => {
     jobsServiceSpy = {
       postJob: vi.fn().mockReturnValue(of(mockCreatedJob)),
+      updateJob: vi.fn().mockReturnValue(of(mockCreatedJob)),
+      getJobById: vi.fn().mockReturnValue(of(mockCreatedJob)),
     };
     skillsServiceSpy = {
       getSkills: vi.fn().mockReturnValue(of(mockSkills)),
@@ -203,5 +209,94 @@ describe('EmployerPostJobComponent', () => {
     expect(component.isSubmitting()).toBe(false);
     expect(component.errorMessage()).toContain('Invalid job data.');
     expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('allows employer to add and remove custom skill tags', () => {
+    component.customSkillInput.set('Next.js');
+    component.addCustomSkill();
+
+    expect(component.customSkills()).toEqual(['Next.js']);
+    expect(component.customSkillInput()).toBe('');
+    expect(component.totalRequiredSkillsCount()).toBe(1);
+    expect(component.requiredSkillIdsControl?.valid).toBe(true);
+
+    // Adding existing catalog skill selects it from catalog instead of custom tag
+    component.customSkillInput.set('angular');
+    component.addCustomSkill();
+    expect(component.isSkillSelected(2)).toBe(true);
+    expect(component.customSkills()).toEqual(['Next.js']);
+
+    // Remove custom skill tag
+    component.removeCustomSkill('Next.js');
+    expect(component.customSkills()).toEqual([]);
+  });
+
+  it('submits custom skills in payload during creation', () => {
+    component.jobForm.patchValue({
+      title: 'Senior Engineer',
+      location: 'Remote',
+      description: 'Senior engineer wanted with Next.js and specialized domain skills.',
+    });
+    component.customSkillInput.set('Next.js');
+    component.addCustomSkill();
+
+    component.onSubmit();
+
+    expect(jobsServiceSpy.postJob).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customSkills: ['Next.js'],
+      })
+    );
+  });
+
+  it('loads job for edit and disables form if editing window has expired (> 2h)', () => {
+    const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
+    jobsServiceSpy.getJobById.mockReturnValue(
+      of({
+        ...mockCreatedJob,
+        createdAt: threeHoursAgo,
+      })
+    );
+
+    component.jobId.set(101);
+    component.loadJobForEdit(101);
+
+    expect(component.isEditingExpired()).toBe(true);
+    expect(component.jobForm.disabled).toBe(true);
+
+    // Attempting to submit should be blocked
+    component.onSubmit();
+    expect(jobsServiceSpy.updateJob).not.toHaveBeenCalled();
+  });
+
+  it('updates job successfully when within 2 hours editing window', () => {
+    const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    jobsServiceSpy.getJobById.mockReturnValue(
+      of({
+        ...mockCreatedJob,
+        createdAt: thirtyMinsAgo,
+      })
+    );
+
+    component.jobId.set(101);
+    component.loadJobForEdit(101);
+
+    expect(component.isEditingExpired()).toBe(false);
+    expect(component.jobForm.enabled).toBe(true);
+    expect(component.editingTimeRemaining()).toContain('1h');
+
+    component.jobForm.patchValue({
+      title: 'Updated Senior .NET Developer',
+    });
+
+    component.onSubmit();
+
+    expect(jobsServiceSpy.updateJob).toHaveBeenCalledWith(
+      101,
+      expect.objectContaining({
+        title: 'Updated Senior .NET Developer',
+      })
+    );
+    expect(router.navigate).toHaveBeenCalledWith(['/employer/jobs']);
   });
 });

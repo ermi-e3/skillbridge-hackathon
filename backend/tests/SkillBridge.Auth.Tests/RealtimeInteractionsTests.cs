@@ -20,6 +20,7 @@ public sealed class TestRealtimeNotifier : IRealtimeNotifier
     public List<ApplicationStatusChangedRealtimeEvent> StatusChangedEvents { get; } = [];
     public List<ApplicationWithdrawnRealtimeEvent> WithdrawnEvents { get; } = [];
     public List<JobCreatedRealtimeEvent> JobCreatedEvents { get; } = [];
+    public List<JobUpdatedRealtimeEvent> JobUpdatedEvents { get; } = [];
     public List<JobStatusChangedRealtimeEvent> JobStatusChangedEvents { get; } = [];
     public List<CandidateProfileUpdatedRealtimeEvent> ProfileUpdatedEvents { get; } = [];
 
@@ -44,6 +45,12 @@ public sealed class TestRealtimeNotifier : IRealtimeNotifier
     public Task NotifyJobCreatedAsync(JobCreatedRealtimeEvent @event, CancellationToken cancellationToken = default)
     {
         JobCreatedEvents.Add(@event);
+        return Task.CompletedTask;
+    }
+
+    public Task NotifyJobUpdatedAsync(JobUpdatedRealtimeEvent @event, CancellationToken cancellationToken = default)
+    {
+        JobUpdatedEvents.Add(@event);
         return Task.CompletedTask;
     }
 
@@ -213,5 +220,76 @@ public sealed class RealtimeInteractionsTests(AuthFixture fixture)
         Assert.Equal(1, testNotifier.StatusChangedEvents[0].Counts.Shortlisted);
         Assert.Equal(1, testNotifier.StatusChangedEvents[0].Counts.Withdrawn);
         Assert.Equal(0, testNotifier.StatusChangedEvents[0].Counts.Received);
+    }
+
+    [Fact]
+    public async Task Realtime_event_dispatched_when_employer_updates_job()
+    {
+        var testNotifier = new TestRealtimeNotifier();
+
+        var customFactory = fixture.Factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IRealtimeNotifier));
+                if (descriptor != null)
+                {
+                    services.Remove(descriptor);
+                }
+                services.AddSingleton<IRealtimeNotifier>(testNotifier);
+            });
+        });
+
+        using var employerClient = customFactory.CreateClient();
+        var employerEmail = $"emp-update-rt-{Guid.NewGuid():N}@realtime.test";
+        const string password = "TestPassword123!";
+
+        await employerClient.PostAsJsonAsync("/api/auth/register", new
+        {
+            email = employerEmail,
+            password,
+            fullName = "Employer Realtime",
+            role = Roles.Employer,
+            companyName = "Tech Corp"
+        });
+
+        var empLoginRes = await employerClient.PostAsJsonAsync("/api/auth/login", new { email = employerEmail, password });
+        var empAuth = await empLoginRes.Content.ReadFromJsonAsync<AuthResponse>(JsonOptions);
+        employerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", empAuth!.AccessToken);
+
+        var createRes = await employerClient.PostAsJsonAsync("/api/jobs", new
+        {
+            title = "Original Title",
+            description = "Original job description for testing real-time events.",
+            location = "Addis Ababa",
+            jobType = JobType.FullTime,
+            workArrangement = WorkArrangement.Hybrid,
+            experienceLevel = ExperienceLevel.MidLevel,
+            requiredSkillIds = new[] { 1 }
+        });
+        Assert.Equal(HttpStatusCode.Created, createRes.StatusCode);
+        var createdJob = await createRes.Content.ReadFromJsonAsync<JobDto>(JsonOptions);
+        Assert.NotNull(createdJob);
+
+        // Edit job
+        var updateRes = await employerClient.PutAsJsonAsync($"/api/jobs/{createdJob.Id}", new
+        {
+            title = "Updated Realtime Title",
+            description = "Updated job description for testing real-time events.",
+            location = "Remote",
+            jobType = JobType.FullTime,
+            workArrangement = WorkArrangement.Remote,
+            experienceLevel = ExperienceLevel.Senior,
+            requiredSkillIds = new[] { 1, 3 }
+        });
+        Assert.Equal(HttpStatusCode.OK, updateRes.StatusCode);
+
+        Assert.Single(testNotifier.JobUpdatedEvents);
+        var updatedEvent = testNotifier.JobUpdatedEvents[0];
+        Assert.Equal(createdJob.Id, updatedEvent.Job.Id);
+        Assert.Equal("Updated Realtime Title", updatedEvent.Job.Title);
+        Assert.Equal("Remote", updatedEvent.Job.Location);
+        Assert.Equal(WorkArrangement.Remote, updatedEvent.Job.WorkArrangement);
+        Assert.Equal(ExperienceLevel.Senior, updatedEvent.Job.ExperienceLevel);
     }
 }

@@ -28,6 +28,8 @@ export interface JobSummaryDto {
   isOpen: boolean;
   requiredSkills: SkillDto[];
   preferredSkills?: SkillDto[];
+  createdAt?: string;
+  canManageApplications?: boolean;
 }
 
 export interface CandidateApplicantSummary {

@@ -48,5 +48,9 @@ describe('RealtimeService', () => {
     expect(service.activeNotifications().length).toBe(1);
     expect(service.activeNotifications()[0].id).toBe('test-2');
   });
+
+  it('should expose jobUpdated$ observable', () => {
+    expect(service.jobUpdated$).toBeTruthy();
+  });
 });
 

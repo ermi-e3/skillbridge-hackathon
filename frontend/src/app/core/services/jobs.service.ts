@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { CreateJobRequest, EmployerJobDto, JobDto, PagedJobsResponse } from '../models/job.models';
+import { CreateJobRequest, EmployerJobDto, JobDto, PagedJobsResponse, UpdateJobRequest } from '../models/job.models';
 
 @Injectable({
   providedIn: 'root',
@@ -98,6 +98,14 @@ export class JobsService {
 
   createJob(payload: CreateJobRequest): Observable<JobDto> {
     return this.postJob(payload);
+  }
+
+  /**
+   * Update an existing job opening
+   * PUT /api/jobs/:id
+   */
+  updateJob(id: number, payload: UpdateJobRequest): Observable<JobDto> {
+    return this.http.put<JobDto>(`${this.baseUrl}/${id}`, payload);
   }
 
   /**

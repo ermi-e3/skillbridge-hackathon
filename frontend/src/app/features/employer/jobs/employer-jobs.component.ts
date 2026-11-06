@@ -59,6 +59,12 @@ export class EmployerJobsComponent implements OnInit {
         this.loadJobs();
       });
 
+    this.realtime.jobUpdated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.loadJobs();
+      });
+
     this.realtime.jobStatusChanged$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((event) => {
@@ -103,6 +109,23 @@ export class EmployerJobsComponent implements OnInit {
 
   getCountdown(deadline?: string | null, isOpen: boolean = true): CountdownDetails {
     return calculateCountdown(deadline, isOpen);
+  }
+
+  isEditingAllowed(createdAt: string): boolean {
+    const createdTime = new Date(createdAt).getTime();
+    const twoHoursMs = 2 * 60 * 60 * 1000;
+    return Date.now() - createdTime <= twoHoursMs;
+  }
+
+  getRemainingEditingTime(createdAt: string): string {
+    const createdTime = new Date(createdAt).getTime();
+    const twoHoursMs = 2 * 60 * 60 * 1000;
+    const remainingMs = createdTime + twoHoursMs - Date.now();
+    if (remainingMs <= 0) return 'Expired';
+    const totalMinutes = Math.floor(remainingMs / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return hours > 0 ? `${hours}h ${minutes}m left` : `${minutes}m left`;
   }
 
   private updateJobApplicantCounts(jobId: number, counts: ApplicantCounts): void {

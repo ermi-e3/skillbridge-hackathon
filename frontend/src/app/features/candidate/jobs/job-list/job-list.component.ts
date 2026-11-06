@@ -84,6 +84,13 @@ export class JobListComponent implements OnInit {
         this.loadJobs();
       });
 
+    this.realtime.jobUpdated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.loadJobs();
+        this.loadSkills();
+      });
+
     this.realtime.candidateProfileUpdated$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((event) => {

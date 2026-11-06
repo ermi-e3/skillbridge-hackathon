@@ -96,4 +96,22 @@ export interface CreateJobRequest {
   preferredSkillIds?: number[];
   skillRequirements?: CreateJobSkillRequirementRequest[];
   deadline?: string | null;
+  customSkills?: string[];
+  customPreferredSkills?: string[];
+}
+
+export interface UpdateJobRequest {
+  title: string;
+  description: string;
+  location?: string | null;
+  jobType?: string;
+  workArrangement?: string;
+  experienceLevel?: string;
+  minExperienceYears?: number;
+  requiredSkillIds: number[];
+  preferredSkillIds?: number[];
+  skillRequirements?: CreateJobSkillRequirementRequest[];
+  deadline?: string | null;
+  customSkills?: string[];
+  customPreferredSkills?: string[];
 }

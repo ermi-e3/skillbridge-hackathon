@@ -153,4 +153,32 @@ describe('EmployerJobsComponent', () => {
     expect(jobsServiceSpy.closeJob).toHaveBeenCalledWith(12);
     expect(component.jobToClose()).toBeNull();
   });
+
+  it('displays active Edit Job link when within 2 hours of posting', () => {
+    const recentCreated = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    jobsServiceSpy.getEmployerJobs.mockReturnValue(
+      of([{ ...mockJobs[0], createdAt: recentCreated }])
+    );
+    fixture.detectChanges();
+
+    const editBtn = fixture.nativeElement.querySelector('.btn-edit-job');
+    expect(editBtn).toBeTruthy();
+    expect(editBtn.tagName.toLowerCase()).toBe('a');
+    expect(editBtn.getAttribute('href')).toBe('/employer/jobs/12/edit');
+    expect(editBtn.textContent).toContain('Edit Job');
+  });
+
+  it('displays disabled Edit Expired button when older than 2 hours', () => {
+    const expiredCreated = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
+    jobsServiceSpy.getEmployerJobs.mockReturnValue(
+      of([{ ...mockJobs[0], createdAt: expiredCreated }])
+    );
+    fixture.detectChanges();
+
+    const editBtn = fixture.nativeElement.querySelector('.btn-edit-job');
+    expect(editBtn).toBeTruthy();
+    expect(editBtn.tagName.toLowerCase()).toBe('button');
+    expect(editBtn.hasAttribute('disabled')).toBe(true);
+    expect(editBtn.textContent).toContain('Edit Expired');
+  });
 });

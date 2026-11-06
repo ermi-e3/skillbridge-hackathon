@@ -19,11 +19,43 @@
         </svg>
         Employer workspace
       </div>
-      <h1 class="page-title">Post a New Job Opening</h1>
+      <h1 class="page-title">{{ isEditMode() ? 'Edit Job Opening' : 'Post a New Job Opening' }}</h1>
       <p class="page-subtitle">
-        Define role requirements and target skills to connect with high-matching qualified candidates.
+        {{ isEditMode() ? 'Update role requirements and manage skill tags for this job opening.' : 'Define role requirements and target skills to connect with high-matching qualified candidates.' }}
       </p>
     </header>
+
+    <!-- Editing Window Banners -->
+    @if (isEditMode() && isEditingExpired()) {
+      <div class="alert alert-warning editing-expired-banner" role="alert">
+        <div class="alert-content">
+          <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <div class="alert-body">
+            <span class="alert-title">Editing Window Expired (2-Hour Limit)</span>
+            <p class="alert-text">The 2-hour editing period after job creation has ended. Job details and skill tags can no longer be modified.</p>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (isEditMode() && !isEditingExpired() && editingTimeRemaining()) {
+      <div class="alert alert-info editing-active-banner">
+        <div class="alert-content">
+          <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <div class="alert-body">
+            <span class="alert-title">Editing Window Active</span>
+            <p class="alert-text">You have <strong>{{ editingTimeRemaining() }}</strong> remaining to edit this job and modify skill tags.</p>
+          </div>
+        </div>
+      </div>
+    }
 
     <!-- Error Alert Banner -->
     @if (errorMessage()) {
@@ -258,13 +290,71 @@
             <div>
               <h2 class="card-title required">Required Skills</h2>
               <p class="card-desc">
-                Select the key competencies for this position. Candidates will be ranked based on skill match.
+                Select from the skills catalog or add custom skill tags. Candidates will be ranked based on skill match.
               </p>
             </div>
-            <div class="selection-badge" [class.badge-valid]="selectedSkillIds().length >= 1 && selectedSkillIds().length <= 15">
-              <span>{{ selectedSkillIds().length }}</span> / 15 selected
+            <div class="selection-badge" [class.badge-valid]="totalRequiredSkillsCount() >= 1 && totalRequiredSkillsCount() <= 25">
+              <span>{{ totalRequiredSkillsCount() }}</span> / 25 selected
             </div>
           </div>
+        </div>
+
+        <!-- Custom Skill Tags Section -->
+        <div class="custom-skills-section">
+          <div class="custom-skills-header">
+            <label for="custom-skill-input" class="custom-skills-label">Add Custom Skill Tag</label>
+            <span class="custom-skills-hint">Add custom domain or tech tags not in the catalog.</span>
+          </div>
+          <div class="custom-skill-input-group">
+            <input
+              id="custom-skill-input"
+              type="text"
+              class="form-input custom-skill-input"
+              placeholder="Enter custom skill name (e.g. Next.js, gRPC, Pinia)..."
+              [value]="customSkillInput()"
+              (input)="onCustomSkillInput($event)"
+              (keydown.enter)="$event.preventDefault(); addCustomSkill()"
+              [disabled]="isEditingExpired()"
+              maxlength="50"
+            />
+            <button
+              type="button"
+              class="btn-add-custom-skill"
+              (click)="addCustomSkill()"
+              [disabled]="!customSkillInput().trim() || isEditingExpired() || totalRequiredSkillsCount() >= 25"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              <span>Add Tag</span>
+            </button>
+          </div>
+
+          @if (customSkills().length > 0) {
+            <div class="custom-skills-tags-list">
+              <span class="custom-tags-label">Custom Tags:</span>
+              <div class="selected-chips-list">
+                @for (tag of customSkills(); track tag) {
+                  <span class="selected-chip custom-tag-chip">
+                    <span class="tag-hash">#</span>{{ tag }}
+                    <button
+                      type="button"
+                      class="chip-remove-btn"
+                      [disabled]="isEditingExpired()"
+                      [attr.aria-label]="'Remove custom skill ' + tag"
+                      (click)="removeCustomSkill(tag)"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  </span>
+                }
+              </div>
+            </div>
+          }
         </div>
 
         <!-- Selected Skills Ribbon -->
@@ -509,11 +599,25 @@
         <button
           type="submit"
           class="btn-primary"
-          [disabled]="jobForm.invalid || isSubmitting()"
+          [disabled]="jobForm.invalid || isSubmitting() || (isEditMode() && isEditingExpired())"
         >
           @if (isSubmitting()) {
             <span class="spinner" aria-hidden="true"></span>
-            <span>Publishing Job...</span>
+            <span>{{ isEditMode() ? 'Saving Changes...' : 'Publishing Job...' }}</span>
+          } @else if (isEditMode() && isEditingExpired()) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>Editing Expired</span>
+          } @else if (isEditMode()) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            <span>Save Changes</span>
           } @else {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
               <path d="M12 5v14M5 12h14"></path>

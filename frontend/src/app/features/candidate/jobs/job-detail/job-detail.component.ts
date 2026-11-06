@@ -112,6 +112,14 @@ export class JobDetailComponent implements OnInit {
           this.updateCountdown();
         }
       });
+
+    this.realtime.jobUpdated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        if (event.job.id === jobId) {
+          this.loadJobDetail(jobId);
+        }
+      });
   }
 
   get coverNoteControl() {
