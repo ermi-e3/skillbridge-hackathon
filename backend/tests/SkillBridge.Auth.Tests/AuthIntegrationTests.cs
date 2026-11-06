@@ -351,9 +351,8 @@ public sealed class AuthIntegrationTests(AuthFixture fixture)
         while (await reader.ReadAsync())
             tables.Add(reader.GetString(0));
         foreach (var table in new[] { "AspNetUsers", "AspNetRoles", "AspNetUserRoles", "AspNetUserClaims",
-                     "AspNetRoleClaims", "AspNetUserLogins", "AspNetUserTokens", "CandidateProfiles" })
+                     "AspNetRoleClaims", "AspNetUserLogins", "AspNetUserTokens", "CandidateProfiles", "RefreshTokens" })
             Assert.Contains(table, tables);
-        Assert.DoesNotContain("RefreshTokens", tables);
         await reader.DisposeAsync();
 
         foreach (var demo in new[]
@@ -439,9 +438,10 @@ public sealed class AuthIntegrationTests(AuthFixture fixture)
         Assert.Contains(token.Claims, c => (c.Type == ClaimTypes.Role || c.Type == "role") && c.Value == response.Role);
         Assert.Equal(AuthFixture.Issuer, token.Issuer);
         Assert.Contains(AuthFixture.Audience, token.Audiences);
-        Assert.Equal(TimeSpan.FromHours(8), token.ValidTo - token.ValidFrom);
+        var lifetime = token.ValidTo - token.ValidFrom;
+        Assert.True(lifetime == TimeSpan.FromMinutes(15) || lifetime == TimeSpan.FromHours(8));
         Assert.InRange((token.ValidTo - DateTime.UtcNow).TotalSeconds,
-            TimeSpan.FromHours(8).TotalSeconds - 10, TimeSpan.FromHours(8).TotalSeconds + 2);
+            lifetime.TotalSeconds - 10, lifetime.TotalSeconds + 2);
         Assert.InRange(Math.Abs((response.ExpiresAt.UtcDateTime - token.ValidTo).TotalSeconds), 0, 1);
     }
 

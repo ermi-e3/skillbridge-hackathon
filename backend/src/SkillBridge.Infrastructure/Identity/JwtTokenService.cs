@@ -15,7 +15,8 @@ public sealed class JwtTokenService(IOptions<JwtOptions> options, IClock clock) 
     {
         var settings = options.Value;
         var issuedAt = clock.UtcNow;
-        var expiresAt = issuedAt.AddHours(settings.ExpirationHours);
+        var durationMinutes = settings.ExpirationMinutes > 0 ? settings.ExpirationMinutes : 15;
+        var expiresAt = issuedAt.AddMinutes(durationMinutes);
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.UserId),

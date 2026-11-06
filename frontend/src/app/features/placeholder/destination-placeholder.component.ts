@@ -18,7 +18,7 @@ import { AuthService } from '../../core/services/auth.service';
         <div class="meta-box">
           <div><strong>Role:</strong> {{ authService.getRole() }}</div>
           <div><strong>User ID:</strong> {{ authService.getUserId() }}</div>
-          <div><strong>Token in localStorage:</strong> {{ !!authService.getToken() ? 'Stored' : 'Missing' }}</div>
+          <div><strong>Token in Memory:</strong> {{ !!authService.getToken() ? 'Present' : 'Missing' }}</div>
         </div>
         <div class="actions-row">
           <a routerLink="/candidate/profile" class="profile-btn">Edit Candidate Profile</a>
@@ -140,7 +140,7 @@ export class CandidateHomePlaceholderComponent {
         <div class="meta-box">
           <div><strong>Role:</strong> {{ authService.getRole() }}</div>
           <div><strong>User ID:</strong> {{ authService.getUserId() }}</div>
-          <div><strong>Token in localStorage:</strong> {{ !!authService.getToken() ? 'Stored' : 'Missing' }}</div>
+          <div><strong>Token in Memory:</strong> {{ !!authService.getToken() ? 'Present' : 'Missing' }}</div>
         </div>
         <button class="logout-btn" (click)="authService.logout()">Sign Out</button>
       </div>

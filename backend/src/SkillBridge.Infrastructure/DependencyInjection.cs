@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SkillBridge.Application.Auth;
 using SkillBridge.Application.Common.Interfaces;
 using SkillBridge.Infrastructure.Identity;
 using SkillBridge.Infrastructure.Persistence;
@@ -31,6 +32,9 @@ public static class DependencyInjection
             options.Password.RequireLowercase = true;
             options.Password.RequireDigit = true;
             options.Password.RequireNonAlphanumeric = false;
+            options.Lockout.AllowedForNewUsers = true;
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
         })
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>();
@@ -42,11 +46,12 @@ public static class DependencyInjection
                 "Jwt:Key must contain at least 32 UTF-8 bytes.")
             .Validate(options => !string.IsNullOrWhiteSpace(options.Issuer), "Jwt:Issuer is required.")
             .Validate(options => !string.IsNullOrWhiteSpace(options.Audience), "Jwt:Audience is required.")
-            .Validate(options => options.ExpirationHours == 8, "Jwt:ExpirationHours must be 8.")
+            .Validate(options => options.ExpirationHours > 0 || options.ExpirationMinutes > 0, "Jwt expiration must be positive.")
             .ValidateOnStart();
 
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<IdentitySeeder>();
 
         return services;
