@@ -1,5 +1,14 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  ElementRef,
+  HostListener,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import {
   AbstractControl,
@@ -38,9 +47,9 @@ export const urlValidator: ValidatorFn = (control: AbstractControl): ValidationE
 };
 
 /**
- * Validates that selected skillIds are between min and max (1 to 30)
+ * Validates that selected skillIds are between min and max (1 to 20)
  */
-export const skillCountValidator = (min = 1, max = 30): ValidatorFn => {
+export const skillCountValidator = (min = 1, max = 20): ValidatorFn => {
   return (control: AbstractControl): ValidationErrors | null => {
     const ids = control.value as number[] | null;
     if (!ids || !Array.isArray(ids) || ids.length < min) {
@@ -69,6 +78,7 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
   readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly elementRef = inject(ElementRef);
 
   // Component Signals
   readonly isLoading = signal<boolean>(true);
@@ -78,6 +88,10 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
   readonly skillSearchQuery = signal<string>('');
   readonly preferredSkillSearchQuery = signal<string>('');
   readonly candidateUser = signal<{ fullName?: string; email?: string } | null>(null);
+
+  // Dropdown Open State Signals
+  readonly isCoreDropdownOpen = signal<boolean>(false);
+  readonly isPreferredDropdownOpen = signal<boolean>(false);
 
   // Default CV Signals
   readonly hasDefaultCv = signal<boolean>(false);
@@ -168,7 +182,7 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
     preferredJobType: ['FullTime', [Validators.required]],
     experienceLevel: ['EntryLevel', [Validators.required]],
     yearsOfExperience: [0, [Validators.min(0), Validators.max(50)]],
-    skillIds: [[], [skillCountValidator(1, 30)]],
+    skillIds: [[], [skillCountValidator(1, 20)]],
   });
 
   private toastTimeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -301,8 +315,8 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
     if (index > -1) {
       current.splice(index, 1);
     } else {
-      if (current.length >= 30) {
-        return; // Max 30 reached
+      if (current.length >= 20) {
+        return; // Max 20 reached
       }
       current.push(skillId);
       // Mutual exclusivity: remove from preferred skills if present
@@ -392,6 +406,75 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
 
   setPreferredCategory(categoryId: string): void {
     this.activePreferredCategory.set(categoryId);
+  }
+
+  // --- Dropdown Controls & Click-Outside ---
+
+  toggleCoreDropdown(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.isCoreDropdownOpen.update((v) => !v);
+    if (this.isCoreDropdownOpen()) {
+      this.isPreferredDropdownOpen.set(false);
+    }
+  }
+
+  togglePreferredDropdown(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.isPreferredDropdownOpen.update((v) => !v);
+    if (this.isPreferredDropdownOpen()) {
+      this.isCoreDropdownOpen.set(false);
+    }
+  }
+
+  closeCoreDropdown(): void {
+    this.isCoreDropdownOpen.set(false);
+  }
+
+  closePreferredDropdown(): void {
+    this.isPreferredDropdownOpen.set(false);
+  }
+
+  clearAllCoreSkills(): void {
+    this.selectedSkillIds.set([]);
+    this.skillIdsControl?.setValue([]);
+    this.skillIdsControl?.markAsDirty();
+    this.skillIdsControl?.markAsTouched();
+    this.skillIdsControl?.updateValueAndValidity();
+  }
+
+  clearAllPreferredSkills(): void {
+    this.selectedPreferredSkillIds.set([]);
+    this.profileForm.markAsDirty();
+  }
+
+  getSkillCategoryName(skillName: string): string {
+    for (const cat of this.categories) {
+      if (cat.id === 'all') continue;
+      if (cat.skillNames.some((name) => name.toLowerCase() === skillName.toLowerCase())) {
+        return cat.name;
+      }
+    }
+    return 'Other';
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target) return;
+
+    const coreWrapper = this.elementRef.nativeElement.querySelector('.core-dropdown-wrapper');
+    if (this.isCoreDropdownOpen() && coreWrapper && !coreWrapper.contains(target)) {
+      this.isCoreDropdownOpen.set(false);
+    }
+
+    const preferredWrapper = this.elementRef.nativeElement.querySelector('.preferred-dropdown-wrapper');
+    if (this.isPreferredDropdownOpen() && preferredWrapper && !preferredWrapper.contains(target)) {
+      this.isPreferredDropdownOpen.set(false);
+    }
   }
 
   dismissAlert(): void {
