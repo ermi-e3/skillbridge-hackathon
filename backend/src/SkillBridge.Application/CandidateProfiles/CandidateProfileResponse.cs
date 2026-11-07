@@ -15,7 +15,11 @@ public sealed record CandidateProfileResponse(
     WorkArrangement? PreferredWorkArrangement = null,
     JobType? PreferredJobType = null,
     IReadOnlyList<CandidateExperienceDto>? ExperienceHistory = null,
-    IReadOnlyList<CandidateProfileSkillResponse>? PreferredSkills = null);
+    IReadOnlyList<CandidateProfileSkillResponse>? PreferredSkills = null,
+    bool HasDefaultCv = false,
+    string? DefaultCvOriginalFileName = null,
+    long? DefaultCvFileSizeBytes = null,
+    DateTime? DefaultCvUploadedAt = null);
 
 public sealed record CandidateProfileSkillResponse(
     int Id,

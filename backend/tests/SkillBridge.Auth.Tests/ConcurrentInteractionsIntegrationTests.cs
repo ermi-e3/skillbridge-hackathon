@@ -19,6 +19,16 @@ public sealed class ConcurrentInteractionsIntegrationTests(AuthFixture fixture)
         Converters = { new JsonStringEnumConverter() }
     };
 
+    private static MultipartFormDataContent CreateCvForm(string coverNote)
+    {
+        var form = new MultipartFormDataContent();
+        form.Add(new StringContent(coverNote), "coverNote");
+        var fileContent = new ByteArrayContent(System.Text.Encoding.UTF8.GetBytes("%PDF-1.4\n1 0 obj\n<<>>\nendobj\n%%EOF"));
+        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf");
+        form.Add(fileContent, "cv", "resume.pdf");
+        return form;
+    }
+
     [Fact]
     public async Task Candidate_and_Employer_simultaneous_sessions_and_concurrent_interactions_reflect_consistently()
     {
@@ -142,7 +152,7 @@ public sealed class ConcurrentInteractionsIntegrationTests(AuthFixture fixture)
         Assert.Equal(WorkArrangement.Hybrid, employerJob.WorkArrangement);
 
         // 4. Candidate Applies to the Job
-        var applyResponse = await candidateClient.PostAsJsonAsync($"/api/jobs/{jobId}/applications", new ApplyRequest(
+        var applyResponse = await candidateClient.PostAsync($"/api/jobs/{jobId}/applications", CreateCvForm(
             "I have 3 years experience building .NET and Angular systems."
         ));
         Assert.Equal(HttpStatusCode.Created, applyResponse.StatusCode);
@@ -281,7 +291,7 @@ public sealed class ConcurrentInteractionsIntegrationTests(AuthFixture fixture)
         Assert.Equal(HttpStatusCode.OK, profile2Response.StatusCode);
 
         // Candidate 2 applies
-        var apply2Response = await candidate2Client.PostAsJsonAsync($"/api/jobs/{jobId}/applications", new ApplyRequest(
+        var apply2Response = await candidate2Client.PostAsync($"/api/jobs/{jobId}/applications", CreateCvForm(
             "Hello, I am Candidate 2 applying to this position."
         ));
         Assert.Equal(HttpStatusCode.Created, apply2Response.StatusCode);

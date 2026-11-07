@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SkillBridge.Application.CandidateProfiles;
 using SkillBridge.Application.Common.Exceptions;
 using SkillBridge.Application.Common.Interfaces;
 using SkillBridge.Application.Jobs;
@@ -15,11 +16,16 @@ public sealed class ApplicationsService(
     ICurrentUser currentUser,
     IClock clock,
     IJobMatchingService jobMatchingService,
+    IFileStorageService fileStorageService,
     IRealtimeNotifier? notifier = null)
 {
     public async Task<ApplicationDto> ApplyAsync(
         int jobId,
         ApplyRequest request,
+        Stream? cvFileStream = null,
+        string? cvOriginalFileName = null,
+        string? cvContentType = null,
+        long? cvFileSizeBytes = null,
         CancellationToken cancellationToken = default)
     {
         EnsureCandidate();
@@ -87,7 +93,58 @@ public sealed class ApplicationsService(
             });
         }
 
-        var application = new JobApplication(jobId, currentUser.UserId, request.CoverNote, clock.UtcNow);
+        string? storedCvFileName = null;
+        if (cvFileStream != null && !string.IsNullOrWhiteSpace(cvOriginalFileName))
+        {
+            CvFileValidator.Validate(cvOriginalFileName, cvFileSizeBytes ?? cvFileStream.Length, cvFileStream, cvContentType);
+            storedCvFileName = await fileStorageService.SaveFileAsync(
+                cvFileStream,
+                cvOriginalFileName,
+                cvContentType ?? "application/octet-stream",
+                cancellationToken);
+        }
+        else if (request.UseDefaultCv || (candidateProfile != null && candidateProfile.HasDefaultCv))
+        {
+            if (candidateProfile == null || !candidateProfile.HasDefaultCv || string.IsNullOrWhiteSpace(candidateProfile.DefaultCvFileName))
+            {
+                throw new BusinessRuleException(
+                    "applications.no_default_cv", "No default CV found", "You do not have a default CV in your profile. Please upload a CV.");
+            }
+
+            using var defaultCvStream = await fileStorageService.GetFileAsync(candidateProfile.DefaultCvFileName, cancellationToken);
+            if (defaultCvStream == null)
+            {
+                throw new BusinessRuleException(
+                    "applications.default_cv_missing", "Default CV file missing", "The default CV file could not be found in storage.");
+            }
+
+            cvOriginalFileName = candidateProfile.DefaultCvOriginalFileName ?? "resume.pdf";
+            cvContentType = candidateProfile.DefaultCvContentType ?? "application/pdf";
+            cvFileSizeBytes = candidateProfile.DefaultCvFileSizeBytes;
+
+            storedCvFileName = await fileStorageService.SaveFileAsync(
+                defaultCvStream,
+                cvOriginalFileName,
+                cvContentType,
+                cancellationToken);
+        }
+        else
+        {
+            throw new BusinessRuleException(
+                "applications.cv_required", "CV required", "A valid CV must always be attached before an application can be submitted.");
+        }
+
+        var application = new JobApplication(
+            jobId,
+            currentUser.UserId,
+            request.CoverNote,
+            clock.UtcNow,
+            cvFileName: storedCvFileName,
+            cvOriginalFileName: cvOriginalFileName,
+            cvContentType: cvContentType ?? "application/octet-stream",
+            cvFileSizeBytes: cvFileSizeBytes ?? cvFileStream?.Length,
+            cvUploadedAt: clock.UtcNow);
+
         dbContext.Applications.Add(application);
 
         try
@@ -96,6 +153,10 @@ public sealed class ApplicationsService(
         }
         catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
         {
+            if (!string.IsNullOrEmpty(storedCvFileName))
+            {
+                await fileStorageService.DeleteFileAsync(storedCvFileName, CancellationToken.None);
+            }
             throw new BusinessRuleException(
                 "applications.duplicate", "Already applied", "You have already applied to this job.");
         }
@@ -135,7 +196,12 @@ public sealed class ApplicationsService(
                 application.AppliedAt,
                 application.StatusChangedAt,
                 application.CoverNote,
-                match);
+                match,
+                HasCv: !string.IsNullOrEmpty(application.CvFileName),
+                CvOriginalFileName: application.CvOriginalFileName,
+                CvFileSizeBytes: application.CvFileSizeBytes,
+                CvUploadedAt: application.CvUploadedAt,
+                CvDownloadUrl: !string.IsNullOrEmpty(application.CvFileName) ? $"/api/applications/{application.Id}/cv" : null);
 
             await notifier.NotifyApplicationSubmittedAsync(new ApplicationSubmittedRealtimeEvent(
                 application.Id,
@@ -159,7 +225,12 @@ public sealed class ApplicationsService(
             application.StatusChangedAt,
             application.CoverNote,
             match.Percent,
-            match);
+            match,
+            HasCv: !string.IsNullOrEmpty(application.CvFileName),
+            CvOriginalFileName: application.CvOriginalFileName,
+            CvFileSizeBytes: application.CvFileSizeBytes,
+            CvUploadedAt: application.CvUploadedAt,
+            CvDownloadUrl: !string.IsNullOrEmpty(application.CvFileName) ? $"/api/applications/{application.Id}/cv" : null);
     }
 
     public async Task<IReadOnlyList<ApplicationDto>> GetMyApplicationsAsync(
@@ -230,7 +301,12 @@ public sealed class ApplicationsService(
                 a.StatusChangedAt,
                 a.CoverNote,
                 match.Percent,
-                match);
+                match,
+                HasCv: !string.IsNullOrEmpty(a.CvFileName),
+                CvOriginalFileName: a.CvOriginalFileName,
+                CvFileSizeBytes: a.CvFileSizeBytes,
+                CvUploadedAt: a.CvUploadedAt,
+                CvDownloadUrl: !string.IsNullOrEmpty(a.CvFileName) ? $"/api/applications/{a.Id}/cv" : null);
         }).ToList();
     }
 
@@ -280,7 +356,12 @@ public sealed class ApplicationsService(
             application.StatusChangedAt,
             application.CoverNote,
             match.Percent,
-            match);
+            match,
+            HasCv: !string.IsNullOrEmpty(application.CvFileName),
+            CvOriginalFileName: application.CvOriginalFileName,
+            CvFileSizeBytes: application.CvFileSizeBytes,
+            CvUploadedAt: application.CvUploadedAt,
+            CvDownloadUrl: !string.IsNullOrEmpty(application.CvFileName) ? $"/api/applications/{application.Id}/cv" : null);
     }
 
     public async Task<JobApplicantsDto> GetJobApplicationsAsync(
@@ -391,7 +472,12 @@ public sealed class ApplicationsService(
                 app.AppliedAt,
                 app.StatusChangedAt,
                 app.CoverNote,
-                match));
+                match,
+                HasCv: !string.IsNullOrEmpty(app.CvFileName),
+                CvOriginalFileName: app.CvOriginalFileName,
+                CvFileSizeBytes: app.CvFileSizeBytes,
+                CvUploadedAt: app.CvUploadedAt,
+                CvDownloadUrl: !string.IsNullOrEmpty(app.CvFileName) ? $"/api/applications/{app.Id}/cv" : null));
         }
 
         // Sorted by match % desc, then earliest applied
@@ -406,8 +492,8 @@ public sealed class ApplicationsService(
             .Select(rs => new SkillDto(rs.SkillId, rs.Skill.Name))
             .ToList();
 
-        var canManage = clock.UtcNow - job.CreatedAt <= TimeSpan.FromHours(2);
-        var jobSummary = new JobSummaryDto(job.Id, job.Title, job.IsOpen, jobRequiredSkills, jobPreferredSkills, job.CreatedAt, canManage);
+        var canEditJob = job.IsEditingAllowed(clock.UtcNow);
+        var jobSummary = new JobSummaryDto(job.Id, job.Title, job.IsOpen, jobRequiredSkills, jobPreferredSkills, job.CreatedAt, CanManageApplications: true, CanEditJob: canEditJob);
         return new JobApplicantsDto(jobSummary, applicantItems);
     }
 
@@ -447,11 +533,6 @@ public sealed class ApplicationsService(
         if (application.Job.EmployerId != currentUser.UserId)
         {
             throw new ForbiddenException("applications.not_owner", "Forbidden", "You cannot access this application.");
-        }
-
-        if (clock.UtcNow - application.Job.CreatedAt > TimeSpan.FromHours(2))
-        {
-            throw new ForbiddenException("applications.editing_expired", "Application management window expired", "Job applications can only be managed within the first 2 hours after the job is posted.");
         }
 
         application.ChangeStatus(targetStatus, clock.UtcNow);
@@ -496,7 +577,12 @@ public sealed class ApplicationsService(
             application.StatusChangedAt,
             application.CoverNote,
             match.Percent,
-            match);
+            match,
+            HasCv: !string.IsNullOrEmpty(application.CvFileName),
+            CvOriginalFileName: application.CvOriginalFileName,
+            CvFileSizeBytes: application.CvFileSizeBytes,
+            CvUploadedAt: application.CvUploadedAt,
+            CvDownloadUrl: !string.IsNullOrEmpty(application.CvFileName) ? $"/api/applications/{application.Id}/cv" : null);
     }
 
     public async Task<ApplicationDto> WithdrawAsync(
@@ -558,7 +644,155 @@ public sealed class ApplicationsService(
             application.StatusChangedAt,
             application.CoverNote,
             match.Percent,
-            match);
+            match,
+            HasCv: !string.IsNullOrEmpty(application.CvFileName),
+            CvOriginalFileName: application.CvOriginalFileName,
+            CvFileSizeBytes: application.CvFileSizeBytes,
+            CvUploadedAt: application.CvUploadedAt,
+            CvDownloadUrl: !string.IsNullOrEmpty(application.CvFileName) ? $"/api/applications/{application.Id}/cv" : null);
+    }
+
+    public async Task<ApplicantProfileDto> GetApplicantProfileAsync(
+        int jobId,
+        string candidateId,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureEmployer();
+
+        var job = await dbContext.Jobs
+            .AsNoTracking()
+            .Include(j => j.RequiredSkills)
+            .ThenInclude(rs => rs.Skill)
+            .FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken)
+            ?? throw new NotFoundException("jobs.not_found", "Job not found", "This job does not exist.");
+
+        if (job.EmployerId != currentUser.UserId)
+        {
+            throw new ForbiddenException("jobs.not_owner", "Not job owner", "You can only view applicant profiles for your own jobs.");
+        }
+
+        var application = await dbContext.Applications
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.JobId == jobId && a.CandidateId == candidateId, cancellationToken)
+            ?? throw new NotFoundException("applications.not_found", "Applicant not found", "This candidate has not applied to this job.");
+
+        var candidateUser = await identityService.FindByIdAsync(candidateId, cancellationToken);
+
+        var candidateProfile = await dbContext.CandidateProfiles
+            .AsNoTracking()
+            .Include(p => p.Skills)
+            .ThenInclude(cs => cs.Skill)
+            .Include(p => p.ExperienceHistory)
+            .FirstOrDefaultAsync(p => p.UserId == candidateId, cancellationToken);
+
+        var match = jobMatchingService.CalculateMatch(job, candidateProfile);
+
+        var skills = candidateProfile?.Skills
+            .Where(s => s.Skill != null)
+            .OrderByDescending(s => s.IsPreferred)
+            .ThenByDescending(s => (int)s.Proficiency)
+            .ThenBy(s => s.Skill!.Name)
+            .Select(s => new CandidateProfileSkillResponse(
+                s.SkillId,
+                s.Skill!.Name,
+                s.Proficiency,
+                s.YearsOfExperience,
+                s.IsPreferred))
+            .ToList() ?? new List<CandidateProfileSkillResponse>();
+
+        var experiences = candidateProfile?.ExperienceHistory
+            .OrderByDescending(e => e.IsCurrent)
+            .ThenByDescending(e => e.StartDate)
+            .Select(e => new CandidateExperienceDto(
+                e.Id,
+                e.Title,
+                e.Company,
+                e.Location,
+                e.StartDate,
+                e.EndDate,
+                e.IsCurrent,
+                e.Description))
+            .ToList() ?? new List<CandidateExperienceDto>();
+
+        return new ApplicantProfileDto(
+            CandidateId: candidateId,
+            FullName: candidateUser?.FullName ?? "Applicant",
+            Email: candidateUser?.Email ?? string.Empty,
+            Headline: candidateProfile?.Headline,
+            Bio: candidateProfile?.Bio,
+            GitHubUrl: candidateProfile?.GitHubUrl,
+            Location: candidateProfile?.Location,
+            ExperienceLevel: candidateProfile?.ExperienceLevel,
+            YearsOfExperience: candidateProfile?.YearsOfExperience,
+            PreferredWorkArrangement: candidateProfile?.PreferredWorkArrangement,
+            PreferredJobType: candidateProfile?.PreferredJobType,
+            Skills: skills,
+            ExperienceHistory: experiences,
+            ApplicationId: application.Id,
+            ApplicationStatus: application.Status.ToString(),
+            AppliedAt: application.AppliedAt,
+            StatusChangedAt: application.StatusChangedAt,
+            CoverNote: application.CoverNote,
+            Match: match,
+            HasCv: !string.IsNullOrEmpty(application.CvFileName),
+            CvOriginalFileName: application.CvOriginalFileName,
+            CvFileSizeBytes: application.CvFileSizeBytes,
+            CvUploadedAt: application.CvUploadedAt,
+            CvDownloadUrl: !string.IsNullOrEmpty(application.CvFileName) ? $"/api/applications/{application.Id}/cv" : null);
+    }
+
+    public async Task<ApplicantProfileDto> GetApplicantProfileByApplicationIdAsync(
+        int applicationId,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureEmployer();
+
+        var application = await dbContext.Applications
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Id == applicationId, cancellationToken)
+            ?? throw new NotFoundException("applications.not_found", "Application not found", "This application does not exist.");
+
+        return await GetApplicantProfileAsync(application.JobId, application.CandidateId, cancellationToken);
+    }
+
+    public async Task<CvDownloadResult> GetCvFileAsync(
+        int applicationId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated)
+        {
+            throw new UnauthorizedException("auth.unauthenticated", "Authentication required", "Please sign in to continue.");
+        }
+
+        var application = await dbContext.Applications
+            .AsNoTracking()
+            .Include(a => a.Job)
+            .FirstOrDefaultAsync(a => a.Id == applicationId, cancellationToken)
+            ?? throw new NotFoundException("applications.not_found", "Application not found", "This application does not exist.");
+
+        var isApplicant = application.CandidateId == currentUser.UserId;
+        var isJobOwner = application.Job.EmployerId == currentUser.UserId;
+
+        if (!isApplicant && !isJobOwner)
+        {
+            throw new ForbiddenException("applications.not_owner", "Forbidden", "You cannot access this CV.");
+        }
+
+        if (string.IsNullOrEmpty(application.CvFileName))
+        {
+            throw new NotFoundException("applications.cv_not_found", "CV not found", "No CV was uploaded for this application.");
+        }
+
+        var stream = await fileStorageService.GetFileAsync(application.CvFileName, cancellationToken);
+        if (stream == null)
+        {
+            throw new NotFoundException("applications.cv_not_found", "CV file not found", "The CV file could not be found in storage.");
+        }
+
+        var contentType = application.CvContentType ?? "application/octet-stream";
+        var fileName = application.CvOriginalFileName ?? "cv";
+
+        return new CvDownloadResult(stream, contentType, fileName);
     }
 
     private void EnsureCandidate()

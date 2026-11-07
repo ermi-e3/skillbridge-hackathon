@@ -1,5 +1,6 @@
-import { CommonModule } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import {
   AbstractControl,
   FormBuilder,
@@ -57,16 +58,17 @@ import { SKILL_CATEGORIES } from '../onboarding/candidate-skill-onboarding.compo
 @Component({
   selector: 'app-candidate-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, DatePipe],
   templateUrl: './candidate-profile.component.html',
   styleUrl: './candidate-profile.component.scss',
 })
-export class CandidateProfileComponent implements OnInit {
+export class CandidateProfileComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   readonly profileService = inject(ProfileService);
   readonly skillsService = inject(SkillsService);
   readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly sanitizer = inject(DomSanitizer);
 
   // Component Signals
   readonly isLoading = signal<boolean>(true);
@@ -76,6 +78,25 @@ export class CandidateProfileComponent implements OnInit {
   readonly skillSearchQuery = signal<string>('');
   readonly preferredSkillSearchQuery = signal<string>('');
   readonly candidateUser = signal<{ fullName?: string; email?: string } | null>(null);
+
+  // Default CV Signals
+  readonly hasDefaultCv = signal<boolean>(false);
+  readonly defaultCvOriginalFileName = signal<string | null>(null);
+  readonly defaultCvFileSizeBytes = signal<number | null>(null);
+  readonly defaultCvUploadedAt = signal<string | null>(null);
+  readonly isUploadingCv = signal<boolean>(false);
+  readonly isDeletingCv = signal<boolean>(false);
+  readonly isDownloadingCv = signal<boolean>(false);
+  readonly cvUploadError = signal<string | null>(null);
+
+  // CV Preview Modal Signals
+  readonly showCvPreviewModal = signal<boolean>(false);
+  readonly cvPreviewLoading = signal<boolean>(false);
+  readonly cvPreviewError = signal<string | null>(null);
+  readonly cvPreviewBlob = signal<Blob | null>(null);
+  readonly cvPreviewSafeUrl = signal<SafeResourceUrl | null>(null);
+  readonly isDocxPreview = signal<boolean>(false);
+  private cvPreviewObjectUrl: string | null = null;
 
   // Categories
   readonly categories = SKILL_CATEGORIES;
@@ -240,6 +261,12 @@ export class CandidateProfileComponent implements OnInit {
         this.selectedSkillIds.set(initialSkillIds);
         this.selectedPreferredSkillIds.set(initialPreferredIds);
 
+        // Populate Default CV state
+        this.hasDefaultCv.set(!!profile.hasDefaultCv);
+        this.defaultCvOriginalFileName.set(profile.defaultCvOriginalFileName || null);
+        this.defaultCvFileSizeBytes.set(profile.defaultCvFileSizeBytes ?? null);
+        this.defaultCvUploadedAt.set(profile.defaultCvUploadedAt || null);
+
         // Pre-populate reactive form
         this.profileForm.patchValue({
           headline: profile.headline || '',
@@ -386,6 +413,202 @@ export class CandidateProfileComponent implements OnInit {
       this.dismissToast();
     }, 4500);
   }
+
+  ngOnDestroy(): void {
+    if (this.cvPreviewObjectUrl) {
+      window.URL.revokeObjectURL(this.cvPreviewObjectUrl);
+      this.cvPreviewObjectUrl = null;
+    }
+    if (this.toastTimeoutId) {
+      clearTimeout(this.toastTimeoutId);
+      this.toastTimeoutId = null;
+    }
+  }
+
+  // --- Default CV Management Methods ---
+
+  formatFileSize(bytes?: number | null): string {
+    if (!bytes || bytes <= 0) return '0 B';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  }
+
+  onDefaultCvSelected(event: Event, inputEl?: HTMLInputElement): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.uploadFile(file, inputEl || input);
+  }
+
+  onDefaultCvDropped(event: DragEvent, inputEl?: HTMLInputElement): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const file = event.dataTransfer?.files?.[0];
+    if (!file) return;
+    this.uploadFile(file, inputEl);
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  uploadFile(file: File, inputEl?: HTMLInputElement): void {
+    this.cvUploadError.set(null);
+    const validExts = ['.pdf', '.docx'];
+    const lowerName = file.name.toLowerCase();
+    const hasValidExt = validExts.some((ext) => lowerName.endsWith(ext));
+
+    if (!hasValidExt) {
+      this.cvUploadError.set('Only PDF and DOCX files are allowed (.pdf, .docx).');
+      if (inputEl) inputEl.value = '';
+      return;
+    }
+
+    const maxBytes = 5 * 1024 * 1024; // 5 MB
+    if (file.size > maxBytes) {
+      this.cvUploadError.set(
+        `File size exceeds 5 MB limit (${this.formatFileSize(file.size)}). Please choose a smaller file.`
+      );
+      if (inputEl) inputEl.value = '';
+      return;
+    }
+
+    this.isUploadingCv.set(true);
+    this.profileService.uploadDefaultCv(file).subscribe({
+      next: (profile) => {
+        this.isUploadingCv.set(false);
+        this.hasDefaultCv.set(!!profile.hasDefaultCv);
+        this.defaultCvOriginalFileName.set(profile.defaultCvOriginalFileName || file.name);
+        this.defaultCvFileSizeBytes.set(profile.defaultCvFileSizeBytes ?? file.size);
+        this.defaultCvUploadedAt.set(profile.defaultCvUploadedAt || new Date().toISOString());
+        this.showToast('Default CV uploaded and saved to your profile successfully!');
+        if (inputEl) inputEl.value = '';
+      },
+      error: (err) => {
+        this.isUploadingCv.set(false);
+        const msg = extractErrorMessage(err, 'Failed to upload CV. Please try again.');
+        this.cvUploadError.set(msg);
+        if (inputEl) inputEl.value = '';
+      },
+    });
+  }
+
+  removeDefaultCv(): void {
+    if (this.isDeletingCv()) return;
+    if (!confirm('Are you sure you want to remove your default profile CV?')) {
+      return;
+    }
+
+    this.isDeletingCv.set(true);
+    this.cvUploadError.set(null);
+
+    this.profileService.removeDefaultCv().subscribe({
+      next: () => {
+        this.isDeletingCv.set(false);
+        this.hasDefaultCv.set(false);
+        this.defaultCvOriginalFileName.set(null);
+        this.defaultCvFileSizeBytes.set(null);
+        this.defaultCvUploadedAt.set(null);
+        this.showToast('Default CV removed from your profile.');
+      },
+      error: (err) => {
+        this.isDeletingCv.set(false);
+        const msg = extractErrorMessage(err, 'Failed to remove default CV.');
+        this.cvUploadError.set(msg);
+      },
+    });
+  }
+
+  downloadDefaultCv(): void {
+    if (this.isDownloadingCv()) return;
+    this.isDownloadingCv.set(true);
+
+    this.profileService.downloadDefaultCv().subscribe({
+      next: (blob) => {
+        this.isDownloadingCv.set(false);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = this.defaultCvOriginalFileName() || 'resume.pdf';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+      },
+      error: (err) => {
+        this.isDownloadingCv.set(false);
+        const msg = extractErrorMessage(err, 'Failed to download default CV.');
+        this.cvUploadError.set(msg);
+      },
+    });
+  }
+
+  openDefaultCvPreview(): void {
+    if (this.cvPreviewObjectUrl) {
+      window.URL.revokeObjectURL(this.cvPreviewObjectUrl);
+      this.cvPreviewObjectUrl = null;
+    }
+
+    const fileName = this.defaultCvOriginalFileName() || 'resume.pdf';
+    this.showCvPreviewModal.set(true);
+    this.cvPreviewLoading.set(true);
+    this.cvPreviewError.set(null);
+    this.cvPreviewBlob.set(null);
+    this.cvPreviewSafeUrl.set(null);
+
+    const isPdf = fileName.toLowerCase().endsWith('.pdf');
+    this.isDocxPreview.set(!isPdf);
+
+    this.profileService.downloadDefaultCv().subscribe({
+      next: (blob) => {
+        this.cvPreviewLoading.set(false);
+        const mime = isPdf
+          ? 'application/pdf'
+          : blob.type || 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        const typedBlob = new Blob([blob], { type: mime });
+        this.cvPreviewBlob.set(typedBlob);
+        this.cvPreviewObjectUrl = window.URL.createObjectURL(typedBlob);
+        this.cvPreviewSafeUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(this.cvPreviewObjectUrl));
+      },
+      error: (err) => {
+        this.cvPreviewLoading.set(false);
+        this.cvPreviewError.set(extractErrorMessage(err, 'Failed to load CV preview.'));
+      },
+    });
+  }
+
+  closeCvPreview(): void {
+    if (this.cvPreviewObjectUrl) {
+      window.URL.revokeObjectURL(this.cvPreviewObjectUrl);
+      this.cvPreviewObjectUrl = null;
+    }
+    this.showCvPreviewModal.set(false);
+    this.cvPreviewLoading.set(false);
+    this.cvPreviewError.set(null);
+    this.cvPreviewBlob.set(null);
+    this.cvPreviewSafeUrl.set(null);
+  }
+
+  downloadCurrentPreviewCv(): void {
+    const blob = this.cvPreviewBlob();
+    const fileName = this.defaultCvOriginalFileName() || 'resume.pdf';
+    if (blob) {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } else {
+      this.downloadDefaultCv();
+    }
+  }
+
+  // --- End Default CV Management Methods ---
 
   onSubmit(): void {
     if (this.profileForm.invalid || this.isSaving()) {

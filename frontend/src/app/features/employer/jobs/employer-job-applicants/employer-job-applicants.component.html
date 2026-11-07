@@ -50,31 +50,40 @@
       </div>
     }
 
-    <!-- 2-Hour Window Warning / Active Banner -->
-    @if (!canManageApplications() && !isLoading()) {
-      <div class="alert-banner alert-warning-banner" role="alert">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
-        </svg>
-        <div class="alert-banner-text">
-          <strong>Application Management Window Expired (2-Hour Limit)</strong>
-          <p>The 2-hour window after job creation for managing candidate applications has ended. Applicant statuses can no longer be updated.</p>
-        </div>
-      </div>
-    }
-
     <!-- Job Header Summary Card -->
     @if (jobSummary()) {
       <section class="job-header-card" aria-label="Job Overview">
         <div class="job-header-main">
           <div class="job-title-row">
-            <h1>{{ jobSummary()?.title }}</h1>
-            <span class="status-pill" [class.closed]="!jobSummary()?.isOpen">
-              <span class="status-dot"></span>
-              {{ jobSummary()?.isOpen ? 'Active Opening' : 'Closed' }}
-            </span>
+            <div class="title-with-pill">
+              <h1>{{ jobSummary()?.title }}</h1>
+              <span class="status-pill" [class.closed]="!jobSummary()?.isOpen">
+                <span class="status-dot"></span>
+                {{ jobSummary()?.isOpen ? 'Active Opening' : 'Closed' }}
+              </span>
+            </div>
+
+            <!-- 2-Hour Limit strictly for Editing Job Details -->
+            <div class="job-edit-action-wrap">
+              @if (canEditJob()) {
+                <a class="btn-edit-job-header" [routerLink]="['/employer/jobs', jobId(), 'edit']" [title]="'Job details editable for ' + remainingEditingTime()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  <span>Edit Job Details</span>
+                  <span class="edit-timer-pill">{{ remainingEditingTime() }}</span>
+                </a>
+              } @else {
+                <span class="edit-expired-badge" title="Job editing window closed (2-hour limit from posting)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  <span>Job Details Locked (2h passed)</span>
+                </span>
+              }
+            </div>
           </div>
 
           <div class="job-skills-overview">
@@ -374,13 +383,45 @@
 
               <!-- Action Buttons -->
               <div class="action-buttons">
+                <!-- View Profile Button -->
+                <button
+                  type="button"
+                  class="secondary-action-btn view-profile-btn"
+                  (click)="openApplicantProfile(applicant)"
+                  title="View complete candidate profile"
+                  aria-label="View candidate profile"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  <span>View Profile</span>
+                </button>
+
+                <!-- CV Preview Button if attached -->
+                @if (applicant.hasCv) {
+                  <button
+                    type="button"
+                    class="secondary-action-btn download-cv-btn preview-cv-btn"
+                    (click)="openCvPreview(applicant.applicationId, applicant.cvOriginalFileName, applicant.candidate.fullName)"
+                    [title]="'Preview CV: ' + (applicant.cvOriginalFileName || 'resume')"
+                    aria-label="Preview candidate CV"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <span>CV Preview</span>
+                  </button>
+                }
+
                 @if (applicant.status === 'Received') {
                   <button
                     type="button"
                     class="action-btn shortlist-btn"
-                    [disabled]="!canManageApplications() || updatingApplicationId() === applicant.applicationId"
+                    [disabled]="updatingApplicationId() === applicant.applicationId"
                     (click)="updateStatus(applicant, 'Shortlisted')"
-                    [title]="!canManageApplications() ? 'Management window expired (2-hour limit)' : 'Shortlist applicant'"
+                    title="Shortlist applicant"
                     aria-label="Shortlist applicant"
                   >
                     @if (updatingApplicationId() === applicant.applicationId) {
@@ -397,9 +438,9 @@
                   <button
                     type="button"
                     class="action-btn reject-btn"
-                    [disabled]="!canManageApplications() || updatingApplicationId() === applicant.applicationId"
+                    [disabled]="updatingApplicationId() === applicant.applicationId"
                     (click)="updateStatus(applicant, 'Rejected')"
-                    [title]="!canManageApplications() ? 'Management window expired (2-hour limit)' : 'Reject applicant'"
+                    title="Reject applicant"
                     aria-label="Reject applicant"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
@@ -420,4 +461,371 @@
       </section>
     }
   </div>
+
+  <!-- Candidate Full Profile Modal -->
+  @if (showProfileModal()) {
+    <div
+      class="modal-backdrop"
+      (click)="closeProfileModal()"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalCandidateName"
+    >
+      <div class="modal-card profile-modal" (click)="$event.stopPropagation()">
+        <!-- Modal Header -->
+        <header class="modal-header">
+          <div class="modal-header-info">
+            <div class="modal-avatar">
+              {{ (selectedApplicantProfile()?.fullName || 'A').charAt(0).toUpperCase() }}
+            </div>
+            <div>
+              <h2 id="modalCandidateName" class="modal-candidate-name">
+                {{ selectedApplicantProfile()?.fullName || 'Candidate Profile' }}
+              </h2>
+              @if (selectedApplicantProfile()?.headline) {
+                <p class="modal-candidate-headline">{{ selectedApplicantProfile()?.headline }}</p>
+              }
+            </div>
+          </div>
+          <button
+            type="button"
+            class="modal-close-btn"
+            (click)="closeProfileModal()"
+            aria-label="Close applicant profile modal"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </header>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          @if (isLoadingProfile()) {
+            <div class="modal-loading-state">
+              <div class="spinner-large" aria-hidden="true"></div>
+              <p>Loading candidate profile...</p>
+            </div>
+          } @else if (profileError()) {
+            <div class="modal-error-state" role="alert">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span>{{ profileError() }}</span>
+            </div>
+          } @else if (selectedApplicantProfile(); as prof) {
+            <!-- Candidate Contact & Meta Tags -->
+            <div class="profile-section-card profile-meta-card">
+              <div class="meta-tags-grid">
+                <div class="meta-tag-item">
+                  <span class="meta-label">Email:</span>
+                  <a [href]="'mailto:' + prof.email" class="meta-value link">{{ prof.email }}</a>
+                </div>
+
+                @if (prof.gitHubUrl) {
+                  <div class="meta-tag-item">
+                    <span class="meta-label">GitHub:</span>
+                    <a [href]="prof.gitHubUrl" target="_blank" rel="noopener noreferrer" class="meta-value link">
+                      {{ prof.gitHubUrl }}
+                    </a>
+                  </div>
+                }
+
+                @if (prof.location) {
+                  <div class="meta-tag-item">
+                    <span class="meta-label">Location:</span>
+                    <span class="meta-value">{{ prof.location }}</span>
+                  </div>
+                }
+
+                @if (prof.experienceLevel) {
+                  <div class="meta-tag-item">
+                    <span class="meta-label">Experience Level:</span>
+                    <span class="meta-value">{{ prof.experienceLevel }}</span>
+                  </div>
+                }
+
+                @if (prof.yearsOfExperience !== null && prof.yearsOfExperience !== undefined) {
+                  <div class="meta-tag-item">
+                    <span class="meta-label">Total Experience:</span>
+                    <span class="meta-value">{{ prof.yearsOfExperience }} yr{{ prof.yearsOfExperience === 1 ? '' : 's' }}</span>
+                  </div>
+                }
+
+                @if (prof.preferredWorkArrangement) {
+                  <div class="meta-tag-item">
+                    <span class="meta-label">Preferred Arrangement:</span>
+                    <span class="meta-value">{{ prof.preferredWorkArrangement }}</span>
+                  </div>
+                }
+
+                @if (prof.preferredJobType) {
+                  <div class="meta-tag-item">
+                    <span class="meta-label">Preferred Job Type:</span>
+                    <span class="meta-value">{{ prof.preferredJobType }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- CV Attachment Section -->
+            <div class="profile-section-card cv-section-card">
+              <h3 class="section-heading">Submitted Resume / CV</h3>
+              @if (prof.hasCv) {
+                <div class="modal-cv-download-box">
+                  <div class="cv-file-details">
+                    <div class="cv-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                      </svg>
+                    </div>
+                    <div>
+                      <span class="cv-filename">{{ prof.cvOriginalFileName || 'Attached CV' }}</span>
+                      @if (prof.cvFileSizeBytes) {
+                        <span class="cv-size">{{ formatCvSize(prof.cvFileSizeBytes) }}</span>
+                      }
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn-modal-download-cv btn-modal-preview-cv"
+                    (click)="openCvPreview(prof.applicationId, prof.cvOriginalFileName, prof.fullName)"
+                    title="Preview submitted CV document"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <span>CV Preview</span>
+                  </button>
+                </div>
+              } @else {
+                <p class="no-cv-text">No CV document was attached to this application.</p>
+              }
+            </div>
+
+            <!-- Bio Section -->
+            @if (prof.bio) {
+              <div class="profile-section-card">
+                <h3 class="section-heading">About</h3>
+                <p class="profile-bio-text">{{ prof.bio }}</p>
+              </div>
+            }
+
+            <!-- Skills with Proficiency Section -->
+            @if (prof.skills && prof.skills.length > 0) {
+              <div class="profile-section-card">
+                <h3 class="section-heading">Skills & Proficiency ({{ prof.skills.length }})</h3>
+                <div class="skills-grid-detailed">
+                  @for (s of prof.skills; track s.id) {
+                    <div class="skill-detail-card" [class.is-preferred]="s.isPreferred">
+                      <div class="skill-top">
+                        <span class="skill-name">{{ s.name }}</span>
+                        @if (s.isPreferred) {
+                          <span class="badge-preferred">Preferred</span>
+                        }
+                      </div>
+                      <div class="skill-bottom">
+                        <span class="skill-proficiency">{{ s.proficiency }}</span>
+                        <span class="skill-years">{{ s.yearsOfExperience }} yr{{ s.yearsOfExperience === 1 ? '' : 's' }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Work Experience History Section -->
+            @if (prof.experienceHistory && prof.experienceHistory.length > 0) {
+              <div class="profile-section-card">
+                <h3 class="section-heading">Work Experience ({{ prof.experienceHistory.length }})</h3>
+                <div class="experience-timeline">
+                  @for (exp of prof.experienceHistory; track exp.id || exp.title) {
+                    <div class="experience-item">
+                      <div class="exp-dot"></div>
+                      <div class="exp-content">
+                        <h4 class="exp-title">{{ exp.title }}</h4>
+                        <div class="exp-company-row">
+                          <span class="exp-company">{{ exp.company }}</span>
+                          @if (exp.location) {
+                            <span class="exp-location">• {{ exp.location }}</span>
+                          }
+                          <span class="exp-dates">• {{ formatDateRange(exp.startDate, exp.endDate, exp.isCurrent) }}</span>
+                        </div>
+                        @if (exp.description) {
+                          <p class="exp-desc">{{ exp.description }}</p>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Application Cover Note & Match Score Section -->
+            <div class="profile-section-card">
+              <h3 class="section-heading">Application Details</h3>
+              <div class="app-info-grid">
+                <div>
+                  <span class="meta-label">Status:</span>
+                  <span class="status-badge" [ngClass]="getStatusBadgeClass(prof.applicationStatus)">
+                    {{ prof.applicationStatus }}
+                  </span>
+                </div>
+                <div>
+                  <span class="meta-label">Applied Date:</span>
+                  <span class="meta-value">{{ prof.appliedAt | date: 'medium' }}</span>
+                </div>
+                @if (prof.match) {
+                  <div>
+                    <span class="meta-label">Job Match:</span>
+                    <span class="match-pill" [ngClass]="getMatchBadgeClass(prof.match.percent)">
+                      {{ prof.match.percent }}% Fit
+                    </span>
+                  </div>
+                }
+              </div>
+
+              @if (prof.coverNote) {
+                <div class="modal-cover-note">
+                  <span class="note-label">Candidate Cover Note:</span>
+                  <p class="note-body">"{{ prof.coverNote }}"</p>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Modal Footer -->
+        <footer class="modal-footer">
+          <button type="button" class="btn-close-modal" (click)="closeProfileModal()">
+            Close
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
+
+  <!-- CV Preview Modal -->
+  @if (showCvPreviewModal()) {
+    <div
+      class="modal-backdrop cv-preview-backdrop"
+      (click)="closeCvPreview()"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cv-preview-dialog-title"
+    >
+      <div class="cv-preview-dialog" (click)="$event.stopPropagation()">
+        <header class="cv-preview-header">
+          <div class="cv-preview-title-wrap">
+            <div class="cv-file-badge" [class.docx]="isDocxPreview()">
+              {{ isDocxPreview() ? 'DOCX' : 'PDF' }}
+            </div>
+            <div>
+              <h2 id="cv-preview-dialog-title">
+                {{ cvPreviewCandidateName() ? cvPreviewCandidateName() + ' — CV Preview' : 'CV Document Preview' }}
+              </h2>
+              <span class="cv-preview-subtitle">{{ cvPreviewFileName() || 'Attached CV' }}</span>
+            </div>
+          </div>
+
+          <div class="cv-preview-header-actions">
+            <button
+              type="button"
+              class="btn-preview-download"
+              (click)="downloadCurrentPreviewCv()"
+              [disabled]="cvPreviewLoading() || !!cvPreviewError()"
+              title="Download CV file"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Download CV</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn-preview-close"
+              (click)="closeCvPreview()"
+              aria-label="Close CV preview"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="cv-preview-body">
+          @if (cvPreviewLoading()) {
+            <div class="cv-preview-loading" aria-live="polite">
+              <span class="spinner-large" aria-hidden="true"></span>
+              <p>Loading CV document preview...</p>
+            </div>
+          } @else if (cvPreviewError()) {
+            <div class="cv-preview-error" role="alert">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="error-icon" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <h3>Unable to display CV</h3>
+              <p>{{ cvPreviewError() }}</p>
+              <div class="preview-error-actions">
+                <button type="button" class="btn-retry-preview" (click)="retryCvPreview()">Try Again</button>
+                <button type="button" class="btn-preview-download fallback" (click)="downloadCurrentPreviewCv()">
+                  Download Instead
+                </button>
+              </div>
+            </div>
+          } @else if (isDocxPreview()) {
+            <div class="docx-preview-pane">
+              <div class="docx-card">
+                <div class="docx-icon-large" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                  </svg>
+                </div>
+                <h3>{{ cvPreviewFileName() }}</h3>
+                <span class="docx-format-pill">Word Document (.docx)</span>
+                <p class="docx-note">
+                  This candidate submitted a Microsoft Word document (.docx). Web browsers cannot directly render DOCX files inline. You can download the CV document below to open and review it.
+                </p>
+                <button
+                  type="button"
+                  class="btn-preview-download-prominent"
+                  (click)="downloadCurrentPreviewCv()"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Download CV</span>
+                </button>
+              </div>
+            </div>
+          } @else if (cvPreviewSafeUrl()) {
+            <iframe
+              [src]="cvPreviewSafeUrl()"
+              class="cv-pdf-frame"
+              title="CV Document Viewer"
+            ></iframe>
+          }
+        </div>
+      </div>
+    </div>
+  }
 </main>

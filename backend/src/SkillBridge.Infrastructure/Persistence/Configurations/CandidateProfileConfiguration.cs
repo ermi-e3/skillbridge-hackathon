@@ -22,7 +22,14 @@ public class CandidateProfileConfiguration : IEntityTypeConfiguration<CandidateP
         builder.Property(p => p.PreferredWorkArrangement).HasDefaultValue(WorkArrangement.Remote);
         builder.Property(p => p.PreferredJobType).HasDefaultValue(JobType.FullTime);
 
+        builder.Property(p => p.DefaultCvFileName).HasMaxLength(500);
+        builder.Property(p => p.DefaultCvOriginalFileName).HasMaxLength(255);
+        builder.Property(p => p.DefaultCvContentType).HasMaxLength(100);
+        builder.Property(p => p.DefaultCvFileSizeBytes);
+        builder.Property(p => p.DefaultCvUploadedAt);
+
         builder.Ignore(p => p.HasSkills);
+        builder.Ignore(p => p.HasDefaultCv);
 
         // 1 : 0..1 with the Identity user. FK only — no navigation, so Domain stays Identity-free.
         builder.HasOne<AppUser>()

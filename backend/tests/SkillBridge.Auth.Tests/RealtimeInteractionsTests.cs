@@ -114,6 +114,16 @@ public sealed class RealtimeInteractionsTests(AuthFixture fixture)
         Assert.Contains("availableTransports", json, StringComparison.OrdinalIgnoreCase);
     }
 
+    private static MultipartFormDataContent CreateCvForm(string coverNote)
+    {
+        var form = new MultipartFormDataContent();
+        form.Add(new StringContent(coverNote), "coverNote");
+        var fileContent = new ByteArrayContent(System.Text.Encoding.UTF8.GetBytes("%PDF-1.4\n1 0 obj\n<<>>\nendobj\n%%EOF"));
+        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf");
+        form.Add(fileContent, "cv", "resume.pdf");
+        return form;
+    }
+
     [Fact]
     public async Task Realtime_events_dispatched_with_live_counts_during_application_lifecycle()
     {
@@ -168,7 +178,7 @@ public sealed class RealtimeInteractionsTests(AuthFixture fixture)
         Assert.Equal(createdJob.Id, testNotifier.JobCreatedEvents[0].Job.Id);
 
         // Candidate applies -> should trigger NotifyApplicationSubmittedAsync
-        var applyRes = await candidateClient.PostAsJsonAsync($"/api/jobs/{createdJob.Id}/applications", new { coverNote = "Excited to join!" });
+        var applyRes = await candidateClient.PostAsync($"/api/jobs/{createdJob.Id}/applications", CreateCvForm("Excited to join!"));
         Assert.Equal(HttpStatusCode.Created, applyRes.StatusCode);
         var app = await applyRes.Content.ReadFromJsonAsync<ApplicationDto>(JsonOptions);
         Assert.NotNull(app);
@@ -204,7 +214,7 @@ public sealed class RealtimeInteractionsTests(AuthFixture fixture)
             skillIds = new[] { 1, 3 }
         });
 
-        var apply2Res = await candidateClient.PostAsJsonAsync($"/api/jobs/{createdJob.Id}/applications", new { coverNote = "Ready to start!" });
+        var apply2Res = await candidateClient.PostAsync($"/api/jobs/{createdJob.Id}/applications", CreateCvForm("Ready to start!"));
         Assert.Equal(HttpStatusCode.Created, apply2Res.StatusCode);
         var app2 = await apply2Res.Content.ReadFromJsonAsync<ApplicationDto>(JsonOptions);
         Assert.NotNull(app2);

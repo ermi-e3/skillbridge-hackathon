@@ -209,6 +209,24 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
+                    b.Property<string>("DefaultCvContentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("DefaultCvFileName")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<long?>("DefaultCvFileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("DefaultCvOriginalFileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTime?>("DefaultCvUploadedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("ExperienceLevel")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -367,6 +385,24 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                     b.Property<string>("CoverNote")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("CvContentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("CvFileName")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<long?>("CvFileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CvOriginalFileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTime?>("CvUploadedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("JobId")
                         .HasColumnType("integer");

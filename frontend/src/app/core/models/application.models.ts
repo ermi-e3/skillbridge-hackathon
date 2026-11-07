@@ -5,6 +5,7 @@ export type ApplicationStatus = 'Received' | 'Shortlisted' | 'Rejected' | 'Withd
 
 export interface ApplyRequest {
   coverNote?: string | null;
+  useDefaultCv?: boolean;
 }
 
 export type { JobMatchBreakdownDto, JobMatchDto };
@@ -20,6 +21,11 @@ export interface ApplicationDto {
   coverNote?: string | null;
   matchPercent?: number;
   match?: JobMatchDto | null;
+  hasCv?: boolean;
+  cvOriginalFileName?: string | null;
+  cvFileSizeBytes?: number | null;
+  cvUploadedAt?: string | null;
+  cvDownloadUrl?: string | null;
 }
 
 export interface JobSummaryDto {
@@ -30,6 +36,7 @@ export interface JobSummaryDto {
   preferredSkills?: SkillDto[];
   createdAt?: string;
   canManageApplications?: boolean;
+  canEditJob?: boolean;
 }
 
 export interface CandidateApplicantSummary {
@@ -49,6 +56,46 @@ export interface JobApplicantItemDto {
   statusChangedAt?: string | null;
   coverNote?: string | null;
   match: JobMatchDto;
+  hasCv?: boolean;
+  cvOriginalFileName?: string | null;
+  cvFileSizeBytes?: number | null;
+  cvUploadedAt?: string | null;
+  cvDownloadUrl?: string | null;
+}
+
+export interface CandidateProfileSkillItem {
+  id: number;
+  name: string;
+  proficiency: string;
+  yearsOfExperience: number;
+  isPreferred: boolean;
+}
+
+export interface ApplicantProfileDto {
+  candidateId: string;
+  fullName: string;
+  email: string;
+  headline?: string | null;
+  bio?: string | null;
+  gitHubUrl?: string | null;
+  location?: string | null;
+  experienceLevel?: string | null;
+  yearsOfExperience?: number | null;
+  preferredWorkArrangement?: string | null;
+  preferredJobType?: string | null;
+  skills: CandidateProfileSkillItem[];
+  experienceHistory: import('./profile.models').CandidateExperienceDto[];
+  applicationId: number;
+  applicationStatus: ApplicationStatus;
+  appliedAt: string;
+  statusChangedAt?: string | null;
+  coverNote?: string | null;
+  match?: JobMatchDto | null;
+  hasCv: boolean;
+  cvOriginalFileName?: string | null;
+  cvFileSizeBytes?: number | null;
+  cvUploadedAt?: string | null;
+  cvDownloadUrl?: string | null;
 }
 
 export interface JobApplicantsResponse {

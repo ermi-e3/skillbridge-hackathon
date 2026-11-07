@@ -665,6 +665,28 @@ $status-gray-border: #cbd5e1;
         }
       }
 
+      .action-btn-cv {
+        padding: 0.35rem 0.65rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #0284c7;
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover:not(:disabled) {
+          background: #e0f2fe;
+          color: #0369a1;
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+
       .action-btn-withdraw {
         padding: 0.35rem 0.75rem;
         font-size: 0.8125rem;
@@ -767,4 +789,395 @@ $status-gray-border: #cbd5e1;
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+/* ==========================================================================
+   Candidate Applications CV Preview Modal Styles
+   ========================================================================== */
+
+.cv-preview-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(6px);
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cv-preview-dialog {
+  background: #ffffff;
+  border-radius: 14px;
+  width: min(960px, 96vw);
+  height: min(88vh, 900px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35);
+  animation: modalScaleIn 0.2s ease-out;
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.cv-preview-header {
+  padding: 1rem 1.5rem;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-shrink: 0;
+
+  .cv-preview-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    min-width: 0;
+
+    .cv-file-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+      flex-shrink: 0;
+
+      &.docx {
+        background: #eff6ff;
+        color: #2563eb;
+        border-color: #bfdbfe;
+      }
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #0f172a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cv-preview-subtitle {
+      font-size: 0.78rem;
+      color: #64748b;
+      display: block;
+      margin-top: 0.1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .cv-preview-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-shrink: 0;
+
+    .btn-preview-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 1rem;
+      border-radius: 8px;
+      background: #0d9488;
+      border: 1px solid #0d9488;
+      color: #ffffff;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(13, 148, 136, 0.2);
+      transition: all 0.15s ease;
+
+      svg {
+        width: 0.95rem;
+        height: 0.95rem;
+      }
+
+      &:hover:not(:disabled) {
+        background: #0f766e;
+        border-color: #0f766e;
+        transform: translateY(-1px);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    .btn-preview-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      svg {
+        width: 1.1rem;
+        height: 1.1rem;
+      }
+
+      &:hover {
+        background: #fee2e2;
+        border-color: #fecaca;
+        color: #ef4444;
+      }
+    }
+  }
+}
+
+.cv-preview-body {
+  flex: 1;
+  background: #0f172a;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+
+  .cv-pdf-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #525659;
+  }
+}
+
+.cv-preview-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  gap: 1rem;
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 500;
+
+  .spinner-large {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 3px solid rgba(13, 148, 136, 0.2);
+    border-top-color: #0d9488;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.cv-preview-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  padding: 2rem;
+  text-align: center;
+
+  .error-icon {
+    width: 3rem;
+    height: 3rem;
+    color: #ef4444;
+    margin-bottom: 0.75rem;
+  }
+
+  h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.15rem;
+    color: #0f172a;
+  }
+
+  p {
+    margin: 0 0 1.25rem;
+    color: #64748b;
+    font-size: 0.875rem;
+    max-width: 400px;
+  }
+
+  .preview-error-actions {
+    display: flex;
+    gap: 0.75rem;
+
+    .btn-retry-preview {
+      padding: 0.55rem 1.15rem;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+
+      &:hover {
+        background: #f1f5f9;
+      }
+    }
+
+    .btn-preview-download.fallback {
+      padding: 0.55rem 1.15rem;
+      border-radius: 8px;
+      background: #0d9488;
+      border: 1px solid #0d9488;
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+
+      &:hover {
+        background: #0f766e;
+      }
+    }
+  }
+}
+
+.docx-preview-pane {
+  flex: 1;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+
+  .docx-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 2.5rem 2rem;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+
+    .docx-icon-large {
+      width: 4.5rem;
+      height: 4.5rem;
+      margin: 0 auto 1.25rem;
+      border-radius: 16px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #2563eb;
+
+      svg {
+        width: 2.5rem;
+        height: 2.5rem;
+      }
+    }
+
+    h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #0f172a;
+      word-break: break-word;
+    }
+
+    .docx-format-pill {
+      display: inline-block;
+      padding: 0.2rem 0.65rem;
+      border-radius: 9999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .docx-note {
+      color: #64748b;
+      font-size: 0.86rem;
+      line-height: 1.5;
+      margin: 0 0 1.5rem;
+    }
+
+    .btn-preview-download-prominent {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      background: #0d9488;
+      border: 1px solid #0d9488;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(13, 148, 136, 0.25);
+      transition: all 0.15s ease;
+
+      svg {
+        width: 1.1rem;
+        height: 1.1rem;
+      }
+
+      &:hover {
+        background: #0f766e;
+        border-color: #0f766e;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(13, 148, 136, 0.3);
+      }
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .cv-preview-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+
+    .cv-preview-header-actions {
+      width: 100%;
+      justify-content: space-between;
+
+      .btn-preview-download {
+        flex: 1;
+        justify-content: center;
+      }
+    }
+  }
+
+  .cv-preview-dialog {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+  }
 }
