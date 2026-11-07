@@ -82,11 +82,67 @@ public sealed class JobsController(
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApplicationDto>> Apply(
-        int jobId, [FromBody] ApplyRequest request, CancellationToken ct)
+        int jobId, CancellationToken ct)
     {
-        var application = await applicationsService.ApplyAsync(jobId, request, ct);
+        string? coverNote = null;
+        bool useDefaultCv = false;
+        Stream? cvStream = null;
+        string? cvOriginalFileName = null;
+        string? cvContentType = null;
+        long? cvFileSizeBytes = null;
+
+        if (Request.HasFormContentType)
+        {
+            var form = await Request.ReadFormAsync(ct);
+            coverNote = form["coverNote"].FirstOrDefault();
+            if (bool.TryParse(form["useDefaultCv"].FirstOrDefault(), out var parsedUseDefault))
+            {
+                useDefaultCv = parsedUseDefault;
+            }
+            var file = form.Files.GetFile("cv") ?? (form.Files.Count > 0 ? form.Files[0] : null);
+            if (file != null && file.Length > 0)
+            {
+                cvStream = file.OpenReadStream();
+                cvOriginalFileName = file.FileName;
+                cvContentType = file.ContentType;
+                cvFileSizeBytes = file.Length;
+            }
+        }
+        else
+        {
+            using var reader = new StreamReader(Request.Body);
+            var body = await reader.ReadToEndAsync(ct);
+            if (!string.IsNullOrWhiteSpace(body))
+            {
+                var jsonRequest = System.Text.Json.JsonSerializer.Deserialize<ApplyRequest>(
+                    body,
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                coverNote = jsonRequest?.CoverNote;
+                useDefaultCv = jsonRequest?.UseDefaultCv ?? false;
+            }
+        }
+
+        var application = await applicationsService.ApplyAsync(
+            jobId,
+            new ApplyRequest(coverNote, useDefaultCv),
+            cvStream,
+            cvOriginalFileName,
+            cvContentType,
+            cvFileSizeBytes,
+            ct);
+
         return Created($"/api/applications/{application.Id}", application);
     }
+
+    [HttpGet("{jobId:int}/applicants/{candidateId}/profile")]
+    [Authorize(Roles = Roles.Employer)]
+    [ProducesResponseType<ApplicantProfileDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApplicantProfileDto>> GetApplicantProfile(
+        int jobId, string candidateId, CancellationToken ct) =>
+        Ok(await applicationsService.GetApplicantProfileAsync(jobId, candidateId, ct));
 
     [HttpGet("{jobId:int}/applications")]
     [Authorize(Roles = Roles.Employer)]

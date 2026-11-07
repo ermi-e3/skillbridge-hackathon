@@ -41,6 +41,10 @@ export interface CandidateProfileDto {
   skillDetails?: CandidateSkillDetailDto[];
   experienceHistory?: CandidateExperienceDto[];
   updatedAt?: string;
+  hasDefaultCv?: boolean;
+  defaultCvOriginalFileName?: string | null;
+  defaultCvFileSizeBytes?: number | null;
+  defaultCvUploadedAt?: string | null;
 }
 
 export interface UpdateCandidateProfileRequest {

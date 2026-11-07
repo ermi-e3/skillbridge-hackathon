@@ -10,7 +10,8 @@ public sealed record JobSummaryDto(
     IReadOnlyList<SkillDto> RequiredSkills,
     IReadOnlyList<SkillDto>? PreferredSkills = null,
     DateTime? CreatedAt = null,
-    bool CanManageApplications = true);
+    bool CanManageApplications = true,
+    bool CanEditJob = true);
 
 public sealed record CandidateSummaryDto(
     string UserId,
@@ -27,7 +28,12 @@ public sealed record JobApplicantItemDto(
     DateTime AppliedAt,
     DateTime? StatusChangedAt,
     string? CoverNote,
-    JobMatchDto Match);
+    JobMatchDto Match,
+    bool HasCv = false,
+    string? CvOriginalFileName = null,
+    long? CvFileSizeBytes = null,
+    DateTime? CvUploadedAt = null,
+    string? CvDownloadUrl = null);
 
 public sealed record JobApplicantsDto(
     JobSummaryDto Job,

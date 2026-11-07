@@ -16,6 +16,8 @@ describe('EmployerJobApplicantsComponent', () => {
   let applicationsServiceSpy: {
     getJobApplicants: ReturnType<typeof vi.fn>;
     changeStatus: ReturnType<typeof vi.fn>;
+    getApplicantProfile: ReturnType<typeof vi.fn>;
+    downloadCv: ReturnType<typeof vi.fn>;
   };
   let authServiceSpy: { logout: ReturnType<typeof vi.fn> };
 
@@ -63,6 +65,8 @@ describe('EmployerJobApplicantsComponent', () => {
     applicationsServiceSpy = {
       getJobApplicants: vi.fn().mockReturnValue(of(mockApplicantsResponse)),
       changeStatus: vi.fn(),
+      getApplicantProfile: vi.fn(),
+      downloadCv: vi.fn(),
     };
     authServiceSpy = {
       logout: vi.fn(),
@@ -177,29 +181,109 @@ describe('EmployerJobApplicantsComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Senior Software Engineer');
   });
 
-  it('displays warning banner and disables shortlist/reject buttons when management window is expired', () => {
+  it('allows shortlisting and rejecting applicants even after 2 hours, while displaying job details locked badge', () => {
     const expiredResponse: JobApplicantsResponse = {
       ...mockApplicantsResponse,
       job: {
         ...mockApplicantsResponse.job,
-        canManageApplications: false,
+        canEditJob: false,
         createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
       },
     };
     applicationsServiceSpy.getJobApplicants.mockReturnValue(of(expiredResponse));
+    applicationsServiceSpy.changeStatus.mockReturnValue(of({ ...mockApplicant, id: 42, jobId: 10, jobTitle: 'Senior Software Engineer', appliedAt: '2026-10-10T12:00:00Z', status: 'Shortlisted' }));
 
     fixture.detectChanges();
 
-    expect(component.canManageApplications()).toBe(false);
-    expect(fixture.nativeElement.textContent).toContain('Application Management Window Expired');
+    expect(component.canEditJob()).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('Job Details Locked');
 
     const shortlistBtn = fixture.nativeElement.querySelector('.shortlist-btn');
     const rejectBtn = fixture.nativeElement.querySelector('.reject-btn');
-    expect(shortlistBtn.hasAttribute('disabled')).toBe(true);
-    expect(rejectBtn.hasAttribute('disabled')).toBe(true);
+    expect(shortlistBtn.hasAttribute('disabled')).toBe(false);
+    expect(rejectBtn.hasAttribute('disabled')).toBe(false);
 
-    // Clicking should not trigger changeStatus
+    // Clicking Shortlist succeeds
     shortlistBtn.click();
-    expect(applicationsServiceSpy.changeStatus).not.toHaveBeenCalled();
+    expect(applicationsServiceSpy.changeStatus).toHaveBeenCalledWith(42, 'Shortlisted');
+  });
+
+  it('opens candidate full profile modal when clicking View Profile', () => {
+    const mockFullProfile = {
+      candidateId: 'cand-1',
+      fullName: 'Abebe Bikila',
+      email: 'abebe@example.com',
+      headline: 'Passionate C# & Angular Engineer',
+      bio: 'Full stack developer for 4 years.',
+      skills: [
+        { id: 1, name: 'C#', proficiency: 'Expert', yearsOfExperience: 4, isPreferred: false },
+      ],
+      experienceHistory: [
+        {
+          id: 1,
+          title: 'Software Engineer',
+          company: 'Fintech Hub',
+          location: 'Addis Ababa',
+          startDate: '2022-01-01',
+          endDate: null,
+          isCurrent: true,
+          description: 'Building payment gateways.',
+        },
+      ],
+      applicationId: 42,
+      applicationStatus: 'Received' as const,
+      appliedAt: '2026-10-10T12:00:00Z',
+      hasCv: true,
+      cvOriginalFileName: 'abebe-cv.pdf',
+      cvFileSizeBytes: 102400,
+    };
+    applicationsServiceSpy.getApplicantProfile.mockReturnValue(of(mockFullProfile));
+
+    fixture.detectChanges();
+
+    const viewProfileBtn = fixture.nativeElement.querySelector('.view-profile-btn');
+    expect(viewProfileBtn).toBeTruthy();
+    viewProfileBtn.click();
+
+    expect(applicationsServiceSpy.getApplicantProfile).toHaveBeenCalledWith(10, 'cand-1');
+    fixture.detectChanges();
+
+    expect(component.showProfileModal()).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain('Work Experience (1)');
+    expect(fixture.nativeElement.textContent).toContain('Fintech Hub');
+    expect(fixture.nativeElement.textContent).toContain('Submitted Resume / CV');
+    expect(fixture.nativeElement.textContent).toContain('abebe-cv.pdf');
+  });
+
+  it('opens CV Preview when clicking CV Preview button and allows downloading the CV', () => {
+    const applicantWithCv: JobApplicantItemDto = {
+      ...mockApplicant,
+      hasCv: true,
+      cvOriginalFileName: 'abebe-resume.pdf',
+    };
+    const responseWithCv: JobApplicantsResponse = {
+      ...mockApplicantsResponse,
+      applicants: [applicantWithCv],
+    };
+    applicationsServiceSpy.getJobApplicants.mockReturnValue(of(responseWithCv));
+    applicationsServiceSpy.downloadCv.mockReturnValue(
+      of(new Blob(['test pdf'], { type: 'application/pdf' }))
+    );
+
+    fixture.detectChanges();
+
+    const previewCvBtn = fixture.nativeElement.querySelector('.preview-cv-btn');
+    expect(previewCvBtn).toBeTruthy();
+    expect(previewCvBtn.textContent).toContain('CV Preview');
+    previewCvBtn.click();
+
+    expect(applicationsServiceSpy.downloadCv).toHaveBeenCalledWith(42);
+    expect(component.showCvPreviewModal()).toBe(true);
+    expect(component.cvPreviewFileName()).toBe('abebe-resume.pdf');
+
+    fixture.detectChanges();
+    const downloadBtn = fixture.nativeElement.querySelector('.btn-preview-download');
+    expect(downloadBtn).toBeTruthy();
+    expect(downloadBtn.textContent).toContain('Download CV');
   });
 });

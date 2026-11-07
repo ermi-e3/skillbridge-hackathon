@@ -243,6 +243,18 @@
                         View
                       </a>
 
+                      @if (app.hasCv) {
+                        <button
+                          type="button"
+                          class="action-btn-cv"
+                          (click)="openCvPreview(app)"
+                          [title]="'Preview attached CV: ' + (app.cvOriginalFileName || 'resume')"
+                          aria-label="Preview attached CV"
+                        >
+                          <span>CV Preview</span>
+                        </button>
+                      }
+
                       <!-- "Withdraw" button shown ONLY when status === 'Received' -->
                       @if (app.status === 'Received') {
                         <button
@@ -282,4 +294,119 @@
       }
     </div>
   </div>
+
+  <!-- CV Preview Modal -->
+  @if (showCvPreviewModal()) {
+    <div
+      class="modal-backdrop cv-preview-backdrop"
+      (click)="closeCvPreview()"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="candidate-apps-cv-preview-title"
+    >
+      <div class="cv-preview-dialog" (click)="$event.stopPropagation()">
+        <header class="cv-preview-header">
+          <div class="cv-preview-title-wrap">
+            <div class="cv-file-badge" [class.docx]="isDocxPreview()">
+              {{ isDocxPreview() ? 'DOCX' : 'PDF' }}
+            </div>
+            <div>
+              <h2 id="candidate-apps-cv-preview-title">Submitted CV Preview</h2>
+              <span class="cv-preview-subtitle">{{ cvPreviewFileName() || 'Attached CV' }}</span>
+            </div>
+          </div>
+
+          <div class="cv-preview-header-actions">
+            <button
+              type="button"
+              class="btn-preview-download"
+              (click)="downloadCurrentPreviewCv()"
+              [disabled]="cvPreviewLoading() || !!cvPreviewError()"
+              title="Download CV file"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Download CV</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn-preview-close"
+              (click)="closeCvPreview()"
+              aria-label="Close CV preview"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="cv-preview-body">
+          @if (cvPreviewLoading()) {
+            <div class="cv-preview-loading" aria-live="polite">
+              <span class="spinner-large" aria-hidden="true"></span>
+              <p>Loading CV document preview...</p>
+            </div>
+          } @else if (cvPreviewError()) {
+            <div class="cv-preview-error" role="alert">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="error-icon" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <h3>Unable to display CV</h3>
+              <p>{{ cvPreviewError() }}</p>
+              <div class="preview-error-actions">
+                <button type="button" class="btn-retry-preview" (click)="closeCvPreview()">Close</button>
+                <button type="button" class="btn-preview-download fallback" (click)="downloadCurrentPreviewCv()">
+                  Download Instead
+                </button>
+              </div>
+            </div>
+          } @else if (isDocxPreview()) {
+            <div class="docx-preview-pane">
+              <div class="docx-card">
+                <div class="docx-icon-large" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                  </svg>
+                </div>
+                <h3>{{ cvPreviewFileName() }}</h3>
+                <span class="docx-format-pill">Word Document (.docx)</span>
+                <p class="docx-note">
+                  Your submitted CV is a Microsoft Word (.docx) document. Web browsers cannot render Word files inline. You can download your CV document to view it.
+                </p>
+                <button
+                  type="button"
+                  class="btn-preview-download-prominent"
+                  (click)="downloadCurrentPreviewCv()"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Download CV</span>
+                </button>
+              </div>
+            </div>
+          } @else if (cvPreviewSafeUrl()) {
+            <iframe
+              [src]="cvPreviewSafeUrl()"
+              class="cv-pdf-frame"
+              title="CV Document Viewer"
+            ></iframe>
+          }
+        </div>
+      </div>
+    </div>
+  }
 </div>

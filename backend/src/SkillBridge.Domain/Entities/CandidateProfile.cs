@@ -32,10 +32,43 @@ public class CandidateProfile
     public JobType PreferredJobType { get; private set; } = JobType.FullTime;
     public DateTime? UpdatedAt { get; private set; }
 
+    public string? DefaultCvFileName { get; private set; }
+    public string? DefaultCvOriginalFileName { get; private set; }
+    public string? DefaultCvContentType { get; private set; }
+    public long? DefaultCvFileSizeBytes { get; private set; }
+    public DateTime? DefaultCvUploadedAt { get; private set; }
+
+    public bool HasDefaultCv => !string.IsNullOrWhiteSpace(DefaultCvFileName);
+
     public IReadOnlyCollection<CandidateSkill> Skills => _skills;
     public IReadOnlyCollection<CandidateExperience> ExperienceHistory => _experienceHistory;
 
     public bool HasSkills => _skills.Count > 0;
+
+    public void SetDefaultCv(
+        string storedFileName,
+        string originalFileName,
+        string contentType,
+        long fileSizeBytes,
+        DateTime nowUtc)
+    {
+        DefaultCvFileName = storedFileName;
+        DefaultCvOriginalFileName = originalFileName;
+        DefaultCvContentType = contentType;
+        DefaultCvFileSizeBytes = fileSizeBytes;
+        DefaultCvUploadedAt = nowUtc;
+        UpdatedAt = nowUtc;
+    }
+
+    public void RemoveDefaultCv(DateTime nowUtc)
+    {
+        DefaultCvFileName = null;
+        DefaultCvOriginalFileName = null;
+        DefaultCvContentType = null;
+        DefaultCvFileSizeBytes = null;
+        DefaultCvUploadedAt = null;
+        UpdatedAt = nowUtc;
+    }
 
     public void Update(
         string headline,

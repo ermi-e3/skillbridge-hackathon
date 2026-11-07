@@ -4,9 +4,11 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { of, throwError } from 'rxjs';
 import { ApplicationDto } from '../../../../core/models/application.models';
 import { JobDto } from '../../../../core/models/job.models';
+import { CandidateProfileDto } from '../../../../core/models/profile.models';
 import { ApplicationsService } from '../../../../core/services/applications.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { JobsService } from '../../../../core/services/jobs.service';
+import { ProfileService } from '../../../../core/services/profile.service';
 import { JobDetailComponent } from './job-detail.component';
 
 describe('JobDetailComponent', () => {
@@ -18,11 +20,29 @@ describe('JobDetailComponent', () => {
   };
   let applicationsServiceSpy: {
     apply: ReturnType<typeof vi.fn>;
+    applyWithCv: ReturnType<typeof vi.fn>;
     withdraw: ReturnType<typeof vi.fn>;
+    getApplicationById: ReturnType<typeof vi.fn>;
+    downloadCv: ReturnType<typeof vi.fn>;
+  };
+  let profileServiceSpy: {
+    getMyProfile: ReturnType<typeof vi.fn>;
+    downloadDefaultCv: ReturnType<typeof vi.fn>;
   };
   let authServiceSpy: {
     currentUser: ReturnType<typeof vi.fn>;
     getRole?: ReturnType<typeof vi.fn>;
+    isAuthenticated: ReturnType<typeof vi.fn>;
+  };
+
+  const mockProfile: CandidateProfileDto = {
+    userId: 'u-1',
+    fullName: 'Hana Tesfaye',
+    email: 'hana@example.com',
+    headline: 'Junior .NET Developer',
+    hasDefaultCv: true,
+    defaultCvOriginalFileName: 'default-cv.pdf',
+    defaultCvFileSizeBytes: 102400,
   };
 
   const mockJob: JobDto = {
@@ -65,11 +85,19 @@ describe('JobDetailComponent', () => {
     };
     applicationsServiceSpy = {
       apply: vi.fn().mockReturnValue(of(mockApplicationResponse)),
+      applyWithCv: vi.fn().mockReturnValue(of(mockApplicationResponse)),
       withdraw: vi.fn().mockReturnValue(of({ ...mockApplicationResponse, status: 'Withdrawn' })),
+      getApplicationById: vi.fn().mockReturnValue(of(mockApplicationResponse)),
+      downloadCv: vi.fn().mockReturnValue(of(new Blob(['test']))),
+    };
+    profileServiceSpy = {
+      getMyProfile: vi.fn().mockReturnValue(of(mockProfile)),
+      downloadDefaultCv: vi.fn().mockReturnValue(of(new Blob(['test default cv'], { type: 'application/pdf' }))),
     };
     authServiceSpy = {
       currentUser: vi.fn().mockReturnValue({ userId: 'u-1', fullName: 'Hana', role: 'Candidate' }),
       getRole: vi.fn().mockReturnValue('Candidate'),
+      isAuthenticated: vi.fn().mockReturnValue(true),
     };
 
     await TestBed.configureTestingModule({
@@ -78,6 +106,7 @@ describe('JobDetailComponent', () => {
         provideRouter([]),
         { provide: JobsService, useValue: jobsServiceSpy },
         { provide: ApplicationsService, useValue: applicationsServiceSpy },
+        { provide: ProfileService, useValue: profileServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
         {
           provide: ActivatedRoute,
@@ -141,16 +170,19 @@ describe('JobDetailComponent', () => {
     expect(el.textContent).not.toContain('5 pts');
   });
 
-  it('should submit application with cover note and display success state', () => {
+  it('should submit application with cover note and default profile CV, displaying success state', () => {
     component.applyForm.patchValue({
       coverNote: 'I have 1 year experience in ASP.NET Core.',
     });
 
     component.onApplySubmit();
 
-    expect(applicationsServiceSpy.apply).toHaveBeenCalledWith(12, {
-      coverNote: 'I have 1 year experience in ASP.NET Core.',
-    });
+    expect(applicationsServiceSpy.applyWithCv).toHaveBeenCalledWith(
+      12,
+      'I have 1 year experience in ASP.NET Core.',
+      null,
+      true
+    );
 
     expect(component.hasAppliedState()).toBe(true);
     expect(component.successMessage()).toContain('Application submitted successfully');
@@ -187,6 +219,7 @@ describe('JobDetailComponent', () => {
         detail: 'You have already applied to this job.',
       },
     });
+    applicationsServiceSpy.applyWithCv.mockReturnValue(throwError(() => errorResponse));
     applicationsServiceSpy.apply.mockReturnValue(throwError(() => errorResponse));
 
     component.onApplySubmit();
@@ -329,5 +362,71 @@ describe('JobDetailComponent', () => {
     expect(el.querySelector('.btn-close-job')).toBeNull();
     expect(el.querySelector('.close-modal')).toBeNull();
     expect(el.textContent).not.toContain('Close Job');
+  });
+
+  it('validates and accepts valid PDF or DOCX file, rejects invalid file formats or >5MB files', () => {
+    // Invalid extension
+    const invalidFile = new File(['executable'], 'virus.exe', { type: 'application/octet-stream' });
+    const mockEvent1 = { target: { files: [invalidFile] } } as unknown as Event;
+    component.onFileSelected(mockEvent1);
+    expect(component.selectedCvFile()).toBeNull();
+    expect(component.cvFileError()).toContain('Only PDF and DOCX files are allowed');
+
+    // Oversized file (> 5 MB)
+    const bigFile = new File([new Uint8Array(6 * 1024 * 1024)], 'big.pdf', { type: 'application/pdf' });
+    const mockEvent2 = { target: { files: [bigFile] } } as unknown as Event;
+    component.onFileSelected(mockEvent2);
+    expect(component.selectedCvFile()).toBeNull();
+    expect(component.cvFileError()).toContain('File size exceeds 5 MB');
+
+    // Valid PDF
+    const validFile = new File(['%PDF-1.4 test'], 'my-cv.pdf', { type: 'application/pdf' });
+    const mockEvent3 = { target: { files: [validFile] } } as unknown as Event;
+    component.onFileSelected(mockEvent3);
+    expect(component.selectedCvFile()).toBe(validFile);
+    expect(component.cvFileError()).toBeNull();
+
+    // Remove file
+    component.removeSelectedCvFile();
+    expect(component.selectedCvFile()).toBeNull();
+  });
+
+  it('submits application with attached CV using applyWithCv (Option 2)', () => {
+    component.setCvApplyOption('upload');
+    const validDocx = new File(['PK\x03\x04'], 'resume.docx', { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    component.selectedCvFile.set(validDocx);
+    component.applyForm.patchValue({ coverNote: 'Attached is my DOCX resume' });
+
+    component.onApplySubmit();
+
+    expect(applicationsServiceSpy.applyWithCv).toHaveBeenCalledWith(12, 'Attached is my DOCX resume', validDocx, false);
+    expect(component.hasAppliedState()).toBe(true);
+  });
+
+  it('rejects submitting application when candidate has no default CV and no uploaded CV', () => {
+    component.hasDefaultCv.set(false);
+    component.setCvApplyOption('default');
+    component.selectedCvFile.set(null);
+
+    expect(component.isCvValid()).toBe(false);
+
+    component.onApplySubmit();
+
+    expect(applicationsServiceSpy.applyWithCv).not.toHaveBeenCalled();
+    expect(component.errorMessage()).toContain('A valid CV must always be attached before an application can be submitted');
+  });
+
+  it('allows candidate to switch between default CV option and upload different CV option', () => {
+    expect(component.cvApplyOption()).toBe('default');
+    expect(component.hasDefaultCv()).toBe(true);
+    expect(component.isCvValid()).toBe(true);
+
+    component.setCvApplyOption('upload');
+    expect(component.cvApplyOption()).toBe('upload');
+    expect(component.isCvValid()).toBe(false); // No file chosen yet
+
+    const file = new File(['pdf data'], 'custom.pdf', { type: 'application/pdf' });
+    component.selectedCvFile.set(file);
+    expect(component.isCvValid()).toBe(true);
   });
 });

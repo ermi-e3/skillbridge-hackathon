@@ -116,4 +116,63 @@ describe('ApplicationsService', () => {
     expect(req.request.body).toEqual({ status: 'Shortlisted' });
     req.flush(shortlistedResponse);
   });
+
+  it('should send multipart/form-data when applying with CV file', () => {
+    const fakeFile = new File(['%PDF-1.4 test content'], 'resume.pdf', { type: 'application/pdf' });
+    const appWithCv: ApplicationDto = {
+      ...mockApplication,
+      hasCv: true,
+      cvOriginalFileName: 'resume.pdf',
+      cvFileSizeBytes: 21,
+      cvDownloadUrl: '/api/applications/31/cv',
+    };
+
+    service.applyWithCv(12, 'Here is my CV', fakeFile).subscribe((res) => {
+      expect(res.hasCv).toBe(true);
+      expect(res.cvOriginalFileName).toBe('resume.pdf');
+    });
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/jobs/12/applications`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body instanceof FormData).toBe(true);
+    req.flush(appWithCv, { status: 201, statusText: 'Created' });
+  });
+
+  it('should send GET /api/jobs/{jobId}/applicants/{candidateId}/profile', () => {
+    const mockProfile = {
+      candidateId: 'user-123',
+      fullName: 'Abebe Kebede',
+      email: 'abebe@test.com',
+      skills: [],
+      experienceHistory: [],
+      applicationId: 31,
+      applicationStatus: 'Received' as const,
+      appliedAt: '2026-10-10T09:14:00Z',
+      hasCv: true,
+      cvOriginalFileName: 'abebe-cv.pdf',
+    };
+
+    service.getApplicantProfile(12, 'user-123').subscribe((profile) => {
+      expect(profile.candidateId).toBe('user-123');
+      expect(profile.hasCv).toBe(true);
+    });
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/jobs/12/applicants/user-123/profile`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockProfile);
+  });
+
+  it('should send GET /api/applications/{id}/cv with responseType blob', () => {
+    const fakeBlob = new Blob(['%PDF-1.4'], { type: 'application/pdf' });
+
+    service.downloadCv(31).subscribe((blob) => {
+      expect(blob).toBeTruthy();
+      expect(blob.type).toBe('application/pdf');
+    });
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/applications/31/cv`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.responseType).toBe('blob');
+    req.flush(fakeBlob);
+  });
 });

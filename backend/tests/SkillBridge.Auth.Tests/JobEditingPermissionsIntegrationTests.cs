@@ -23,6 +23,16 @@ public sealed class JobEditingPermissionsIntegrationTests(AuthFixture fixture)
         Converters = { new JsonStringEnumConverter() }
     };
 
+    private static MultipartFormDataContent CreateCvForm(string coverNote)
+    {
+        var form = new MultipartFormDataContent();
+        form.Add(new StringContent(coverNote), "coverNote");
+        var fileContent = new ByteArrayContent(System.Text.Encoding.UTF8.GetBytes("%PDF-1.4\n1 0 obj\n<<>>\nendobj\n%%EOF"));
+        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf");
+        form.Add(fileContent, "cv", "resume.pdf");
+        return form;
+    }
+
     [Fact]
     public async Task Employer_can_create_job_with_custom_skills_and_query_them()
     {
@@ -207,7 +217,7 @@ public sealed class JobEditingPermissionsIntegrationTests(AuthFixture fixture)
     }
 
     [Fact]
-    public async Task Employer_can_manage_applications_within_2_hours_but_not_after_2_hours()
+    public async Task Employer_can_manage_application_statuses_at_any_time_but_cannot_edit_job_details_after_2_hours()
     {
         using var employerClient = fixture.Factory.CreateClient();
         using var candidateClient = fixture.Factory.CreateClient();
@@ -223,7 +233,7 @@ public sealed class JobEditingPermissionsIntegrationTests(AuthFixture fixture)
         var createRes = await employerClient.PostAsJsonAsync("/api/jobs", new
         {
             title = "Application Management Role",
-            description = "Job to test application management within and after 2-hour window.",
+            description = "Job to test application management and 2-hour window limit on job editing.",
             location = "Addis Ababa",
             jobType = JobType.FullTime,
             workArrangement = WorkArrangement.Hybrid,
@@ -234,25 +244,12 @@ public sealed class JobEditingPermissionsIntegrationTests(AuthFixture fixture)
         Assert.NotNull(job);
 
         // 2. Candidate applies
-        var applyRes = await candidateClient.PostAsJsonAsync($"/api/jobs/{job.Id}/applications", new
-        {
-            coverNote = "I am excited to apply for this position."
-        });
+        var applyRes = await candidateClient.PostAsync($"/api/jobs/{job.Id}/applications", CreateCvForm("I am excited to apply for this position."));
         Assert.Equal(HttpStatusCode.Created, applyRes.StatusCode);
         var application = await applyRes.Content.ReadFromJsonAsync<ApplicationDto>(JsonOptions);
         Assert.NotNull(application);
 
-        // 3. Within 2 hours: employer updates status to Shortlisted -> Succeeds
-        var shortlistRes = await employerClient.PatchAsJsonAsync($"/api/applications/{application.Id}/status", new
-        {
-            status = "Shortlisted"
-        });
-        Assert.Equal(HttpStatusCode.OK, shortlistRes.StatusCode);
-        var updatedApp = await shortlistRes.Content.ReadFromJsonAsync<ApplicationDto>(JsonOptions);
-        Assert.NotNull(updatedApp);
-        Assert.Equal("Shortlisted", updatedApp.Status);
-
-        // 4. Simulate 2 hours passing: update Job's CreatedAt to 3 hours ago
+        // 3. Simulate 2 hours passing: update Job's CreatedAt to 3 hours ago
         using (var scope = fixture.Factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -262,13 +259,29 @@ public sealed class JobEditingPermissionsIntegrationTests(AuthFixture fixture)
                 job.Id);
         }
 
-        // 5. After 2 hours: employer attempts to change status to Rejected -> Rejected with 403 Forbidden
-        var rejectRes = await employerClient.PatchAsJsonAsync($"/api/applications/{application.Id}/status", new
+        // 4. After 2 hours: employer CAN still change status to Shortlisted -> Succeeds with 200 OK
+        var shortlistRes = await employerClient.PatchAsJsonAsync($"/api/applications/{application.Id}/status", new
         {
-            status = "Rejected"
+            status = "Shortlisted"
         });
-        Assert.Equal(HttpStatusCode.Forbidden, rejectRes.StatusCode);
-        var errBody = await rejectRes.Content.ReadAsStringAsync();
+        Assert.Equal(HttpStatusCode.OK, shortlistRes.StatusCode);
+        var updatedApp = await shortlistRes.Content.ReadFromJsonAsync<ApplicationDto>(JsonOptions);
+        Assert.NotNull(updatedApp);
+        Assert.Equal("Shortlisted", updatedApp.Status);
+
+        // 5. After 2 hours: employer CANNOT edit the job details -> 403 Forbidden
+        var editRes = await employerClient.PutAsJsonAsync($"/api/jobs/{job.Id}", new
+        {
+            title = "Attempted Edit After 2 Hours",
+            description = "This edit should be forbidden after 2 hours.",
+            location = "Remote",
+            jobType = JobType.FullTime,
+            workArrangement = WorkArrangement.Remote,
+            experienceLevel = ExperienceLevel.Senior,
+            requiredSkillIds = new[] { 1 }
+        });
+        Assert.Equal(HttpStatusCode.Forbidden, editRes.StatusCode);
+        var errBody = await editRes.Content.ReadAsStringAsync();
         Assert.Contains("editing_expired", errBody, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -303,10 +316,8 @@ public sealed class JobEditingPermissionsIntegrationTests(AuthFixture fixture)
         Assert.NotNull(job);
 
         // Candidate applies
-        var applyRes = await candidateClient.PostAsJsonAsync($"/api/jobs/{job.Id}/applications", new
-        {
-            coverNote = "Application"
-        });
+        var applyRes = await candidateClient.PostAsync($"/api/jobs/{job.Id}/applications", CreateCvForm("Application"));
+        Assert.Equal(HttpStatusCode.Created, applyRes.StatusCode);
         var application = await applyRes.Content.ReadFromJsonAsync<ApplicationDto>(JsonOptions);
         Assert.NotNull(application);
 

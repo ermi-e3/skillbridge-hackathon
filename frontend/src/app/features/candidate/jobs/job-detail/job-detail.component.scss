@@ -1317,3 +1317,919 @@ $match-red-border: #fecaca;
     transform: scale(1.15);
   }
 }
+
+// CV Selection Styles (Option 1: Default CV, Option 2: Upload CV)
+.cv-selection-group {
+  margin-bottom: 1.25rem;
+
+  .required-star {
+    color: #dc2626;
+    margin-left: 2px;
+  }
+
+  .file-hint {
+    font-size: 0.75rem;
+    color: #64748b;
+  }
+
+  .hidden-file-input {
+    display: none;
+  }
+
+  .cv-options-switch {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0.6rem 0;
+
+    .cv-option-pill {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.75rem 0.85rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      background: #f8fafc;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: #cbd5e1;
+        background: #ffffff;
+      }
+
+      &.active {
+        border-color: #0d9488;
+        background: #f0fdfa;
+        box-shadow: 0 0 0 1px #0d9488;
+      }
+
+      .option-radio-input {
+        margin-top: 0.25rem;
+        cursor: pointer;
+        accent-color: #0d9488;
+      }
+
+      .option-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        flex: 1;
+
+        .option-title-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.5rem;
+
+          .option-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #1e293b;
+          }
+
+          .profile-ready-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.1rem 0.45rem;
+            border-radius: 9999px;
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+          }
+
+          .profile-missing-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.1rem 0.45rem;
+            border-radius: 9999px;
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+          }
+
+          .pdf-docx-pill {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.1rem 0.45rem;
+            border-radius: 9999px;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+          }
+        }
+
+        .option-desc {
+          font-size: 0.74rem;
+          color: #64748b;
+        }
+      }
+    }
+  }
+
+  .cv-option-body {
+    margin-top: 0.5rem;
+    animation: fadeIn 0.15s ease-out;
+  }
+
+  .default-cv-selected-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    background: #f0fdfa;
+    border: 1px solid #99f6e4;
+    border-radius: 10px;
+    padding: 0.75rem 0.85rem;
+
+    .cv-info-left {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      min-width: 0;
+
+      .cv-icon-badge {
+        position: relative;
+        width: 34px;
+        height: 38px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 6px;
+        color: #dc2626;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        svg {
+          width: 1.1rem;
+          height: 1.1rem;
+        }
+
+        .ext-label {
+          font-size: 0.55rem;
+          font-weight: 800;
+          letter-spacing: 0.05em;
+        }
+
+        &.docx {
+          background: #eff6ff;
+          border-color: #bfdbfe;
+          color: #2563eb;
+        }
+      }
+
+      .cv-details-text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+
+        .cv-name {
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: #0f172a;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .cv-size {
+          font-size: 0.72rem;
+          color: #0f766e;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .btn-preview-small {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: #0d9488;
+      border: 1px solid #0d9488;
+      color: #ffffff;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+
+      svg {
+        width: 0.85rem;
+        height: 0.85rem;
+      }
+
+      &:hover {
+        background: #0f766e;
+        border-color: #0f766e;
+      }
+    }
+  }
+
+  .no-default-cv-box {
+    background: #fffbeb;
+    border: 1px solid #fef3c7;
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    .no-cv-warning {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      color: #92400e;
+
+      svg {
+        width: 1.25rem;
+        height: 1.25rem;
+        flex-shrink: 0;
+        margin-top: 0.1rem;
+      }
+
+      .warning-text {
+        font-size: 0.78rem;
+
+        strong {
+          display: block;
+          color: #78350f;
+          font-weight: 700;
+          margin-bottom: 0.15rem;
+        }
+
+        p {
+          margin: 0;
+          color: #92400e;
+        }
+      }
+    }
+
+    .no-cv-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+
+      .btn-goto-profile {
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: #d97706;
+        color: #ffffff;
+        padding: 0.35rem 0.75rem;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background 0.15s ease;
+
+        &:hover {
+          background: #b45309;
+        }
+      }
+
+      .btn-switch-upload {
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: transparent;
+        color: #78350f;
+        border: 1px solid #d97706;
+        padding: 0.35rem 0.75rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+          background: #fef3c7;
+        }
+      }
+    }
+  }
+
+  .cv-requirement-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 0.55rem 0.75rem;
+    color: #dc2626;
+    font-size: 0.78rem;
+    font-weight: 500;
+
+    svg {
+      width: 1rem;
+      height: 1rem;
+      flex-shrink: 0;
+    }
+  }
+
+  .cv-dropzone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 1.25rem 1rem;
+    text-align: center;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+
+    &:hover,
+    &:focus-visible {
+      border-color: #0d9488;
+      background: #f0fdfa;
+      outline: none;
+
+      .dropzone-icon {
+        color: #0d9488;
+        transform: translateY(-2px);
+      }
+    }
+
+    .dropzone-icon {
+      color: #64748b;
+      transition: all 0.2s ease;
+
+      svg {
+        width: 1.75rem;
+        height: 1.75rem;
+      }
+    }
+
+    .dropzone-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+
+      .dropzone-title {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #1e293b;
+      }
+
+      .dropzone-sub {
+        font-size: 0.75rem;
+        color: #64748b;
+
+        .browse-link {
+          color: #0d9488;
+          font-weight: 600;
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
+  .selected-file-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f0fdfa;
+    border: 1px solid #99f6e4;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    gap: 0.75rem;
+
+    .file-preview-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 0;
+
+      .file-badge-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: #ccfbf1;
+        color: #0d9488;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        svg {
+          width: 1.25rem;
+          height: 1.25rem;
+        }
+      }
+
+      .file-info {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+
+        .file-name {
+          font-weight: 600;
+          font-size: 0.875rem;
+          color: #0f172a;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .file-size {
+          font-size: 0.75rem;
+          color: #64748b;
+        }
+      }
+    }
+
+    .btn-remove-file {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #94a3b8;
+      padding: 0.35rem;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s, background 0.15s;
+      flex-shrink: 0;
+
+      &:hover {
+        color: #ef4444;
+        background: #fee2e2;
+      }
+
+      svg {
+        width: 1.1rem;
+        height: 1.1rem;
+      }
+    }
+  }
+}
+
+.applied-cv-box {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  text-align: left;
+
+  .cv-info {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+
+    .cv-file-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      color: #0d9488;
+      flex-shrink: 0;
+    }
+
+    .cv-name-wrap {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+
+      .cv-label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #64748b;
+        letter-spacing: 0.03em;
+      }
+
+      .cv-filename {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #1e293b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+
+  .btn-download-my-cv {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    background: #0d9488;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    flex-shrink: 0;
+
+    &:hover:not(:disabled) {
+      background: #0f766e;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    svg {
+      width: 0.95rem;
+      height: 0.95rem;
+    }
+
+    .spinner-small {
+      width: 0.85rem;
+      height: 0.85rem;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   Candidate CV Preview Modal Styles
+   ========================================================================== */
+
+.cv-preview-backdrop {
+  z-index: 1100;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(6px);
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cv-preview-dialog {
+  background: #ffffff;
+  border-radius: 14px;
+  width: min(960px, 96vw);
+  height: min(88vh, 900px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35);
+  animation: modalScaleIn 0.2s ease-out;
+}
+
+.cv-preview-header {
+  padding: 1rem 1.5rem;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-shrink: 0;
+
+  .cv-preview-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    min-width: 0;
+
+    .cv-file-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+      flex-shrink: 0;
+
+      &.docx {
+        background: #eff6ff;
+        color: #2563eb;
+        border-color: #bfdbfe;
+      }
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #0f172a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cv-preview-subtitle {
+      font-size: 0.78rem;
+      color: #64748b;
+      display: block;
+      margin-top: 0.1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .cv-preview-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-shrink: 0;
+
+    .btn-preview-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 1rem;
+      border-radius: 8px;
+      background: #0d9488;
+      border: 1px solid #0d9488;
+      color: #ffffff;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(13, 148, 136, 0.2);
+      transition: all 0.15s ease;
+
+      svg {
+        width: 0.95rem;
+        height: 0.95rem;
+      }
+
+      &:hover:not(:disabled) {
+        background: #0f766e;
+        border-color: #0f766e;
+        transform: translateY(-1px);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    .btn-preview-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      svg {
+        width: 1.1rem;
+        height: 1.1rem;
+      }
+
+      &:hover {
+        background: #fee2e2;
+        border-color: #fecaca;
+        color: #ef4444;
+      }
+    }
+  }
+}
+
+.cv-preview-body {
+  flex: 1;
+  background: #0f172a;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+
+  .cv-pdf-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #525659;
+  }
+}
+
+.cv-preview-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  gap: 1rem;
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 500;
+
+  .spinner-large {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 3px solid rgba(13, 148, 136, 0.2);
+    border-top-color: #0d9488;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+.cv-preview-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  padding: 2rem;
+  text-align: center;
+
+  .error-icon {
+    width: 3rem;
+    height: 3rem;
+    color: #ef4444;
+    margin-bottom: 0.75rem;
+  }
+
+  h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.15rem;
+    color: #0f172a;
+  }
+
+  p {
+    margin: 0 0 1.25rem;
+    color: #64748b;
+    font-size: 0.875rem;
+    max-width: 400px;
+  }
+
+  .preview-error-actions {
+    display: flex;
+    gap: 0.75rem;
+
+    .btn-retry-preview {
+      padding: 0.55rem 1.15rem;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+
+      &:hover {
+        background: #f1f5f9;
+      }
+    }
+
+    .btn-preview-download.fallback {
+      padding: 0.55rem 1.15rem;
+      border-radius: 8px;
+      background: #0d9488;
+      border: 1px solid #0d9488;
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+
+      &:hover {
+        background: #0f766e;
+      }
+    }
+  }
+}
+
+.docx-preview-pane {
+  flex: 1;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+
+  .docx-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 2.5rem 2rem;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+
+    .docx-icon-large {
+      width: 4.5rem;
+      height: 4.5rem;
+      margin: 0 auto 1.25rem;
+      border-radius: 16px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #2563eb;
+
+      svg {
+        width: 2.5rem;
+        height: 2.5rem;
+      }
+    }
+
+    h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #0f172a;
+      word-break: break-word;
+    }
+
+    .docx-format-pill {
+      display: inline-block;
+      padding: 0.2rem 0.65rem;
+      border-radius: 9999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .docx-note {
+      color: #64748b;
+      font-size: 0.86rem;
+      line-height: 1.5;
+      margin: 0 0 1.5rem;
+    }
+
+    .btn-preview-download-prominent {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      background: #0d9488;
+      border: 1px solid #0d9488;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(13, 148, 136, 0.25);
+      transition: all 0.15s ease;
+
+      svg {
+        width: 1.1rem;
+        height: 1.1rem;
+      }
+
+      &:hover {
+        background: #0f766e;
+        border-color: #0f766e;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(13, 148, 136, 0.3);
+      }
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .cv-preview-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+
+    .cv-preview-header-actions {
+      width: 100%;
+      justify-content: space-between;
+
+      .btn-preview-download {
+        flex: 1;
+        justify-content: center;
+      }
+    }
+  }
+
+  .cv-preview-dialog {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+  }
+}

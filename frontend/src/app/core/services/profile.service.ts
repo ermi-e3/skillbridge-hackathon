@@ -24,4 +24,32 @@ export class ProfileService {
   updateMyProfile(payload: UpdateCandidateProfileRequest): Observable<CandidateProfileDto> {
     return this.http.put<CandidateProfileDto>(this.baseUrl, payload);
   }
+
+  /**
+   * Upload or replace default CV for candidate profile
+   * POST /api/candidates/me/profile/cv
+   */
+  uploadDefaultCv(file: File): Observable<CandidateProfileDto> {
+    const formData = new FormData();
+    formData.append('cv', file, file.name);
+    return this.http.post<CandidateProfileDto>(`${this.baseUrl}/cv`, formData);
+  }
+
+  /**
+   * Download / stream current candidate's default CV
+   * GET /api/candidates/me/profile/cv
+   */
+  downloadDefaultCv(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/cv`, {
+      responseType: 'blob',
+    });
+  }
+
+  /**
+   * Remove current candidate's default CV
+   * DELETE /api/candidates/me/profile/cv
+   */
+  removeDefaultCv(): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/cv`);
+  }
 }

@@ -1,8 +1,10 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
+  ApplicantProfileDto,
   ApplicationStatus,
   JobApplicantItemDto,
   JobSummaryDto,
@@ -19,12 +21,13 @@ import { extractErrorMessage } from '../../../../core/utils/error-formatter';
   templateUrl: './employer-job-applicants.component.html',
   styleUrl: './employer-job-applicants.component.scss',
 })
-export class EmployerJobApplicantsComponent implements OnInit {
+export class EmployerJobApplicantsComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly applicationsService = inject(ApplicationsService);
   private readonly authService = inject(AuthService);
   private readonly realtime = inject(RealtimeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly sanitizer = inject(DomSanitizer);
 
   readonly jobId = signal<number | null>(null);
   readonly jobSummary = signal<JobSummaryDto | null>(null);
@@ -35,6 +38,25 @@ export class EmployerJobApplicantsComponent implements OnInit {
   readonly fullMatchOnly = signal<boolean>(false);
   readonly updatingApplicationId = signal<number | null>(null);
   readonly feedbackMessage = signal<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Applicant Profile & CV Signals
+  readonly selectedApplicantProfile = signal<ApplicantProfileDto | null>(null);
+  readonly isLoadingProfile = signal<boolean>(false);
+  readonly showProfileModal = signal<boolean>(false);
+  readonly profileError = signal<string | null>(null);
+  readonly downloadingCvApplicationId = signal<number | null>(null);
+
+  // CV Preview Modal Signals
+  readonly showCvPreviewModal = signal<boolean>(false);
+  readonly cvPreviewLoading = signal<boolean>(false);
+  readonly cvPreviewError = signal<string | null>(null);
+  readonly cvPreviewApplicationId = signal<number | null>(null);
+  readonly cvPreviewFileName = signal<string | null>(null);
+  readonly cvPreviewCandidateName = signal<string | null>(null);
+  readonly cvPreviewBlob = signal<Blob | null>(null);
+  readonly cvPreviewSafeUrl = signal<SafeResourceUrl | null>(null);
+  readonly isDocxPreview = signal<boolean>(false);
+  private cvPreviewObjectUrl: string | null = null;
 
   readonly totalApplicantsCount = computed(() => this.applicants().length);
   readonly receivedCount = computed(
@@ -50,11 +72,12 @@ export class EmployerJobApplicantsComponent implements OnInit {
     () => this.applicants().filter((a) => a.status === 'Withdrawn').length
   );
 
-  readonly canManageApplications = computed(() => {
+  // 2-hour window applies strictly to editing job details, NOT to hiring decisions (shortlisting/rejecting)
+  readonly canEditJob = computed(() => {
     const summary = this.jobSummary();
     if (!summary) return false;
-    if (typeof summary.canManageApplications === 'boolean') {
-      return summary.canManageApplications;
+    if (typeof summary.canEditJob === 'boolean') {
+      return summary.canEditJob;
     }
     if (summary.createdAt) {
       const created = new Date(summary.createdAt).getTime();
@@ -63,7 +86,7 @@ export class EmployerJobApplicantsComponent implements OnInit {
     return true;
   });
 
-  readonly remainingManagementTime = computed(() => {
+  readonly remainingEditingTime = computed(() => {
     const summary = this.jobSummary();
     if (!summary?.createdAt) return '';
     const created = new Date(summary.createdAt).getTime();
@@ -73,8 +96,11 @@ export class EmployerJobApplicantsComponent implements OnInit {
     const totalMins = Math.floor(remainingMs / 60000);
     const hrs = Math.floor(totalMins / 60);
     const mins = totalMins % 60;
-    return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+    return hrs > 0 ? `${hrs}h ${mins}m left` : `${mins}m left`;
   });
+
+  // Applicant status updates (shortlisting and rejecting) are always allowed for the job owner
+  readonly canManageApplications = computed(() => true);
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -190,14 +216,6 @@ export class EmployerJobApplicantsComponent implements OnInit {
       return;
     }
 
-    if (!this.canManageApplications()) {
-      this.feedbackMessage.set({
-        type: 'error',
-        text: 'The 2-hour window for managing job applications has expired. Applicant statuses can no longer be updated.',
-      });
-      return;
-    }
-
     this.updatingApplicationId.set(applicant.applicationId);
     this.feedbackMessage.set(null);
 
@@ -251,6 +269,159 @@ export class EmployerJobApplicantsComponent implements OnInit {
         return 'status-withdrawn';
       default:
         return 'status-default';
+    }
+  }
+
+  openApplicantProfile(applicant: JobApplicantItemDto): void {
+    const jId = this.jobId();
+    if (!jId) return;
+
+    this.showProfileModal.set(true);
+    this.isLoadingProfile.set(true);
+    this.profileError.set(null);
+    this.selectedApplicantProfile.set(null);
+
+    this.applicationsService.getApplicantProfile(jId, applicant.candidate.userId).subscribe({
+      next: (profile) => {
+        this.selectedApplicantProfile.set(profile);
+        this.isLoadingProfile.set(false);
+      },
+      error: (err) => {
+        this.profileError.set(
+          extractErrorMessage(err, 'Failed to load full candidate profile details.')
+        );
+        this.isLoadingProfile.set(false);
+      },
+    });
+  }
+
+  closeProfileModal(): void {
+    this.showProfileModal.set(false);
+    this.selectedApplicantProfile.set(null);
+    this.profileError.set(null);
+  }
+
+  downloadCv(applicationId: number, originalFileName?: string | null): void {
+    if (this.downloadingCvApplicationId()) return;
+
+    this.downloadingCvApplicationId.set(applicationId);
+    this.applicationsService.downloadCv(applicationId).subscribe({
+      next: (blob) => {
+        this.downloadingCvApplicationId.set(null);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = originalFileName || 'candidate-cv.pdf';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+      },
+      error: (err) => {
+        this.downloadingCvApplicationId.set(null);
+        this.feedbackMessage.set({
+          type: 'error',
+          text: extractErrorMessage(err, 'Failed to download candidate CV.'),
+        });
+      },
+    });
+  }
+
+  formatCvSize(bytes?: number | null): string {
+    if (!bytes || bytes <= 0) return '0 B';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  }
+
+  formatDateRange(startDate: string, endDate?: string | null, isCurrent?: boolean): string {
+    const start = new Date(startDate);
+    const startStr = start.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
+    if (isCurrent) return `${startStr} - Present`;
+    if (!endDate) return startStr;
+    const end = new Date(endDate);
+    const endStr = end.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
+    return `${startStr} - ${endStr}`;
+  }
+
+  openCvPreview(applicationId: number, originalFileName?: string | null, candidateName?: string): void {
+    if (this.cvPreviewObjectUrl) {
+      window.URL.revokeObjectURL(this.cvPreviewObjectUrl);
+      this.cvPreviewObjectUrl = null;
+    }
+
+    this.showCvPreviewModal.set(true);
+    this.cvPreviewLoading.set(true);
+    this.cvPreviewError.set(null);
+    this.cvPreviewApplicationId.set(applicationId);
+    this.cvPreviewFileName.set(originalFileName || 'resume.pdf');
+    this.cvPreviewCandidateName.set(candidateName || null);
+    this.cvPreviewBlob.set(null);
+    this.cvPreviewSafeUrl.set(null);
+
+    const isPdf = !originalFileName || originalFileName.toLowerCase().endsWith('.pdf');
+    this.isDocxPreview.set(!isPdf);
+
+    this.applicationsService.downloadCv(applicationId).subscribe({
+      next: (blob) => {
+        this.cvPreviewLoading.set(false);
+        const mime = isPdf
+          ? 'application/pdf'
+          : blob.type || 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        const typedBlob = new Blob([blob], { type: mime });
+        this.cvPreviewBlob.set(typedBlob);
+        this.cvPreviewObjectUrl = window.URL.createObjectURL(typedBlob);
+        this.cvPreviewSafeUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(this.cvPreviewObjectUrl));
+      },
+      error: (err) => {
+        this.cvPreviewLoading.set(false);
+        this.cvPreviewError.set(
+          extractErrorMessage(err, 'Failed to load CV document for preview.')
+        );
+      },
+    });
+  }
+
+  retryCvPreview(): void {
+    const appId = this.cvPreviewApplicationId();
+    if (appId) {
+      this.openCvPreview(appId, this.cvPreviewFileName(), this.cvPreviewCandidateName() || undefined);
+    }
+  }
+
+  closeCvPreview(): void {
+    if (this.cvPreviewObjectUrl) {
+      window.URL.revokeObjectURL(this.cvPreviewObjectUrl);
+      this.cvPreviewObjectUrl = null;
+    }
+    this.showCvPreviewModal.set(false);
+    this.cvPreviewLoading.set(false);
+    this.cvPreviewError.set(null);
+    this.cvPreviewBlob.set(null);
+    this.cvPreviewSafeUrl.set(null);
+  }
+
+  downloadCurrentPreviewCv(): void {
+    const blob = this.cvPreviewBlob();
+    const fileName = this.cvPreviewFileName() || 'candidate-cv.pdf';
+    if (blob) {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } else if (this.cvPreviewApplicationId()) {
+      this.downloadCv(this.cvPreviewApplicationId()!, fileName);
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.cvPreviewObjectUrl) {
+      window.URL.revokeObjectURL(this.cvPreviewObjectUrl);
+      this.cvPreviewObjectUrl = null;
     }
   }
 

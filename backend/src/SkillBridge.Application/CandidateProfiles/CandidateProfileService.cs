@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using SkillBridge.Application.Applications;
 using SkillBridge.Application.Common.Exceptions;
 using SkillBridge.Application.Common.Interfaces;
 using SkillBridge.Domain.Common;
@@ -13,6 +14,7 @@ public sealed class CandidateProfileService(
     ICurrentUser currentUser,
     IClock clock,
     IValidator<UpdateCandidateProfileRequest> validator,
+    IFileStorageService fileStorageService,
     IRealtimeNotifier? notifier = null) : ICandidateProfileService
 {
     public async Task<CandidateProfileResponse> GetMyProfileAsync(
@@ -143,6 +145,84 @@ public sealed class CandidateProfileService(
         return CreateResponse(profile, skillResponses);
     }
 
+    public async Task<CandidateProfileResponse> UploadDefaultCvAsync(
+        Stream cvStream, string originalFileName, string contentType, long fileSizeBytes, CancellationToken cancellationToken = default)
+    {
+        var userId = GetCandidateUserId();
+        CvFileValidator.Validate(originalFileName, fileSizeBytes, cvStream, contentType);
+
+        var profile = await dbContext.CandidateProfiles
+            .Include(candidate => candidate.Skills)
+            .ThenInclude(candidateSkill => candidateSkill.Skill)
+            .Include(candidate => candidate.ExperienceHistory)
+            .SingleOrDefaultAsync(candidate => candidate.UserId == userId, cancellationToken)
+            ?? throw ProfileNotFound();
+
+        var storedFileName = await fileStorageService.SaveFileAsync(cvStream, originalFileName, contentType, cancellationToken);
+
+        if (!string.IsNullOrWhiteSpace(profile.DefaultCvFileName))
+        {
+            await fileStorageService.DeleteFileAsync(profile.DefaultCvFileName, cancellationToken);
+        }
+
+        profile.SetDefaultCv(storedFileName, originalFileName, contentType, fileSizeBytes, clock.UtcNow);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        if (notifier != null)
+        {
+            await notifier.NotifyCandidateProfileUpdatedAsync(new CandidateProfileUpdatedRealtimeEvent(userId), cancellationToken);
+        }
+
+        var skillResponses = profile.Skills
+            .OrderBy(s => s.SkillId)
+            .Select(s => new CandidateProfileSkillResponse(s.SkillId, s.Skill?.Name ?? "Skill", s.Proficiency, s.YearsOfExperience, s.IsPreferred))
+            .ToArray();
+
+        return CreateResponse(profile, skillResponses);
+    }
+
+    public async Task<CvDownloadResult> GetDefaultCvFileAsync(CancellationToken cancellationToken = default)
+    {
+        var userId = GetCandidateUserId();
+        var profile = await dbContext.CandidateProfiles
+            .AsNoTracking()
+            .SingleOrDefaultAsync(candidate => candidate.UserId == userId, cancellationToken)
+            ?? throw ProfileNotFound();
+
+        if (string.IsNullOrWhiteSpace(profile.DefaultCvFileName))
+        {
+            throw new NotFoundException("candidate.no_default_cv", "Default CV not found", "No default CV is associated with this profile.");
+        }
+
+        var stream = await fileStorageService.GetFileAsync(profile.DefaultCvFileName, cancellationToken)
+            ?? throw new NotFoundException("candidate.default_cv_missing", "Default CV file missing", "The default CV file could not be found in storage.");
+
+        return new CvDownloadResult(
+            stream,
+            profile.DefaultCvContentType ?? "application/octet-stream",
+            profile.DefaultCvOriginalFileName ?? "resume.pdf");
+    }
+
+    public async Task RemoveDefaultCvAsync(CancellationToken cancellationToken = default)
+    {
+        var userId = GetCandidateUserId();
+        var profile = await dbContext.CandidateProfiles
+            .SingleOrDefaultAsync(candidate => candidate.UserId == userId, cancellationToken)
+            ?? throw ProfileNotFound();
+
+        if (!string.IsNullOrWhiteSpace(profile.DefaultCvFileName))
+        {
+            await fileStorageService.DeleteFileAsync(profile.DefaultCvFileName, cancellationToken);
+            profile.RemoveDefaultCv(clock.UtcNow);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            if (notifier != null)
+            {
+                await notifier.NotifyCandidateProfileUpdatedAsync(new CandidateProfileUpdatedRealtimeEvent(userId), cancellationToken);
+            }
+        }
+    }
+
     private string GetCandidateUserId()
     {
         if (!currentUser.IsAuthenticated || string.IsNullOrWhiteSpace(currentUser.UserId))
@@ -198,6 +278,10 @@ public sealed class CandidateProfileService(
             profile.PreferredWorkArrangement,
             profile.PreferredJobType,
             experiences,
-            preferredSkills);
+            preferredSkills,
+            profile.HasDefaultCv,
+            profile.DefaultCvOriginalFileName,
+            profile.DefaultCvFileSizeBytes,
+            profile.DefaultCvUploadedAt);
     }
 }

@@ -1,5 +1,6 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { ApplicationDto, ApplicationStatus } from '../../../core/models/application.models';
@@ -15,10 +16,11 @@ import { extractErrorMessage } from '../../../core/utils/error-formatter';
   templateUrl: './candidate-applications.component.html',
   styleUrl: './candidate-applications.component.scss',
 })
-export class CandidateApplicationsComponent implements OnInit {
+export class CandidateApplicationsComponent implements OnInit, OnDestroy {
   private readonly applicationsService = inject(ApplicationsService);
   private readonly realtime = inject(RealtimeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly sanitizer = inject(DomSanitizer);
   readonly authService = inject(AuthService);
 
   // State Signals
@@ -28,6 +30,17 @@ export class CandidateApplicationsComponent implements OnInit {
   readonly errorMessage = signal<string | null>(null);
   readonly successToast = signal<string | null>(null);
   readonly pendingWithdrawApp = signal<ApplicationDto | null>(null);
+  readonly downloadingCvId = signal<number | null>(null);
+
+  // CV Preview Modal Signals
+  readonly showCvPreviewModal = signal<boolean>(false);
+  readonly cvPreviewLoading = signal<boolean>(false);
+  readonly cvPreviewError = signal<string | null>(null);
+  readonly cvPreviewFileName = signal<string | null>(null);
+  readonly cvPreviewBlob = signal<Blob | null>(null);
+  readonly cvPreviewSafeUrl = signal<SafeResourceUrl | null>(null);
+  readonly isDocxPreview = signal<boolean>(false);
+  private cvPreviewObjectUrl: string | null = null;
 
   // Sorted list: newest first (appliedAt desc)
   readonly sortedApplications = computed(() => {
@@ -200,6 +213,101 @@ export class CandidateApplicationsComponent implements OnInit {
         this.errorMessage.set(msg);
       },
     });
+  }
+
+  downloadCv(app: ApplicationDto): void {
+    if (this.downloadingCvId()) return;
+
+    this.downloadingCvId.set(app.id);
+    this.applicationsService.downloadCv(app.id).subscribe({
+      next: (blob) => {
+        this.downloadingCvId.set(null);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = app.cvOriginalFileName || 'my-cv.pdf';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+      },
+      error: (err) => {
+        this.downloadingCvId.set(null);
+        this.errorMessage.set(extractErrorMessage(err, 'Failed to download CV file.'));
+      },
+    });
+  }
+
+  openCvPreview(app: ApplicationDto): void {
+    if (this.cvPreviewObjectUrl) {
+      window.URL.revokeObjectURL(this.cvPreviewObjectUrl);
+      this.cvPreviewObjectUrl = null;
+    }
+
+    const fileName = app.cvOriginalFileName || 'my-cv.pdf';
+    this.showCvPreviewModal.set(true);
+    this.cvPreviewLoading.set(true);
+    this.cvPreviewError.set(null);
+    this.cvPreviewFileName.set(fileName);
+    this.cvPreviewBlob.set(null);
+    this.cvPreviewSafeUrl.set(null);
+
+    const isPdf = fileName.toLowerCase().endsWith('.pdf');
+    this.isDocxPreview.set(!isPdf);
+
+    this.applicationsService.downloadCv(app.id).subscribe({
+      next: (blob) => {
+        this.cvPreviewLoading.set(false);
+        const mime = isPdf
+          ? 'application/pdf'
+          : blob.type || 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        const typedBlob = new Blob([blob], { type: mime });
+        this.cvPreviewBlob.set(typedBlob);
+        this.cvPreviewObjectUrl = window.URL.createObjectURL(typedBlob);
+        this.cvPreviewSafeUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(this.cvPreviewObjectUrl));
+      },
+      error: (err) => {
+        this.cvPreviewLoading.set(false);
+        this.cvPreviewError.set(extractErrorMessage(err, 'Failed to load CV preview.'));
+      },
+    });
+  }
+
+  closeCvPreview(): void {
+    if (this.cvPreviewObjectUrl) {
+      window.URL.revokeObjectURL(this.cvPreviewObjectUrl);
+      this.cvPreviewObjectUrl = null;
+    }
+    this.showCvPreviewModal.set(false);
+    this.cvPreviewLoading.set(false);
+    this.cvPreviewError.set(null);
+    this.cvPreviewBlob.set(null);
+    this.cvPreviewSafeUrl.set(null);
+  }
+
+  downloadCurrentPreviewCv(): void {
+    const blob = this.cvPreviewBlob();
+    const fileName = this.cvPreviewFileName() || 'my-cv.pdf';
+    if (blob) {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.toastTimeoutId) {
+      clearTimeout(this.toastTimeoutId);
+    }
+    if (this.cvPreviewObjectUrl) {
+      window.URL.revokeObjectURL(this.cvPreviewObjectUrl);
+      this.cvPreviewObjectUrl = null;
+    }
   }
 
   dismissAlert(): void {

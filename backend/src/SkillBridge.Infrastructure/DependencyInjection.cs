@@ -52,6 +52,7 @@ public static class DependencyInjection
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+        services.AddSingleton<IFileStorageService, LocalFileStorageService>();
         services.AddScoped<IdentitySeeder>();
 
         return services;
