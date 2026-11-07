@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, inject, OnInit, signal } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -15,11 +15,12 @@ import { SkillDto } from '../../../../core/models/profile.models';
 import { JobsService } from '../../../../core/services/jobs.service';
 import { SkillsService } from '../../../../core/services/skills.service';
 import { extractErrorMessage } from '../../../../core/utils/error-formatter';
+import { SKILL_CATEGORIES } from '../../../candidate/onboarding/candidate-skill-onboarding.component';
 
 /**
- * Custom validator ensuring at least 1 and at most 25 skills (including custom tags) are selected
+ * Custom validator ensuring at least 1 and at most 20 skills (including custom tags) are selected
  */
-export const requiredSkillsValidator = (min = 1, max = 25, getCustomCount?: () => number): ValidatorFn => {
+export const requiredSkillsValidator = (min = 1, max = 20, getCustomCount?: () => number): ValidatorFn => {
   return (control: AbstractControl): ValidationErrors | null => {
     const ids = control.value as number[] | null;
     const customCount = getCustomCount ? getCustomCount() : 0;
@@ -47,6 +48,7 @@ export class EmployerPostJobComponent implements OnInit {
   readonly skillsService = inject(SkillsService);
   readonly router = inject(Router);
   readonly route = inject(ActivatedRoute);
+  private readonly elementRef = inject(ElementRef);
 
   // Edit Mode & State Signals
   readonly jobId = signal<number | null>(null);
@@ -60,6 +62,15 @@ export class EmployerPostJobComponent implements OnInit {
   readonly errorMessage = signal<string | null>(null);
   readonly skillSearchQuery = signal<string>('');
 
+  // Dropdown Open State Signals
+  readonly isCoreDropdownOpen = signal<boolean>(false);
+  readonly isPreferredDropdownOpen = signal<boolean>(false);
+
+  // Skill Categories
+  readonly categories = SKILL_CATEGORIES;
+  readonly activeCategory = signal<string>('all');
+  readonly activePreferredCategory = signal<string>('all');
+
   // Custom Skills
   readonly customSkillInput = signal<string>('');
   readonly customSkills = signal<string[]>([]);
@@ -70,12 +81,23 @@ export class EmployerPostJobComponent implements OnInit {
   readonly selectedPreferredSkillIds = signal<number[]>([]);
   readonly preferredSkillSearchQuery = signal<string>('');
 
-  // Filtered skills based on chip search input
+  // Filtered skills based on category filter and search query
   readonly filteredSkills = computed(() => {
     const query = this.skillSearchQuery().trim().toLowerCase();
-    const skills = this.allSkills();
-    if (!query) return skills;
-    return skills.filter((s) => s.name.toLowerCase().includes(query));
+    const categoryId = this.activeCategory();
+    let skills = this.allSkills();
+
+    if (categoryId !== 'all') {
+      const group = this.categories.find((c) => c.id === categoryId);
+      if (group && group.skillNames.length > 0) {
+        skills = skills.filter((s) => group.skillNames.some((name) => name.toLowerCase() === s.name.toLowerCase()));
+      }
+    }
+
+    if (query) {
+      skills = skills.filter((s) => s.name.toLowerCase().includes(query));
+    }
+    return skills;
   });
 
   // Selected skill objects for quick display
@@ -89,12 +111,23 @@ export class EmployerPostJobComponent implements OnInit {
     return this.selectedSkillIds().length + this.customSkills().length;
   });
 
-  // Filtered preferred skills based on preferred search input
+  // Filtered preferred skills based on category filter and search query
   readonly filteredPreferredSkills = computed(() => {
     const query = this.preferredSkillSearchQuery().trim().toLowerCase();
-    const skills = this.allSkills();
-    if (!query) return skills;
-    return skills.filter((s) => s.name.toLowerCase().includes(query));
+    const categoryId = this.activePreferredCategory();
+    let skills = this.allSkills();
+
+    if (categoryId !== 'all') {
+      const group = this.categories.find((c) => c.id === categoryId);
+      if (group && group.skillNames.length > 0) {
+        skills = skills.filter((s) => group.skillNames.some((name) => name.toLowerCase() === s.name.toLowerCase()));
+      }
+    }
+
+    if (query) {
+      skills = skills.filter((s) => s.name.toLowerCase().includes(query));
+    }
+    return skills;
   });
 
   // Selected preferred skill objects for quick display
@@ -113,7 +146,7 @@ export class EmployerPostJobComponent implements OnInit {
     minExperienceYears: [0, [Validators.min(0), Validators.max(50)]],
     deadline: [''],
     description: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(4000)]],
-    requiredSkillIds: [[], [requiredSkillsValidator(1, 25, () => this.customSkills().length)]],
+    requiredSkillIds: [[], [requiredSkillsValidator(1, 20, () => this.customSkills().length)]],
   });
 
   ngOnInit(): void {
@@ -239,14 +272,15 @@ export class EmployerPostJobComponent implements OnInit {
    * Toggle skill selection chip
    */
   toggleSkill(skillId: number): void {
+    if (this.isEditingExpired()) return;
     const current = [...this.selectedSkillIds()];
     const index = current.indexOf(skillId);
 
     if (index > -1) {
       current.splice(index, 1);
     } else {
-      if (current.length >= 15) {
-        return; // Max 15 skills reached
+      if (current.length >= 20) {
+        return; // Max 20 skills reached
       }
       // If currently selected in preferred skills, remove from preferred
       if (this.isPreferredSkillSelected(skillId)) {
@@ -267,15 +301,20 @@ export class EmployerPostJobComponent implements OnInit {
   }
 
   removeSkill(skillId: number): void {
-    if (this.isSkillSelected(skillId)) {
-      this.toggleSkill(skillId);
-    }
+    if (this.isEditingExpired()) return;
+    const current = this.selectedSkillIds().filter((id) => id !== skillId);
+    this.selectedSkillIds.set(current);
+    this.requiredSkillIdsControl?.setValue(current);
+    this.requiredSkillIdsControl?.markAsDirty();
+    this.requiredSkillIdsControl?.markAsTouched();
+    this.requiredSkillIdsControl?.updateValueAndValidity();
   }
 
   /**
    * Toggle preferred / nice-to-have skill selection chip
    */
   togglePreferredSkill(skillId: number): void {
+    if (this.isEditingExpired()) return;
     const current = [...this.selectedPreferredSkillIds()];
     const index = current.indexOf(skillId);
 
@@ -293,6 +332,7 @@ export class EmployerPostJobComponent implements OnInit {
     }
 
     this.selectedPreferredSkillIds.set(current);
+    this.jobForm.markAsDirty();
   }
 
   isPreferredSkillSelected(skillId: number): boolean {
@@ -300,9 +340,10 @@ export class EmployerPostJobComponent implements OnInit {
   }
 
   removePreferredSkill(skillId: number): void {
-    if (this.isPreferredSkillSelected(skillId)) {
-      this.togglePreferredSkill(skillId);
-    }
+    if (this.isEditingExpired()) return;
+    const current = this.selectedPreferredSkillIds().filter((id) => id !== skillId);
+    this.selectedPreferredSkillIds.set(current);
+    this.jobForm.markAsDirty();
   }
 
   onCustomSkillInput(event: Event): void {
@@ -332,7 +373,7 @@ export class EmployerPostJobComponent implements OnInit {
       return;
     }
 
-    if (current.length + this.selectedSkillIds().length >= 25) {
+    if (current.length + this.selectedSkillIds().length >= 20) {
       return;
     }
 
@@ -368,6 +409,86 @@ export class EmployerPostJobComponent implements OnInit {
 
   clearPreferredSearch(): void {
     this.preferredSkillSearchQuery.set('');
+  }
+
+  setCategory(categoryId: string): void {
+    this.activeCategory.set(categoryId);
+  }
+
+  setPreferredCategory(categoryId: string): void {
+    this.activePreferredCategory.set(categoryId);
+  }
+
+  toggleCoreDropdown(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (this.isEditingExpired()) return;
+    this.isCoreDropdownOpen.update((v) => !v);
+    if (this.isCoreDropdownOpen()) {
+      this.isPreferredDropdownOpen.set(false);
+    }
+  }
+
+  togglePreferredDropdown(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (this.isEditingExpired()) return;
+    this.isPreferredDropdownOpen.update((v) => !v);
+    if (this.isPreferredDropdownOpen()) {
+      this.isCoreDropdownOpen.set(false);
+    }
+  }
+
+  closeCoreDropdown(): void {
+    this.isCoreDropdownOpen.set(false);
+  }
+
+  closePreferredDropdown(): void {
+    this.isPreferredDropdownOpen.set(false);
+  }
+
+  clearAllCoreSkills(): void {
+    if (this.isEditingExpired()) return;
+    this.selectedSkillIds.set([]);
+    this.customSkills.set([]);
+    this.requiredSkillIdsControl?.setValue([]);
+    this.requiredSkillIdsControl?.markAsDirty();
+    this.requiredSkillIdsControl?.markAsTouched();
+    this.requiredSkillIdsControl?.updateValueAndValidity();
+  }
+
+  clearAllPreferredSkills(): void {
+    if (this.isEditingExpired()) return;
+    this.selectedPreferredSkillIds.set([]);
+    this.jobForm.markAsDirty();
+  }
+
+  getSkillCategoryName(skillName: string): string {
+    for (const cat of this.categories) {
+      if (cat.id === 'all') continue;
+      if (cat.skillNames.some((name) => name.toLowerCase() === skillName.toLowerCase())) {
+        return cat.name;
+      }
+    }
+    return 'Other';
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target) return;
+
+    const coreWrapper = this.elementRef.nativeElement.querySelector('.core-dropdown-wrapper');
+    if (this.isCoreDropdownOpen() && coreWrapper && !coreWrapper.contains(target)) {
+      this.isCoreDropdownOpen.set(false);
+    }
+
+    const preferredWrapper = this.elementRef.nativeElement.querySelector('.preferred-dropdown-wrapper');
+    if (this.isPreferredDropdownOpen() && preferredWrapper && !preferredWrapper.contains(target)) {
+      this.isPreferredDropdownOpen.set(false);
+    }
   }
 
   dismissAlert(): void {

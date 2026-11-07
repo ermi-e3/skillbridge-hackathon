@@ -522,8 +522,8 @@
           </div>
         </section>
 
-        <!-- Card 3: Primary Technical Skills -->
-        <section class="card section-card">
+        <!-- Card 3: Primary Technical Skills (Core Skills) -->
+        <section class="card section-card core-skills-section">
           <div class="card-header skills-header-row">
             <div class="header-title-group">
               <div class="card-icon-box skill-icon-box">
@@ -537,7 +537,7 @@
                 </div>
                 <h2 class="card-title">Primary Technical Skills</h2>
                 <p class="card-desc">
-                  Select between <strong>1 and 20 core skills</strong>. These represent your primary stack and main technical competencies for candidate-job matching.
+                  Select between <strong>1 and 20 core skills</strong>. These represent your primary stack and main technical competencies for Ethiopian tech job matching.
                 </p>
               </div>
             </div>
@@ -545,9 +545,9 @@
             <!-- Skills Counter Pill -->
             <div
               class="skills-counter-pill"
-              [class.counter-valid]="selectedSkillIds().length >= 1 && selectedSkillIds().length <= 30"
+              [class.counter-valid]="selectedSkillIds().length >= 1 && selectedSkillIds().length <= 20"
               [class.counter-empty]="selectedSkillIds().length === 0"
-              [class.counter-overflow]="selectedSkillIds().length > 30"
+              [class.counter-overflow]="selectedSkillIds().length > 20"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="counter-icon">
                 <polyline points="20 6 9 17 4 12"></polyline>
@@ -557,14 +557,20 @@
           </div>
 
           <div class="card-body">
-            <!-- Selected Core Skills Ribbon -->
-            @if (selectedCoreSkills().length > 0) {
-              <div class="selected-ribbon core-ribbon">
-                <span class="ribbon-label">Your Core Stack:</span>
-                <div class="selected-chips-list">
+            <!-- Selected Core Skills Chips Tray (Removable compact chips above the dropdown) -->
+            <div class="selected-skills-tray-container">
+              <div class="tray-header-row">
+                <span class="tray-label">Selected Core Technologies ({{ selectedCoreSkills().length }}):</span>
+                @if (selectedCoreSkills().length > 0) {
+                  <button type="button" class="btn-clear-tray" (click)="clearAllCoreSkills()">Clear all</button>
+                }
+              </div>
+
+              @if (selectedCoreSkills().length > 0) {
+                <div class="selected-chips-grid">
                   @for (skill of selectedCoreSkills(); track skill.id) {
                     <span class="selected-chip chip-core">
-                      {{ skill.name }}
+                      <span class="chip-name">{{ skill.name }}</span>
                       <button
                         type="button"
                         class="chip-remove-btn"
@@ -579,48 +585,16 @@
                     </span>
                   }
                 </div>
-              </div>
-            }
-
-            <!-- Category Tabs -->
-            <div class="category-tabs" role="tablist" aria-label="Core Skill Categories">
-              @for (cat of categories; track cat.id) {
-                <button
-                  type="button"
-                  class="cat-tab"
-                  [class.active]="activeCategory() === cat.id"
-                  (click)="setCategory(cat.id)"
-                  role="tab"
-                  [attr.aria-selected]="activeCategory() === cat.id"
-                >
-                  {{ cat.name }}
-                </button>
+              } @else {
+                <div class="empty-tray-notice">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  <span>No core skills selected yet. Open the dropdown below to select between 1 and 20 technologies.</span>
+                </div>
               }
-            </div>
-
-            <!-- Search & Filter Bar -->
-            <div class="skills-search-bar">
-              <div class="search-input-wrapper">
-                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                <input
-                  type="text"
-                  [value]="skillSearchQuery()"
-                  (input)="onSearchChange($event)"
-                  placeholder="Filter core skills (e.g. C#, ASP.NET, Angular, Docker)..."
-                  class="search-input"
-                />
-                @if (skillSearchQuery()) {
-                  <button type="button" class="clear-search-btn" (click)="clearSearch()" aria-label="Clear filter">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                }
-              </div>
             </div>
 
             <!-- Validation Feedback for Skills -->
@@ -632,51 +606,167 @@
                 @if (skillIdsControl?.errors?.['minSkills']) {
                   <span>Please select at least 1 technical skill to qualify for job matching.</span>
                 } @else if (skillIdsControl?.errors?.['maxSkills']) {
-                  <span>You can select a maximum of 30 skills.</span>
+                  <span>You can select a maximum of 20 core skills.</span>
                 }
               </div>
             }
 
-            <!-- Clickable Chips Grid -->
-            <div class="chips-container" role="group" aria-label="Available technical skills">
-              @for (skill of filteredSkills(); track skill.id) {
-                <button
-                  type="button"
-                  class="skill-chip"
-                  [class.selected]="isSkillSelected(skill.id)"
-                  [class.in-preferred]="isPreferredSkillSelected(skill.id)"
-                  (click)="toggleSkill(skill.id)"
-                  [attr.aria-pressed]="isSkillSelected(skill.id)"
-                  [title]="isPreferredSkillSelected(skill.id) ? 'Currently in Nice-to-Have (click to move to Core)' : ''"
-                >
-                  @if (isSkillSelected(skill.id)) {
-                    <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  } @else {
-                    <svg class="chip-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                  }
-                  <span class="chip-label">{{ skill.name }}</span>
-                  @if (isPreferredSkillSelected(skill.id)) {
-                    <span class="chip-tag-pref">Preferred</span>
-                  }
-                </button>
-              }
+            <!-- Modern Searchable Multi-Select Dropdown Component -->
+            <div class="multi-select-dropdown-wrapper core-dropdown-wrapper" [class.is-open]="isCoreDropdownOpen()">
+              <label class="dropdown-field-label">Add Core Technologies</label>
 
-              @if (filteredSkills().length === 0) {
-                <div class="empty-skills-search">
-                  <p>No skills match "{{ skillSearchQuery() }}".</p>
-                  <button type="button" class="reset-filter-btn" (click)="clearSearch()">Clear filter</button>
+              <!-- Dropdown Trigger Button -->
+              <div
+                class="dropdown-trigger-bar"
+                [class.active]="isCoreDropdownOpen()"
+                (click)="toggleCoreDropdown($event)"
+                role="combobox"
+                [attr.aria-expanded]="isCoreDropdownOpen()"
+                aria-haspopup="listbox"
+                tabindex="0"
+                (keydown.enter)="toggleCoreDropdown($event)"
+                (keydown.space)="toggleCoreDropdown($event)"
+              >
+                <div class="trigger-left">
+                  <svg class="trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  <span class="trigger-text">
+                    @if (selectedSkillIds().length === 0) {
+                      Click to search & select core technologies...
+                    } @else if (selectedSkillIds().length >= 20) {
+                      Maximum 20 core technologies selected (click to edit)
+                    } @else {
+                      Search & add more technologies ({{ 20 - selectedSkillIds().length }} remaining)...
+                    }
+                  </span>
+                </div>
+
+                <div class="trigger-right">
+                  <span class="trigger-badge">{{ selectedSkillIds().length }}/20</span>
+                  <svg class="chevron-icon" [class.rotated]="isCoreDropdownOpen()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Dropdown Panel (Smooth overlay menu) -->
+              @if (isCoreDropdownOpen()) {
+                <div class="dropdown-panel-menu" role="listbox" (click)="$event.stopPropagation()">
+                  <!-- Live Search Bar inside Dropdown -->
+                  <div class="dropdown-search-header">
+                    <div class="search-input-box">
+                      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                      <input
+                        type="text"
+                        [value]="skillSearchQuery()"
+                        (input)="onSearchChange($event)"
+                        placeholder="Search skills (e.g. C#, ASP.NET, Angular, Docker)..."
+                        class="dropdown-search-input"
+                        autofocus
+                      />
+                      @if (skillSearchQuery()) {
+                        <button type="button" class="btn-clear-search" (click)="clearSearch()" aria-label="Clear filter">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Category Filter Tabs inside Dropdown -->
+                  <div class="dropdown-category-bar" role="tablist" aria-label="Skill Categories">
+                    @for (cat of categories; track cat.id) {
+                      <button
+                        type="button"
+                        class="category-tab-btn"
+                        [class.active]="activeCategory() === cat.id"
+                        (click)="setCategory(cat.id)"
+                        role="tab"
+                        [attr.aria-selected]="activeCategory() === cat.id"
+                      >
+                        {{ cat.name }}
+                      </button>
+                    }
+                  </div>
+
+                  <!-- Available Technologies List -->
+                  <div class="dropdown-items-list" role="group">
+                    @for (skill of filteredSkills(); track skill.id) {
+                      <div
+                        class="dropdown-item-row"
+                        [class.is-selected]="isSkillSelected(skill.id)"
+                        [class.is-in-other]="isPreferredSkillSelected(skill.id)"
+                        [class.is-disabled]="!isSkillSelected(skill.id) && selectedSkillIds().length >= 20"
+                        (click)="toggleSkill(skill.id)"
+                        role="option"
+                        [attr.aria-selected]="isSkillSelected(skill.id)"
+                        tabindex="0"
+                        (keydown.enter)="toggleSkill(skill.id)"
+                        (keydown.space)="toggleSkill(skill.id); $event.preventDefault()"
+                      >
+                        <!-- Checkbox Box with Checkmark -->
+                        <div class="item-checkbox" [class.checked]="isSkillSelected(skill.id)">
+                          @if (isSkillSelected(skill.id)) {
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          }
+                        </div>
+
+                        <!-- Skill Name and Category -->
+                        <div class="item-details">
+                          <span class="item-name">{{ skill.name }}</span>
+                          <span class="item-category-tag">{{ getSkillCategoryName(skill.name) }}</span>
+                        </div>
+
+                        <!-- Status Badge (e.g. In Nice-to-Have, Limit) -->
+                        <div class="item-status-col">
+                          @if (isPreferredSkillSelected(skill.id)) {
+                            <span class="other-group-badge" title="Click to move from Nice-to-Have to Core">In Nice-to-Have</span>
+                          } @else if (isSkillSelected(skill.id)) {
+                            <span class="selected-text-badge">Core Selected</span>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    @if (filteredSkills().length === 0) {
+                      <div class="dropdown-empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <p>No technologies match "{{ skillSearchQuery() }}"</p>
+                        <button type="button" class="btn-reset-filters" (click)="clearSearch(); setCategory('all')">
+                          Clear search & filters
+                        </button>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Dropdown Footer -->
+                  <div class="dropdown-panel-footer">
+                    <span class="footer-count-text">
+                      <strong>{{ selectedSkillIds().length }}</strong> of 20 core skills selected
+                    </span>
+                    <button type="button" class="btn-dropdown-done" (click)="closeCoreDropdown()">
+                      Done
+                    </button>
+                  </div>
                 </div>
               }
             </div>
           </div>
         </section>
 
-        <!-- Card 3: Nice-to-Have Skills (Preferred Competencies) Section -->
+        <!-- Card 4: Nice-to-Have Skills (Preferred Competencies) Section -->
         <section class="card section-card preferred-skills-card">
           <div class="card-header skills-header-row preferred-header-row">
             <div class="header-title-group">
@@ -692,7 +782,7 @@
                 </div>
                 <h2 class="card-title">Nice-to-Have Skills (Preferred Competencies)</h2>
                 <p class="card-desc">
-                  Highlight secondary tools, emerging frameworks, or technologies you know. When employers mark these as nice-to-have, you will earn <strong>bonus matching points</strong> without being penalized if an opening doesn't need them!
+                  Highlight secondary tools, emerging frameworks, or technologies you know (up to 15). When employers mark these as nice-to-have, you will earn <strong>bonus matching points</strong> without being penalized if an opening doesn't need them!
                 </p>
               </div>
             </div>
@@ -710,14 +800,20 @@
           </div>
 
           <div class="card-body">
-            <!-- Selected Preferred Skills Ribbon -->
-            @if (selectedPreferredSkills().length > 0) {
-              <div class="selected-ribbon preferred-ribbon">
-                <span class="ribbon-label">Your Nice-to-Have Skills:</span>
-                <div class="selected-chips-list">
+            <!-- Selected Preferred Skills Chips Tray -->
+            <div class="selected-skills-tray-container preferred-tray-container">
+              <div class="tray-header-row">
+                <span class="tray-label">Selected Nice-to-Have Technologies ({{ selectedPreferredSkills().length }}):</span>
+                @if (selectedPreferredSkills().length > 0) {
+                  <button type="button" class="btn-clear-tray" (click)="clearAllPreferredSkills()">Clear all</button>
+                }
+              </div>
+
+              @if (selectedPreferredSkills().length > 0) {
+                <div class="selected-chips-grid">
                   @for (skill of selectedPreferredSkills(); track skill.id) {
                     <span class="selected-chip chip-preferred">
-                      {{ skill.name }}
+                      <span class="chip-name">{{ skill.name }}</span>
                       <button
                         type="button"
                         class="chip-remove-btn"
@@ -732,83 +828,165 @@
                     </span>
                   }
                 </div>
-              </div>
-            }
-
-            <!-- Category Tabs for Preferred Skills -->
-            <div class="category-tabs" role="tablist" aria-label="Preferred Skill Categories">
-              @for (cat of categories; track cat.id) {
-                <button
-                  type="button"
-                  class="cat-tab tab-preferred"
-                  [class.active]="activePreferredCategory() === cat.id"
-                  (click)="setPreferredCategory(cat.id)"
-                  role="tab"
-                  [attr.aria-selected]="activePreferredCategory() === cat.id"
-                >
-                  {{ cat.name }}
-                </button>
+              } @else {
+                <div class="empty-tray-notice preferred-empty-notice">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                  <span>No nice-to-have skills selected yet (optional, up to 15). Select secondary tools in the dropdown below.</span>
+                </div>
               }
             </div>
 
-            <!-- Preferred Search & Filter Bar -->
-            <div class="skills-search-bar preferred-search-bar">
-              <div class="search-input-wrapper">
-                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                <input
-                  type="text"
-                  [value]="preferredSkillSearchQuery()"
-                  (input)="onPreferredSearchChange($event)"
-                  placeholder="Filter nice-to-have skills (e.g. Redis, GraphQL, Flutter, AWS)..."
-                  class="search-input"
-                />
-                @if (preferredSkillSearchQuery()) {
-                  <button type="button" class="clear-search-btn" (click)="clearPreferredSearch()" aria-label="Clear filter">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                }
+            <!-- Modern Searchable Multi-Select Dropdown Component (Purple Accent) -->
+            <div class="multi-select-dropdown-wrapper preferred-dropdown-wrapper" [class.is-open]="isPreferredDropdownOpen()">
+              <label class="dropdown-field-label">Add Nice-to-Have Technologies</label>
+
+              <!-- Dropdown Trigger Button -->
+              <div
+                class="dropdown-trigger-bar trigger-preferred"
+                [class.active]="isPreferredDropdownOpen()"
+                (click)="togglePreferredDropdown($event)"
+                role="combobox"
+                [attr.aria-expanded]="isPreferredDropdownOpen()"
+                aria-haspopup="listbox"
+                tabindex="0"
+                (keydown.enter)="togglePreferredDropdown($event)"
+                (keydown.space)="togglePreferredDropdown($event)"
+              >
+                <div class="trigger-left">
+                  <svg class="trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  <span class="trigger-text">
+                    @if (selectedPreferredSkillIds().length === 0) {
+                      Click to search & select nice-to-have technologies...
+                    } @else if (selectedPreferredSkillIds().length >= 15) {
+                      Maximum 15 nice-to-have technologies selected (click to edit)
+                    } @else {
+                      Search & add secondary technologies ({{ 15 - selectedPreferredSkillIds().length }} remaining)...
+                    }
+                  </span>
+                </div>
+
+                <div class="trigger-right">
+                  <span class="trigger-badge badge-preferred">{{ selectedPreferredSkillIds().length }}/15</span>
+                  <svg class="chevron-icon" [class.rotated]="isPreferredDropdownOpen()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
               </div>
-            </div>
 
-            <!-- Preferred Clickable Chips Grid -->
-            <div class="chips-container preferred-chips-container" role="group" aria-label="Available preferred skills">
-              @for (skill of filteredPreferredSkills(); track skill.id) {
-                <button
-                  type="button"
-                  class="skill-chip chip-preferred-item"
-                  [class.selected-preferred]="isPreferredSkillSelected(skill.id)"
-                  [class.in-core]="isSkillSelected(skill.id)"
-                  (click)="togglePreferredSkill(skill.id)"
-                  [attr.aria-pressed]="isPreferredSkillSelected(skill.id)"
-                  [title]="isSkillSelected(skill.id) ? 'Currently in Core Skills (click to move to Nice-to-Have)' : ''"
-                >
-                  @if (isPreferredSkillSelected(skill.id)) {
-                    <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  } @else {
-                    <svg class="chip-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                  }
-                  <span class="chip-label">{{ skill.name }}</span>
-                  @if (isSkillSelected(skill.id)) {
-                    <span class="chip-tag-core">Core</span>
-                  }
-                </button>
-              }
+              <!-- Dropdown Panel (Smooth overlay menu) -->
+              @if (isPreferredDropdownOpen()) {
+                <div class="dropdown-panel-menu panel-preferred" role="listbox" (click)="$event.stopPropagation()">
+                  <!-- Live Search Bar inside Dropdown -->
+                  <div class="dropdown-search-header">
+                    <div class="search-input-box">
+                      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                      <input
+                        type="text"
+                        [value]="preferredSkillSearchQuery()"
+                        (input)="onPreferredSearchChange($event)"
+                        placeholder="Search nice-to-have skills (e.g. Redis, GraphQL, Flutter, AWS)..."
+                        class="dropdown-search-input"
+                        autofocus
+                      />
+                      @if (preferredSkillSearchQuery()) {
+                        <button type="button" class="btn-clear-search" (click)="clearPreferredSearch()" aria-label="Clear filter">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
+                      }
+                    </div>
+                  </div>
 
-              @if (filteredPreferredSkills().length === 0) {
-                <div class="empty-skills-search">
-                  <p>No skills match "{{ preferredSkillSearchQuery() }}".</p>
-                  <button type="button" class="reset-filter-btn" (click)="clearPreferredSearch()">Clear filter</button>
+                  <!-- Category Filter Tabs inside Dropdown -->
+                  <div class="dropdown-category-bar" role="tablist" aria-label="Preferred Skill Categories">
+                    @for (cat of categories; track cat.id) {
+                      <button
+                        type="button"
+                        class="category-tab-btn tab-btn-preferred"
+                        [class.active]="activePreferredCategory() === cat.id"
+                        (click)="setPreferredCategory(cat.id)"
+                        role="tab"
+                        [attr.aria-selected]="activePreferredCategory() === cat.id"
+                      >
+                        {{ cat.name }}
+                      </button>
+                    }
+                  </div>
+
+                  <!-- Available Technologies List -->
+                  <div class="dropdown-items-list" role="group">
+                    @for (skill of filteredPreferredSkills(); track skill.id) {
+                      <div
+                        class="dropdown-item-row row-preferred"
+                        [class.is-selected]="isPreferredSkillSelected(skill.id)"
+                        [class.is-in-other]="isSkillSelected(skill.id)"
+                        [class.is-disabled]="!isPreferredSkillSelected(skill.id) && selectedPreferredSkillIds().length >= 15"
+                        (click)="togglePreferredSkill(skill.id)"
+                        role="option"
+                        [attr.aria-selected]="isPreferredSkillSelected(skill.id)"
+                        tabindex="0"
+                        (keydown.enter)="togglePreferredSkill(skill.id)"
+                        (keydown.space)="togglePreferredSkill(skill.id); $event.preventDefault()"
+                      >
+                        <!-- Checkbox Box with Checkmark -->
+                        <div class="item-checkbox checkbox-preferred" [class.checked]="isPreferredSkillSelected(skill.id)">
+                          @if (isPreferredSkillSelected(skill.id)) {
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          }
+                        </div>
+
+                        <!-- Skill Name and Category -->
+                        <div class="item-details">
+                          <span class="item-name">{{ skill.name }}</span>
+                          <span class="item-category-tag">{{ getSkillCategoryName(skill.name) }}</span>
+                        </div>
+
+                        <!-- Status Badge (e.g. In Core, Limit) -->
+                        <div class="item-status-col">
+                          @if (isSkillSelected(skill.id)) {
+                            <span class="other-group-badge core-group-badge" title="Click to move from Core to Nice-to-Have">In Core Skills</span>
+                          } @else if (isPreferredSkillSelected(skill.id)) {
+                            <span class="selected-text-badge badge-preferred-text">Nice-to-Have Selected</span>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    @if (filteredPreferredSkills().length === 0) {
+                      <div class="dropdown-empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <p>No technologies match "{{ preferredSkillSearchQuery() }}"</p>
+                        <button type="button" class="btn-reset-filters" (click)="clearPreferredSearch(); setPreferredCategory('all')">
+                          Clear search & filters
+                        </button>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Dropdown Footer -->
+                  <div class="dropdown-panel-footer">
+                    <span class="footer-count-text">
+                      <strong>{{ selectedPreferredSkillIds().length }}</strong> of 15 nice-to-have skills selected
+                    </span>
+                    <button type="button" class="btn-dropdown-done btn-done-preferred" (click)="closePreferredDropdown()">
+                      Done
+                    </button>
+                  </div>
                 </div>
               }
             </div>
