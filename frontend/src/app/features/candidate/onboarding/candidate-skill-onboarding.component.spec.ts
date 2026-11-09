@@ -193,4 +193,68 @@ describe('CandidateSkillOnboardingComponent', () => {
     component.skipForNow();
     expect(router.navigate).toHaveBeenCalledWith(['/jobs']);
   });
+
+  it('should manage dropdown open/close states and toggle cleanly', () => {
+    expect(component.isTechnicalDropdownOpen()).toBe(false);
+    expect(component.isPreferredDropdownOpen()).toBe(false);
+
+    component.toggleTechnicalDropdown();
+    expect(component.isTechnicalDropdownOpen()).toBe(true);
+    expect(component.isPreferredDropdownOpen()).toBe(false);
+
+    component.togglePreferredDropdown();
+    expect(component.isPreferredDropdownOpen()).toBe(true);
+    expect(component.isTechnicalDropdownOpen()).toBe(false);
+
+    component.closePreferredDropdown();
+    expect(component.isPreferredDropdownOpen()).toBe(false);
+
+    component.toggleTechnicalDropdown();
+    component.onEscapeKey();
+    expect(component.isTechnicalDropdownOpen()).toBe(false);
+  });
+
+  it('should enforce 10 skills limit for technical skills catalog and 5 for nice-to-have skills', () => {
+    // Technical skills limit of 10
+    for (let i = 1; i <= 10; i++) {
+      component.selectedSkillIds.update((ids) => [...ids, i]);
+    }
+    expect(component.selectedSkillIds().length).toBe(10);
+    component.toggleSkill(99); // 11th skill should not be added
+    expect(component.selectedSkillIds().length).toBe(10);
+    expect(component.selectedSkillIds()).not.toContain(99);
+
+    // Preferred skills limit of 5
+    for (let i = 1; i <= 5; i++) {
+      component.selectedPreferredSkillIds.update((ids) => [...ids, i + 100]);
+    }
+    expect(component.selectedPreferredSkillIds().length).toBe(5);
+    component.togglePreferredSkill(999); // 6th skill should not be added
+    expect(component.selectedPreferredSkillIds().length).toBe(5);
+    expect(component.selectedPreferredSkillIds()).not.toContain(999);
+  });
+
+  it('should clear all technical and preferred skills', () => {
+    component.toggleSkill(1);
+    component.toggleSkill(2);
+    expect(component.selectedSkillIds().length).toBe(2);
+
+    component.clearAllSkills();
+    expect(component.selectedSkillIds().length).toBe(0);
+
+    component.togglePreferredSkill(3);
+    expect(component.selectedPreferredSkillIds().length).toBe(1);
+
+    component.clearAllPreferredSkills();
+    expect(component.selectedPreferredSkillIds().length).toBe(0);
+  });
+
+  it('should return matching skill category name', () => {
+    expect(component.getSkillCategoryName('Angular')).toBe('Frontend');
+    expect(component.getSkillCategoryName('ASP.NET Core')).toBe('Backend');
+    expect(component.getSkillCategoryName('PostgreSQL')).toBe('Database');
+    expect(component.getSkillCategoryName('Docker')).toBe('DevOps & Cloud');
+    expect(component.getSkillCategoryName('Flutter')).toBe('Mobile');
+    expect(component.getSkillCategoryName('UnknownFramework')).toBe('Other');
+  });
 });
