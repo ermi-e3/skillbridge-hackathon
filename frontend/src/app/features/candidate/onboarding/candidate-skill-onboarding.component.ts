@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, inject, OnInit, signal } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -76,7 +76,7 @@ export const urlValidator: ValidatorFn = (control: AbstractControl): ValidationE
   }
 };
 
-export const skillCountValidator = (min = 1, max = 30): ValidatorFn => {
+export const skillCountValidator = (min = 1, max = 10): ValidatorFn => {
   return (control: AbstractControl): ValidationErrors | null => {
     const ids = control.value as number[] | null;
     if (!ids || !Array.isArray(ids) || ids.length < min) {
@@ -102,11 +102,16 @@ export class CandidateSkillOnboardingComponent implements OnInit {
   readonly skillsService = inject(SkillsService);
   readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly elementRef = inject(ElementRef);
 
   // Categories definition
   readonly categories = SKILL_CATEGORIES;
   readonly activeCategory = signal<string>('all');
   readonly activePreferredCategory = signal<string>('all');
+
+  // Dropdown open states
+  readonly isTechnicalDropdownOpen = signal<boolean>(false);
+  readonly isPreferredDropdownOpen = signal<boolean>(false);
 
   // Loading & submission state
   readonly isLoading = signal<boolean>(true);
@@ -127,7 +132,7 @@ export class CandidateSkillOnboardingComponent implements OnInit {
   // Reactive Form
   readonly onboardingForm: FormGroup = this.fb.group({
     headline: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(120)]],
-    skillIds: [[], [skillCountValidator(1, 30)]],
+    skillIds: [[], [skillCountValidator(1, 10)]],
     location: ['', [Validators.maxLength(100)]],
     preferredWorkArrangement: [''],
     preferredJobType: [''],
@@ -330,7 +335,7 @@ export class CandidateSkillOnboardingComponent implements OnInit {
     if (index > -1) {
       current.splice(index, 1);
     } else {
-      if (current.length >= 30) {
+      if (current.length >= 10) {
         return;
       }
       current.push(skillId);
@@ -363,7 +368,7 @@ export class CandidateSkillOnboardingComponent implements OnInit {
     if (index > -1) {
       current.splice(index, 1);
     } else {
-      if (current.length >= 15) {
+      if (current.length >= 5) {
         return;
       }
       current.push(skillId);
@@ -390,6 +395,80 @@ export class CandidateSkillOnboardingComponent implements OnInit {
 
   isPreferredSkillSelected(skillId: number): boolean {
     return this.selectedPreferredSkillIds().includes(skillId);
+  }
+
+  // --- Dropdown Management & Filtering ---
+
+  toggleTechnicalDropdown(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.isTechnicalDropdownOpen.update((v) => !v);
+    if (this.isTechnicalDropdownOpen()) {
+      this.isPreferredDropdownOpen.set(false);
+    }
+  }
+
+  togglePreferredDropdown(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.isPreferredDropdownOpen.update((v) => !v);
+    if (this.isPreferredDropdownOpen()) {
+      this.isTechnicalDropdownOpen.set(false);
+    }
+  }
+
+  closeTechnicalDropdown(): void {
+    this.isTechnicalDropdownOpen.set(false);
+  }
+
+  closePreferredDropdown(): void {
+    this.isPreferredDropdownOpen.set(false);
+  }
+
+  clearAllSkills(): void {
+    this.selectedSkillIds.set([]);
+    this.skillIdsControl?.setValue([]);
+    this.skillIdsControl?.markAsDirty();
+    this.skillIdsControl?.markAsTouched();
+    this.skillIdsControl?.updateValueAndValidity();
+  }
+
+  clearAllPreferredSkills(): void {
+    this.selectedPreferredSkillIds.set([]);
+  }
+
+  getSkillCategoryName(skillName: string): string {
+    for (const cat of this.categories) {
+      if (cat.id === 'all') continue;
+      if (cat.skillNames.some((name) => name.toLowerCase() === skillName.toLowerCase())) {
+        return cat.name;
+      }
+    }
+    return 'Other';
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target) return;
+
+    const techWrapper = this.elementRef.nativeElement.querySelector('.technical-dropdown-wrapper');
+    if (this.isTechnicalDropdownOpen() && techWrapper && !techWrapper.contains(target)) {
+      this.isTechnicalDropdownOpen.set(false);
+    }
+
+    const preferredWrapper = this.elementRef.nativeElement.querySelector('.preferred-dropdown-wrapper');
+    if (this.isPreferredDropdownOpen() && preferredWrapper && !preferredWrapper.contains(target)) {
+      this.isPreferredDropdownOpen.set(false);
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    this.isTechnicalDropdownOpen.set(false);
+    this.isPreferredDropdownOpen.set(false);
   }
 
   toggleAdditionalInfo(): void {
