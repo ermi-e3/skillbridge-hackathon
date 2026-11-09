@@ -3,7 +3,26 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, Observable, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthResponse, AuthUser, LoginRequest, RegisterRequest, UserRole } from '../models/auth.models';
+import {
+  AccountSecurityStatus,
+  AuthResponse,
+  AuthUser,
+  ChangeEmailRequest,
+  ChangePasswordRequest,
+  ConfirmChangeEmailRequest,
+  ConfirmEmailRequest,
+  DeleteAccountRequest,
+  ForgotPasswordRequest,
+  LinkedAccount,
+  LoginRequest,
+  RegisterRequest,
+  ResendConfirmationRequest,
+  ResetPasswordRequest,
+  SetPasswordRequest,
+  SocialLoginRequest,
+  UpdateProfileRequest,
+  UserRole,
+} from '../models/auth.models';
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +31,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly baseUrl = `${environment.apiUrl}/auth`;
+  private readonly accountUrl = `${environment.apiUrl}/account`;
 
   // Stored strictly in Angular memory (no localStorage or sessionStorage)
   readonly token = signal<string | null>(null);
@@ -35,6 +55,143 @@ export class AuthService {
     return this.http
       .post<AuthResponse>(`${this.baseUrl}/register`, payload, { withCredentials: true })
       .pipe(tap((response) => this.handleAuthSuccess(response)));
+  }
+
+  /**
+   * Social login or registration via Google or GitHub
+   */
+  socialLogin(payload: SocialLoginRequest): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.baseUrl}/social-login`, payload, { withCredentials: true })
+      .pipe(tap((response) => this.handleAuthSuccess(response)));
+  }
+
+  /**
+   * Confirm email address with token from verification email
+   */
+  confirmEmail(payload: ConfirmEmailRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/confirm-email`, payload);
+  }
+
+  /**
+   * Resend email confirmation link
+   */
+  resendConfirmation(payload: ResendConfirmationRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/resend-confirmation`, payload);
+  }
+
+  /**
+   * Request password reset link
+   */
+  forgotPassword(payload: ForgotPasswordRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/forgot-password`, payload);
+  }
+
+  /**
+   * Reset password with token from email
+   */
+  resetPassword(payload: ResetPasswordRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/reset-password`, payload);
+  }
+
+  /**
+   * Get account security status (email confirmation, password, linked accounts)
+   */
+  getSecurityStatus(): Observable<AccountSecurityStatus> {
+    return this.http.get<AccountSecurityStatus>(`${this.accountUrl}/security-status`, { withCredentials: true });
+  }
+
+  /**
+   * Update user profile information
+   */
+  updateProfile(payload: UpdateProfileRequest): Observable<AuthUser> {
+    return this.http.put<AuthUser>(`${this.accountUrl}/profile`, payload, { withCredentials: true }).pipe(
+      tap((updated) => {
+        const cur = this.currentUser();
+        if (cur) {
+          this.currentUser.set({
+            ...cur,
+            fullName: updated.fullName,
+            companyName: updated.companyName,
+          });
+        }
+      })
+    );
+  }
+
+  /**
+   * Change current password
+   */
+  changePassword(payload: ChangePasswordRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.accountUrl}/change-password`, payload, { withCredentials: true });
+  }
+
+  /**
+   * Set password for accounts created via social login without a password
+   */
+  setPassword(payload: SetPasswordRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.accountUrl}/set-password`, payload, { withCredentials: true });
+  }
+
+  /**
+   * Request email address change
+   */
+  requestEmailChange(payload: ChangeEmailRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.accountUrl}/change-email-request`, payload, { withCredentials: true });
+  }
+
+  /**
+   * Confirm email address change
+   */
+  confirmChangeEmail(payload: ConfirmChangeEmailRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.accountUrl}/confirm-change-email`, payload, { withCredentials: true });
+  }
+
+  /**
+   * Get linked social accounts
+   */
+  getLinkedAccounts(): Observable<LinkedAccount[]> {
+    return this.http.get<LinkedAccount[]>(`${this.accountUrl}/social-accounts`, { withCredentials: true });
+  }
+
+  /**
+   * Link a new social account
+   */
+  linkSocialAccount(payload: SocialLoginRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.accountUrl}/social-accounts/link`, payload, { withCredentials: true });
+  }
+
+  /**
+   * Unlink a social account
+   */
+  unlinkSocialAccount(provider: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.accountUrl}/social-accounts/unlink`, { provider }, { withCredentials: true });
+  }
+
+  /**
+   * Log out from all active devices and sessions
+   */
+  logoutAll(): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.accountUrl}/logout-all`, {}, { withCredentials: true }).pipe(
+      tap(() => {
+        this.token.set(null);
+        this.currentUser.set(null);
+        this.router.navigate(['/login']);
+      })
+    );
+  }
+
+  /**
+   * Delete account permanently
+   */
+  deleteAccount(payload: DeleteAccountRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.accountUrl}/delete`, payload, { withCredentials: true }).pipe(
+      tap(() => {
+        this.token.set(null);
+        this.currentUser.set(null);
+        this.router.navigate(['/login']);
+      })
+    );
   }
 
   /**
@@ -69,6 +226,7 @@ export class AuthService {
       fullName: response.fullName,
       role: response.role,
       companyName: response.companyName,
+      isEmailConfirmed: response.isEmailConfirmed,
     };
 
     this.token.set(response.accessToken);

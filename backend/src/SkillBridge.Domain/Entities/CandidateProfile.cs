@@ -26,10 +26,10 @@ public class CandidateProfile
     public string? Bio { get; private set; }
     public string? GitHubUrl { get; private set; }
     public string? Location { get; private set; }
-    public ExperienceLevel ExperienceLevel { get; private set; } = ExperienceLevel.EntryLevel;
-    public int YearsOfExperience { get; private set; } = 0;
-    public WorkArrangement PreferredWorkArrangement { get; private set; } = WorkArrangement.Remote;
-    public JobType PreferredJobType { get; private set; } = JobType.FullTime;
+    public ExperienceLevel? ExperienceLevel { get; private set; }
+    public int? YearsOfExperience { get; private set; }
+    public WorkArrangement? PreferredWorkArrangement { get; private set; }
+    public JobType? PreferredJobType { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
 
     public string? DefaultCvFileName { get; private set; }
@@ -44,6 +44,17 @@ public class CandidateProfile
     public IReadOnlyCollection<CandidateExperience> ExperienceHistory => _experienceHistory;
 
     public bool HasSkills => _skills.Count > 0;
+
+    /// <summary>
+    /// Indicates whether the candidate has completed their initial profile setup with required matching criteria
+    /// (at least one skill, headline, experience level, work arrangement, and job type preferences).
+    /// </summary>
+    public bool HasCompletedProfileSetup =>
+        HasSkills &&
+        ExperienceLevel.HasValue &&
+        PreferredWorkArrangement.HasValue &&
+        PreferredJobType.HasValue &&
+        !string.IsNullOrWhiteSpace(Headline);
 
     public void SetDefaultCv(
         string storedFileName,
@@ -124,17 +135,10 @@ public class CandidateProfile
         GitHubUrl = string.IsNullOrWhiteSpace(gitHubUrl) ? null : gitHubUrl.Trim();
         Location = string.IsNullOrWhiteSpace(location) ? null : location.Trim();
         
-        if (experienceLevel.HasValue)
-            ExperienceLevel = experienceLevel.Value;
-
-        if (yearsOfExperience.HasValue)
-            YearsOfExperience = Math.Max(0, yearsOfExperience.Value);
-
-        if (preferredWorkArrangement.HasValue)
-            PreferredWorkArrangement = preferredWorkArrangement.Value;
-
-        if (preferredJobType.HasValue)
-            PreferredJobType = preferredJobType.Value;
+        ExperienceLevel = experienceLevel;
+        YearsOfExperience = yearsOfExperience.HasValue ? Math.Max(0, yearsOfExperience.Value) : null;
+        PreferredWorkArrangement = preferredWorkArrangement;
+        PreferredJobType = preferredJobType;
 
         UpdatedAt = nowUtc;
     }

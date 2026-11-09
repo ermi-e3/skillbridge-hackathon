@@ -8,6 +8,19 @@ public sealed class JobMatchingService : IJobMatchingService
 {
     public JobMatchDto CalculateMatch(Job job, CandidateProfile candidateProfile)
     {
+        if (candidateProfile == null || !candidateProfile.HasCompletedProfileSetup)
+        {
+            var reqSkills = job.RequiredSkills.Where(s => s.Skill != null && s.IsRequired).Select(s => new SkillDto(s.SkillId, s.Skill!.Name)).ToList();
+            var prefSkills = job.RequiredSkills.Where(s => s.Skill != null && !s.IsRequired).Select(s => new SkillDto(s.SkillId, s.Skill!.Name)).ToList();
+            return new JobMatchDto(
+                0,
+                new List<SkillDto>(),
+                reqSkills,
+                new List<SkillDto>(),
+                prefSkills,
+                new JobMatchBreakdownDto(0, 0, 0, 0, 0, 0, 0, "Profile Incomplete", "Profile Incomplete", "Profile Incomplete", "Profile Incomplete"));
+        }
+
         var jobSkills = job.RequiredSkills
             .Where(js => js.Skill != null)
             .Select(js => new JobSkillRequirement(
@@ -191,23 +204,29 @@ public sealed class JobMatchingService : IJobMatchingService
 
     private static (int Score, string Label) EvaluateExperience(JobMatchCriteria job, CandidateMatchProfile candidate)
     {
-        var meetsYears = candidate.YearsOfExperience >= job.MinExperienceYears;
-        var meetsLevel = (int)candidate.ExperienceLevel >= (int)job.ExperienceLevel;
+        if (!candidate.ExperienceLevel.HasValue)
+        {
+            return (0, "Experience Level Not Set");
+        }
+
+        var candYears = candidate.YearsOfExperience ?? 0;
+        var meetsYears = candYears >= job.MinExperienceYears;
+        var meetsLevel = (int)candidate.ExperienceLevel.Value >= (int)job.ExperienceLevel;
 
         if (meetsYears && meetsLevel)
         {
-            var label = (int)candidate.ExperienceLevel > (int)job.ExperienceLevel || candidate.YearsOfExperience > job.MinExperienceYears + 2
+            var label = (int)candidate.ExperienceLevel.Value > (int)job.ExperienceLevel || candYears > job.MinExperienceYears + 2
                 ? "Exceeds Requirements"
                 : "Meets Requirements";
             return (15, label);
         }
 
-        if (meetsYears || (int)candidate.ExperienceLevel >= (int)job.ExperienceLevel - 1)
+        if (meetsYears || (int)candidate.ExperienceLevel.Value >= (int)job.ExperienceLevel - 1)
         {
             return (10, "Strong Growth Opportunity");
         }
 
-        if ((int)candidate.ExperienceLevel >= (int)job.ExperienceLevel - 2)
+        if ((int)candidate.ExperienceLevel.Value >= (int)job.ExperienceLevel - 2)
         {
             return (5, "Below Preferred Experience");
         }
@@ -222,23 +241,30 @@ public sealed class JobMatchingService : IJobMatchingService
             return (10, "Remote (Full Compatibility)");
         }
 
-        if (job.WorkArrangement == candidate.PreferredWorkArrangement)
+        if (!candidate.PreferredWorkArrangement.HasValue)
+        {
+            return (0, "Work Arrangement Not Set");
+        }
+
+        var pref = candidate.PreferredWorkArrangement.Value;
+
+        if (job.WorkArrangement == pref)
         {
             return (10, "Direct Arrangement Match");
         }
 
         if (job.WorkArrangement == WorkArrangement.Hybrid &&
-            (candidate.PreferredWorkArrangement == WorkArrangement.Remote || candidate.PreferredWorkArrangement == WorkArrangement.OnSite))
+            (pref == WorkArrangement.Remote || pref == WorkArrangement.OnSite))
         {
             return (7, "Hybrid Compatible");
         }
 
-        if (job.WorkArrangement == WorkArrangement.OnSite && candidate.PreferredWorkArrangement == WorkArrangement.Hybrid)
+        if (job.WorkArrangement == WorkArrangement.OnSite && pref == WorkArrangement.Hybrid)
         {
             return (6, "Flexible");
         }
 
-        if (job.WorkArrangement == WorkArrangement.OnSite && candidate.PreferredWorkArrangement == WorkArrangement.Remote)
+        if (job.WorkArrangement == WorkArrangement.OnSite && pref == WorkArrangement.Remote)
         {
             return (3, "Arrangement Mismatch (Requires On-Site)");
         }
@@ -279,7 +305,14 @@ public sealed class JobMatchingService : IJobMatchingService
 
     private static (int Score, string Label) EvaluateJobType(JobMatchCriteria job, CandidateMatchProfile candidate)
     {
-        if (job.JobType == candidate.PreferredJobType)
+        if (!candidate.PreferredJobType.HasValue)
+        {
+            return (0, "Job Type Not Set");
+        }
+
+        var pref = candidate.PreferredJobType.Value;
+
+        if (job.JobType == pref)
         {
             return (5, "Matches Preference");
         }
@@ -289,8 +322,8 @@ public sealed class JobMatchingService : IJobMatchingService
             return (5, "Ideal for Entry-Level");
         }
 
-        if ((job.JobType == JobType.Contract && candidate.PreferredJobType == JobType.Freelance) ||
-            (job.JobType == JobType.Freelance && candidate.PreferredJobType == JobType.Contract))
+        if ((job.JobType == JobType.Contract && pref == JobType.Freelance) ||
+            (job.JobType == JobType.Freelance && pref == JobType.Contract))
         {
             return (4, "Flexible Terms");
         }

@@ -229,9 +229,32 @@
                   <span class="match-score-label">Skill Match</span>
                 </div>
               } @else {
-                <div class="match-badge-box match-none" title="Complete your profile skills to view fit score">
+                <div
+                  class="match-badge-box match-none has-tooltip"
+                  tabindex="0"
+                  role="note"
+                  aria-label="Profile incomplete: complete your profile and skills to see your match score"
+                >
                   <span class="match-score-value">--</span>
                   <span class="match-score-label">Match N/A</span>
+
+                  <!-- Hover information tooltip popover -->
+                  <div class="match-na-popover">
+                    <div class="popover-header">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="popover-icon">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                      </svg>
+                      <strong>Profile Incomplete</strong>
+                    </div>
+                    <p class="popover-message">
+                      Please complete your profile setup and add your skills to activate personalized job matching.
+                    </p>
+                    <a routerLink="/candidate/profile" class="popover-action">
+                      Complete Profile &amp; Skills &rarr;
+                    </a>
+                  </div>
                 </div>
               }
             </div>

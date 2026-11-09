@@ -420,7 +420,7 @@
               </div>
 
               <div class="form-group">
-                <label for="preferredWorkArrangement" class="form-label required">
+                <label for="preferredWorkArrangement" class="form-label">
                   Work Arrangement Preference
                 </label>
                 <div class="input-wrapper select-wrapper">
@@ -434,6 +434,7 @@
                     formControlName="preferredWorkArrangement"
                     class="form-input form-select"
                   >
+                    <option value="" disabled selected>Select work arrangement</option>
                     <option value="Remote">Remote</option>
                     <option value="Hybrid">Hybrid</option>
                     <option value="OnSite">On-site</option>
@@ -446,7 +447,7 @@
             <!-- Row 2: Job Type & Experience Level -->
             <div class="form-row-2col">
               <div class="form-group">
-                <label for="preferredJobType" class="form-label required">
+                <label for="preferredJobType" class="form-label">
                   Job Type Preference
                 </label>
                 <div class="input-wrapper select-wrapper">
@@ -459,6 +460,7 @@
                     formControlName="preferredJobType"
                     class="form-input form-select"
                   >
+                    <option value="" disabled selected>Select job type</option>
                     <option value="FullTime">Full-time</option>
                     <option value="PartTime">Part-time</option>
                     <option value="Contract">Contract</option>
@@ -470,7 +472,7 @@
               </div>
 
               <div class="form-group">
-                <label for="experienceLevel" class="form-label required">
+                <label for="experienceLevel" class="form-label">
                   Experience Level
                 </label>
                 <div class="input-wrapper select-wrapper">
@@ -484,6 +486,7 @@
                     formControlName="experienceLevel"
                     class="form-input form-select"
                   >
+                    <option value="" disabled selected>Select experience level</option>
                     <option value="EntryLevel">Entry Level (0 - 1 years)</option>
                     <option value="Junior">Junior (1 - 3 years)</option>
                     <option value="MidLevel">Mid Level (3 - 5 years)</option>

@@ -1,0 +1,237 @@
+<div class="account-page">
+  <div class="account-container">
+    <!-- Header -->
+    <header class="page-header">
+      <div class="header-left">
+        <button type="button" class="back-btn" (click)="goBack()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          Back to Dashboard
+        </button>
+        <h1 class="page-title">Account & Security</h1>
+        <p class="page-subtitle">Manage your profile, password, and email verification</p>
+      </div>
+    </header>
+
+    <!-- Global Alerts -->
+    @if (successMessage()) {
+      <div class="alert-banner alert-success">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="alert-banner alert-danger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading account details...</p>
+      </div>
+    } @else {
+      <div class="settings-grid">
+        <!-- 1. Profile Information -->
+        <section class="card settings-card">
+          <div class="card-header">
+            <h2>Profile Information</h2>
+            <p>Update your personal and organizational details</p>
+          </div>
+          <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()" class="card-body">
+            <div class="form-group">
+              <label class="form-label" for="fullName">Full Name</label>
+              <input id="fullName" type="text" formControlName="fullName" class="form-input" />
+            </div>
+
+            @if (status()?.role === 'Employer') {
+              <div class="form-group">
+                <label class="form-label" for="companyName">Company Name</label>
+                <input id="companyName" type="text" formControlName="companyName" class="form-input" />
+              </div>
+            }
+
+            <div class="form-group">
+              <label class="form-label">Role</label>
+              <span class="badge role-badge">{{ status()?.role }}</span>
+            </div>
+
+            <button type="submit" class="btn btn-primary" [disabled]="profileForm.invalid || isSavingProfile()">
+              {{ isSavingProfile() ? 'Saving...' : 'Save Profile' }}
+            </button>
+          </form>
+        </section>
+
+        <!-- 2. Email Address & Verification -->
+        <section class="card settings-card">
+          <div class="card-header">
+            <h2>Email Address</h2>
+            <p>Your primary account email and verification status</p>
+          </div>
+          <div class="card-body">
+            <div class="email-status-row">
+              <div class="email-info">
+                <span class="email-text">{{ status()?.email }}</span>
+                @if (status()?.isEmailConfirmed) {
+                  <span class="badge badge-success">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Verified
+                  </span>
+                } @else {
+                  <span class="badge badge-warning">Unverified</span>
+                }
+              </div>
+
+              @if (!status()?.isEmailConfirmed) {
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm"
+                  (click)="onResendVerification()"
+                  [disabled]="isResendingVerification()"
+                >
+                  {{ isResendingVerification() ? 'Sending...' : 'Resend Verification Email' }}
+                </button>
+              }
+            </div>
+
+          </div>
+        </section>
+
+        <!-- 3. Password Management -->
+        <section class="card settings-card">
+          <div class="card-header">
+            <h2>{{ status()?.hasPassword ? 'Change Password' : 'Set Account Password' }}</h2>
+            <p>
+              {{
+                status()?.hasPassword
+                  ? 'Ensure your account is using a strong and unique password'
+                  : 'You registered with a social account. You can create a password for direct login.'
+              }}
+            </p>
+          </div>
+          <form [formGroup]="passwordForm" (ngSubmit)="onSavePassword()" class="card-body">
+            @if (status()?.hasPassword) {
+              <div class="form-group">
+                <label class="form-label" for="currentPassword">Current Password</label>
+                <input
+                  id="currentPassword"
+                  type="password"
+                  formControlName="currentPassword"
+                  class="form-input"
+                  autocomplete="current-password"
+                />
+              </div>
+            }
+
+            <div class="form-group">
+              <label class="form-label" for="newPassword">New Password</label>
+              <input
+                id="newPassword"
+                type="password"
+                formControlName="newPassword"
+                placeholder="At least 8 chars, 1 uppercase, 1 digit"
+                class="form-input"
+                autocomplete="new-password"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="confirmPassword">Confirm New Password</label>
+              <input
+                id="confirmPassword"
+                type="password"
+                formControlName="confirmPassword"
+                placeholder="Confirm new password"
+                class="form-input"
+                autocomplete="new-password"
+              />
+            </div>
+
+            <button type="submit" class="btn btn-primary" [disabled]="passwordForm.invalid || isSavingPassword()">
+              {{ isSavingPassword() ? 'Saving...' : status()?.hasPassword ? 'Update Password' : 'Set Password' }}
+            </button>
+          </form>
+        </section>
+
+        <!-- 5. Active Sessions & Devices -->
+        <section class="card settings-card">
+          <div class="card-header">
+            <h2>Session Management</h2>
+            <p>Sign out from other browsers and active devices</p>
+          </div>
+          <div class="card-body">
+            <p class="section-desc">
+              If you suspect unauthorized access or used a public computer, you can immediately invalidate all other active sessions.
+            </p>
+            <button type="button" class="btn btn-secondary" (click)="onLogoutAll()">
+              Sign Out From All Devices
+            </button>
+          </div>
+        </section>
+
+        <!-- 6. Danger Zone -->
+        <section class="card settings-card danger-card">
+          <div class="card-header">
+            <h2 class="text-danger">Danger Zone</h2>
+            <p>Irreversible account actions</p>
+          </div>
+          <div class="card-body">
+            <p class="section-desc">
+              Permanently delete your account, your profile, job interactions, and all associated personal data.
+            </p>
+            <button type="button" class="btn btn-danger" (click)="openDeleteModal()">
+              Delete Account
+            </button>
+          </div>
+        </section>
+      </div>
+    }
+
+    <!-- Delete Confirmation Modal -->
+    @if (showDeleteModal()) {
+      <div class="modal-backdrop">
+        <div class="modal-card">
+          <h3>Delete Account</h3>
+          <p class="text-muted">
+            Are you sure you want to permanently delete your account? This action cannot be undone.
+          </p>
+
+          @if (status()?.hasPassword) {
+            <form [formGroup]="deleteForm" class="modal-form">
+              <label class="form-label" for="delPass">Please enter your password to confirm:</label>
+              <input id="delPass" type="password" formControlName="password" class="form-input" />
+            </form>
+          }
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeDeleteModal()">
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              (click)="onConfirmDelete()"
+              [disabled]="isDeletingAccount()"
+            >
+              {{ isDeletingAccount() ? 'Deleting...' : 'Permanently Delete' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+

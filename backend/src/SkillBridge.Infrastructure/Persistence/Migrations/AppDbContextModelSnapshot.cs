@@ -227,10 +227,8 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("DefaultCvUploadedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("ExperienceLevel")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(1);
+                    b.Property<int?>("ExperienceLevel")
+                        .HasColumnType("integer");
 
                     b.Property<string>("GitHubUrl")
                         .HasMaxLength(300)
@@ -244,23 +242,17 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<int>("PreferredJobType")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(1);
+                    b.Property<int?>("PreferredJobType")
+                        .HasColumnType("integer");
 
-                    b.Property<int>("PreferredWorkArrangement")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(2);
+                    b.Property<int?>("PreferredWorkArrangement")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("YearsOfExperience")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0);
+                    b.Property<int?>("YearsOfExperience")
+                        .HasColumnType("integer");
 
                     b.HasKey("UserId");
 

@@ -25,5 +25,11 @@ public interface IRefreshTokenService
         string reason = "Logout",
         string? ipAddress = null,
         CancellationToken cancellationToken = default);
+
+    Task RevokeAllUserRefreshTokensAsync(
+        string userId,
+        string reason = "RevokeAll",
+        string? ipAddress = null,
+        CancellationToken cancellationToken = default);
 }
 

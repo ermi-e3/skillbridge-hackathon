@@ -33,10 +33,10 @@ public sealed record CandidateExperienceSummary(
 public sealed record CandidateMatchProfile(
     string UserId,
     string? Location,
-    ExperienceLevel ExperienceLevel,
-    int YearsOfExperience,
-    WorkArrangement PreferredWorkArrangement,
-    JobType PreferredJobType,
+    ExperienceLevel? ExperienceLevel,
+    int? YearsOfExperience,
+    WorkArrangement? PreferredWorkArrangement,
+    JobType? PreferredJobType,
     IReadOnlyList<CandidateSkillProfile> Skills,
     IReadOnlyList<CandidateExperienceSummary>? ExperienceHistory = null);
 
