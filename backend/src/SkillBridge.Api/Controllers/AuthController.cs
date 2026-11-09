@@ -23,7 +23,8 @@ public sealed class AuthController(AuthService authService) : ControllerBase
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request, CancellationToken ct)
     {
         var ipAddress = GetClientIpAddress();
-        var result = await authService.RegisterWithRefreshTokenAsync(request, ipAddress, ct);
+        var frontendUrl = GetFrontendBaseUrl();
+        var result = await authService.RegisterWithRefreshTokenAsync(request, ipAddress, frontendUrl, ct);
         SetRefreshTokenCookie(result.RefreshToken, result.RefreshTokenExpiresAt);
         SetCsrfCookie();
         return Ok(result.Response);
@@ -44,6 +45,63 @@ public sealed class AuthController(AuthService authService) : ControllerBase
         SetRefreshTokenCookie(result.RefreshToken, result.RefreshTokenExpiresAt);
         SetCsrfCookie();
         return Ok(result.Response);
+    }
+
+    [AllowAnonymous]
+    [EnableRateLimiting("LoginRateLimit")]
+    [HttpPost("social-login")]
+    [ProducesResponseType<AuthResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<AuthResponse>> SocialLogin(SocialLoginRequest request, CancellationToken ct)
+    {
+        var ipAddress = GetClientIpAddress();
+        var result = await authService.SocialLoginWithRefreshTokenAsync(request, ipAddress, ct);
+        SetRefreshTokenCookie(result.RefreshToken, result.RefreshTokenExpiresAt);
+        SetCsrfCookie();
+        return Ok(result.Response);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("confirm-email")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ConfirmEmail(ConfirmEmailRequest request, CancellationToken ct)
+    {
+        await authService.ConfirmEmailAsync(request, ct);
+        return Ok(new { message = "Email confirmed successfully. You can now use all platform features." });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("resend-confirmation")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResendConfirmation(ResendConfirmationRequest request, CancellationToken ct)
+    {
+        var frontendUrl = GetFrontendBaseUrl();
+        await authService.ResendConfirmationEmailAsync(request, frontendUrl, ct);
+        return Ok(new { message = "If an account with that email exists and is unconfirmed, a verification link has been sent." });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("forgot-password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken ct)
+    {
+        var frontendUrl = GetFrontendBaseUrl();
+        await authService.ForgotPasswordAsync(request, frontendUrl, ct);
+        return Ok(new { message = "If an account with that email exists, a password reset link has been sent." });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("reset-password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken ct)
+    {
+        await authService.ResetPasswordAsync(request, ct);
+        return Ok(new { message = "Your password has been reset successfully. Please sign in with your new password." });
     }
 
     [AllowAnonymous]
@@ -174,5 +232,22 @@ public sealed class AuthController(AuthService authService) : ControllerBase
     private string? GetClientIpAddress()
     {
         return HttpContext.Connection.RemoteIpAddress?.ToString();
+    }
+
+    private string GetFrontendBaseUrl()
+    {
+        var origin = Request.Headers.Origin.FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(origin))
+        {
+            return origin.TrimEnd('/');
+        }
+
+        var referer = Request.Headers.Referer.FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(referer) && Uri.TryCreate(referer, UriKind.Absolute, out var uri))
+        {
+            return $"{uri.Scheme}://{uri.Authority}";
+        }
+
+        return "http://localhost:4200";
     }
 }

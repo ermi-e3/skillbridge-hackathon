@@ -65,7 +65,8 @@
   flex-shrink: 0;
 }
 
-.signout-button {
+.signout-button,
+.security-button {
   display: inline-flex;
   min-height: 2.875rem;
   align-items: center;

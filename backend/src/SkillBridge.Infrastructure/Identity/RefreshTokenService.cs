@@ -140,6 +140,32 @@ public sealed class RefreshTokenService(
         }
     }
 
+    public async Task RevokeAllUserRefreshTokensAsync(
+        string userId,
+        string reason = "RevokeAll",
+        string? ipAddress = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return;
+        }
+
+        var tokens = await dbContext.RefreshTokens
+            .Where(t => t.UserId == userId && t.RevokedAt == null)
+            .ToListAsync(cancellationToken);
+
+        if (tokens.Count != 0)
+        {
+            foreach (var token in tokens)
+            {
+                token.Revoke(clock.UtcNow, reason, ipAddress);
+            }
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+    }
+
     private static string GenerateSecureToken()
     {
         var bytes = RandomNumberGenerator.GetBytes(64);

@@ -172,10 +172,15 @@ public sealed class JobsService(
 
             if (isCandidate)
             {
-                if (candidateProfile != null)
+                if (candidateProfile != null && candidateProfile.HasCompletedProfileSetup)
                 {
                     match = jobMatchingService.CalculateMatch(job, candidateProfile);
                     myMatchPercent = match.Percent;
+                }
+                else
+                {
+                    match = null;
+                    myMatchPercent = null;
                 }
 
                 if (appliedJobMap != null && appliedJobMap.TryGetValue(job.Id, out var appInfo))
@@ -300,10 +305,15 @@ public sealed class JobsService(
                 .Include(cp => cp.ExperienceHistory)
                 .FirstOrDefaultAsync(cp => cp.UserId == currentUser.UserId, cancellationToken);
 
-            if (candidateProfile != null)
+            if (candidateProfile != null && candidateProfile.HasCompletedProfileSetup)
             {
                 match = jobMatchingService.CalculateMatch(job, candidateProfile);
                 myMatchPercent = match.Percent;
+            }
+            else
+            {
+                match = null;
+                myMatchPercent = null;
             }
 
             var application = await dbContext.Applications

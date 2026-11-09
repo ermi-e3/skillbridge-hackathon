@@ -7,4 +7,5 @@ public sealed record AuthResponse(
     string Email,
     string FullName,
     string Role,
-    string? CompanyName);
+    string? CompanyName,
+    bool IsEmailConfirmed = false);

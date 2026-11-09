@@ -24,6 +24,7 @@ public sealed class JwtTokenService(IOptions<JwtOptions> options, IClock clock) 
             new Claim(JwtRegisteredClaimNames.Name, user.FullName),
             new Claim(ClaimTypes.NameIdentifier, user.UserId),
             new Claim(ClaimTypes.Role, user.Role),
+            new Claim("email_verified", user.IsEmailConfirmed ? "true" : "false"),
             new Claim(JwtRegisteredClaimNames.Iat,
                 new DateTimeOffset(issuedAt).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture),
                 ClaimValueTypes.Integer64)

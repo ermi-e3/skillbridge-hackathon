@@ -18,6 +18,12 @@ obj/
 TestResults/
 *.trx
 appsettings.*.local.json
+appsettings.development.json
+appsettings.json
+
+# Ignore appsettings containing secrets
+**/appsettings.Development.json
+**/appsettings.json
 
 # ---------- Angular / Node ----------
 node_modules/

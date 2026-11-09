@@ -406,6 +406,7 @@
             <div class="form-group">
               <label for="onboardingArrangement" class="form-label">Work Arrangement</label>
               <select id="onboardingArrangement" formControlName="preferredWorkArrangement" class="form-input form-select">
+                <option value="" disabled selected>Select work arrangement</option>
                 <option value="Remote">Remote</option>
                 <option value="Hybrid">Hybrid</option>
                 <option value="OnSite">On-site</option>
@@ -415,6 +416,7 @@
             <div class="form-group">
               <label for="onboardingJobType" class="form-label">Job Type</label>
               <select id="onboardingJobType" formControlName="preferredJobType" class="form-input form-select">
+                <option value="" disabled selected>Select job type</option>
                 <option value="FullTime">Full-time</option>
                 <option value="PartTime">Part-time</option>
                 <option value="Contract">Contract</option>
@@ -426,6 +428,7 @@
             <div class="form-group">
               <label for="onboardingExperienceLevel" class="form-label">Experience Level</label>
               <select id="onboardingExperienceLevel" formControlName="experienceLevel" class="form-input form-select">
+                <option value="" disabled selected>Select experience level</option>
                 <option value="EntryLevel">Entry Level (0-1 yrs)</option>
                 <option value="Junior">Junior (1-3 yrs)</option>
                 <option value="MidLevel">Mid Level (3-5 yrs)</option>
@@ -443,7 +446,7 @@
                 max="50"
                 formControlName="yearsOfExperience"
                 class="form-input"
-                placeholder="0"
+                placeholder="e.g. 2"
               />
             </div>
           </div>

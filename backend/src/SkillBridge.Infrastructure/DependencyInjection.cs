@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SkillBridge.Application.Auth;
@@ -18,7 +19,12 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("Default")
             ?? throw new InvalidOperationException("ConnectionStrings:Default is missing.");
 
-        services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+        services.AddDbContext<AppDbContext>(options =>
+        {
+            options.UseNpgsql(connectionString);
+            options.ConfigureWarnings(warnings =>
+                warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
+        });
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddSingleton<IClock, SystemClock>();
 
@@ -37,7 +43,8 @@ public static class DependencyInjection
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
         })
             .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<AppDbContext>();
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
 
         services.AddOptions<JwtOptions>()
             .Bind(configuration.GetSection(JwtOptions.SectionName))
@@ -49,10 +56,15 @@ public static class DependencyInjection
             .Validate(options => options.ExpirationHours > 0 || options.ExpirationMinutes > 0, "Jwt expiration must be positive.")
             .ValidateOnStart();
 
+        services.AddOptions<BrevoOptions>()
+            .Bind(configuration.GetSection(BrevoOptions.SectionName));
+
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddSingleton<IFileStorageService, LocalFileStorageService>();
+        services.AddHttpClient<IEmailService, BrevoEmailService>();
+        services.AddHttpClient<ISocialAuthValidator, SocialAuthValidator>();
         services.AddScoped<IdentitySeeder>();
 
         return services;

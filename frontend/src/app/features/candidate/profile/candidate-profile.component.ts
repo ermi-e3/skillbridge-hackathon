@@ -178,10 +178,10 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
     gitHubUrl: ['', [Validators.maxLength(300), urlValidator]],
     bio: ['', [Validators.maxLength(2000)]],
     location: ['', [Validators.maxLength(100)]],
-    preferredWorkArrangement: ['Remote', [Validators.required]],
-    preferredJobType: ['FullTime', [Validators.required]],
-    experienceLevel: ['EntryLevel', [Validators.required]],
-    yearsOfExperience: [0, [Validators.min(0), Validators.max(50)]],
+    preferredWorkArrangement: [''],
+    preferredJobType: [''],
+    experienceLevel: [''],
+    yearsOfExperience: [null, [Validators.min(0), Validators.max(50)]],
     skillIds: [[], [skillCountValidator(1, 20)]],
   });
 
@@ -287,10 +287,10 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
           gitHubUrl: profile.gitHubUrl || '',
           bio: profile.bio || '',
           location: profile.location || '',
-          preferredWorkArrangement: profile.preferredWorkArrangement || 'Remote',
-          preferredJobType: profile.preferredJobType || 'FullTime',
-          experienceLevel: profile.experienceLevel || 'EntryLevel',
-          yearsOfExperience: profile.yearsOfExperience ?? 0,
+          preferredWorkArrangement: profile.preferredWorkArrangement || '',
+          preferredJobType: profile.preferredJobType || '',
+          experienceLevel: profile.experienceLevel || '',
+          yearsOfExperience: profile.yearsOfExperience ?? null,
           skillIds: initialSkillIds,
         });
 
@@ -708,10 +708,10 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
       bio: formValue.bio ? formValue.bio.trim() : null,
       gitHubUrl: formValue.gitHubUrl ? formValue.gitHubUrl.trim() : null,
       location: formValue.location ? formValue.location.trim() : null,
-      preferredWorkArrangement: formValue.preferredWorkArrangement || 'Remote',
-      preferredJobType: formValue.preferredJobType || 'FullTime',
-      experienceLevel: formValue.experienceLevel || 'EntryLevel',
-      yearsOfExperience: formValue.yearsOfExperience !== null && formValue.yearsOfExperience !== undefined ? Number(formValue.yearsOfExperience) : 0,
+      preferredWorkArrangement: formValue.preferredWorkArrangement || null,
+      preferredJobType: formValue.preferredJobType || null,
+      experienceLevel: formValue.experienceLevel || null,
+      yearsOfExperience: formValue.yearsOfExperience !== null && formValue.yearsOfExperience !== undefined && formValue.yearsOfExperience !== '' ? Number(formValue.yearsOfExperience) : null,
       skillIds: formValue.skillIds as number[],
       preferredSkillIds: this.selectedPreferredSkillIds(),
     };
@@ -726,10 +726,10 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
         if (updatedProfile.location !== undefined) {
           this.profileForm.patchValue({
             location: updatedProfile.location || '',
-            preferredWorkArrangement: updatedProfile.preferredWorkArrangement || 'Remote',
-            preferredJobType: updatedProfile.preferredJobType || 'FullTime',
-            experienceLevel: updatedProfile.experienceLevel || 'EntryLevel',
-            yearsOfExperience: updatedProfile.yearsOfExperience ?? 0,
+            preferredWorkArrangement: updatedProfile.preferredWorkArrangement || '',
+            preferredJobType: updatedProfile.preferredJobType || '',
+            experienceLevel: updatedProfile.experienceLevel || '',
+            yearsOfExperience: updatedProfile.yearsOfExperience ?? null,
           }, { emitEvent: false });
         }
 

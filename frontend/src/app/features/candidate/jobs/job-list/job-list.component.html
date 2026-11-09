@@ -34,6 +34,12 @@
           </svg>
           <span>My Profile & Skills</span>
         </a>
+        <a routerLink="/account/security" class="nav-btn security-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          <span>Security</span>
+        </a>
         <button type="button" class="nav-btn logout-link" (click)="authService.logout()">
           <span>Sign Out</span>
         </button>
@@ -671,8 +677,36 @@
                     <span class="match-text"><strong>{{ matchScore }}%</strong> Match</span>
                   </div>
                 } @else {
-                  <div class="match-badge match-none" title="Match score is computed once skills are added to your profile">
+                  <div
+                    class="match-badge match-none has-tooltip"
+                    tabindex="0"
+                    role="note"
+                    aria-label="Profile incomplete: complete your profile and skills to see your match score"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="match-icon match-info-icon">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
                     <span class="match-text">Match N/A</span>
+
+                    <!-- Hover information tooltip popover -->
+                    <div class="match-na-popover">
+                      <div class="popover-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="popover-icon">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="12" y1="8" x2="12" y2="12"></line>
+                          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <strong>Profile Incomplete</strong>
+                      </div>
+                      <p class="popover-message">
+                        Please complete your profile setup and add your skills to activate personalized job matching.
+                      </p>
+                      <a routerLink="/candidate/profile" (click)="$event.stopPropagation()" class="popover-action">
+                        Complete Profile &amp; Skills &rarr;
+                      </a>
+                    </div>
                   </div>
                 }
               </div>

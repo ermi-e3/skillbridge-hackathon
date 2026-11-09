@@ -406,6 +406,94 @@ $match-red-border: #fecaca;
         background-color: #f1f5f9;
         color: $neutral-muted;
         border: 1px solid $neutral-border;
+        cursor: help;
+        position: relative;
+        transition: background-color 0.15s ease, border-color 0.15s ease;
+
+        &:hover {
+          background-color: #f8fafc;
+          border-color: #cbd5e1;
+        }
+
+        &:hover .match-na-popover,
+        &:focus .match-na-popover,
+        &:focus-within .match-na-popover {
+          visibility: visible;
+          opacity: 1;
+          transform: translateY(0);
+          pointer-events: auto;
+        }
+      }
+
+      .match-na-popover {
+        visibility: hidden;
+        opacity: 0;
+        pointer-events: none;
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        width: 260px;
+        padding: 0.85rem 1rem;
+        background: #ffffff;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
+        z-index: 100;
+        text-align: left;
+        font-size: 0.8rem;
+        font-weight: 400;
+        line-height: 1.4;
+        transform: translateY(-4px);
+        transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: -6px;
+          right: 24px;
+          width: 10px;
+          height: 10px;
+          background: #ffffff;
+          border-top: 1px solid #e2e8f0;
+          border-left: 1px solid #e2e8f0;
+          transform: rotate(45deg);
+        }
+
+        .popover-header {
+          display: flex;
+          align-items: center;
+          gap: 0.35rem;
+          font-weight: 700;
+          color: #b45309;
+          margin-bottom: 0.35rem;
+
+          .popover-icon {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+            color: #d97706;
+          }
+        }
+
+        .popover-message {
+          margin: 0 0 0.5rem;
+          color: #475569;
+          font-size: 0.775rem;
+        }
+
+        .popover-action {
+          display: inline-block;
+          color: #0284c7;
+          font-weight: 600;
+          font-size: 0.775rem;
+          text-decoration: underline;
+          transition: color 0.15s ease;
+
+          &:hover {
+            color: #0369a1;
+          }
+        }
       }
     }
   }

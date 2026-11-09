@@ -17,10 +17,10 @@ public class CandidateProfileConfiguration : IEntityTypeConfiguration<CandidateP
         builder.Property(p => p.Bio).HasMaxLength(2000);
         builder.Property(p => p.GitHubUrl).HasMaxLength(300);
         builder.Property(p => p.Location).HasMaxLength(100);
-        builder.Property(p => p.ExperienceLevel).HasDefaultValue(ExperienceLevel.EntryLevel);
-        builder.Property(p => p.YearsOfExperience).HasDefaultValue(0);
-        builder.Property(p => p.PreferredWorkArrangement).HasDefaultValue(WorkArrangement.Remote);
-        builder.Property(p => p.PreferredJobType).HasDefaultValue(JobType.FullTime);
+        builder.Property(p => p.ExperienceLevel).IsRequired(false);
+        builder.Property(p => p.YearsOfExperience).IsRequired(false);
+        builder.Property(p => p.PreferredWorkArrangement).IsRequired(false);
+        builder.Property(p => p.PreferredJobType).IsRequired(false);
 
         builder.Property(p => p.DefaultCvFileName).HasMaxLength(500);
         builder.Property(p => p.DefaultCvOriginalFileName).HasMaxLength(255);
@@ -30,6 +30,7 @@ public class CandidateProfileConfiguration : IEntityTypeConfiguration<CandidateP
 
         builder.Ignore(p => p.HasSkills);
         builder.Ignore(p => p.HasDefaultCv);
+        builder.Ignore(p => p.HasCompletedProfileSetup);
 
         // 1 : 0..1 with the Identity user. FK only — no navigation, so Domain stays Identity-free.
         builder.HasOne<AppUser>()

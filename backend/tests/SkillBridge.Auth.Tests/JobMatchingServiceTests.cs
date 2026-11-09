@@ -217,4 +217,28 @@ public sealed class JobMatchingServiceTests
         Assert.Single(result.MissingSkills);
         Assert.Empty(result.MatchedSkills);
     }
+
+    [Fact]
+    public void CalculateMatch_CandidateWithIncompleteProfile_ReturnsZeroPercent()
+    {
+        var job = new SkillBridge.Domain.Entities.Job(
+            employerId: "emp-1",
+            title: "Frontend Developer",
+            description: "Build UI",
+            location: "Berlin",
+            requiredSkillIds: new[] { 1 },
+            createdAt: DateTime.UtcNow,
+            jobType: JobType.FullTime,
+            workArrangement: WorkArrangement.Hybrid,
+            experienceLevel: ExperienceLevel.Junior,
+            minExperienceYears: 1);
+
+        var newProfile = new SkillBridge.Domain.Entities.CandidateProfile("cand-new"); // Newly registered candidate with no defaults
+
+        var result = _sut.CalculateMatch(job, newProfile);
+
+        Assert.NotNull(result);
+        Assert.Equal(0, result.Percent);
+        Assert.Equal("Profile Incomplete", result.Breakdown?.ExperienceCompatibility);
+    }
 }
