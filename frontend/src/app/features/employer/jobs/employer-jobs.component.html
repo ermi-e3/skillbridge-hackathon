@@ -91,12 +91,254 @@
         <div class="section-heading">
           <div>
             <h2>Your openings</h2>
-            <p>{{ jobs().length }} {{ jobs().length === 1 ? 'job' : 'jobs' }} listed</p>
+            <p>
+              @if (hasActiveFilters()) {
+                Showing {{ filteredJobs().length }} of {{ jobs().length }} {{ jobs().length === 1 ? 'job' : 'jobs' }}
+              } @else {
+                {{ jobs().length }} {{ jobs().length === 1 ? 'job' : 'jobs' }} listed
+              }
+            </p>
           </div>
         </div>
 
-        <div class="jobs-grid">
-          @for (job of jobs(); track job.id) {
+        <!-- Modern Enterprise Filter Toolbar -->
+        <section class="modern-filter-card" aria-label="Filter your posted jobs">
+          <div class="modern-filter-toolbar">
+            <!-- Job Title Search -->
+            <div class="filter-search-box">
+              <svg class="filter-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input
+                type="text"
+                id="emp-job-title-search"
+                class="filter-search-input"
+                [value]="searchTitleQuery()"
+                (input)="onTitleSearchInput($event)"
+                placeholder="Search jobs by title..."
+                aria-label="Search posted jobs by title"
+              />
+              @if (searchTitleQuery()) {
+                <button
+                  type="button"
+                  class="filter-clear-btn"
+                  (click)="clearTitleSearch()"
+                  aria-label="Clear job title search"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              }
+            </div>
+
+            <!-- Compact Filter Dropdowns: Department, Job Type, Job Status -->
+            <div class="filter-quick-controls">
+              <div class="compact-select-wrap">
+                <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <select
+                  id="emp-job-dept-filter"
+                  class="compact-select"
+                  [class.has-value]="departmentFilter() !== 'all'"
+                  [value]="departmentFilter()"
+                  (change)="onDepartmentFilterChange($event)"
+                  aria-label="Filter by department"
+                >
+                  <option value="all">All Departments</option>
+                  @for (dept of departmentOptions; track dept.id) {
+                    <option [value]="dept.id">{{ dept.name }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="compact-select-wrap">
+                <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+                <select
+                  id="emp-job-type-filter"
+                  class="compact-select"
+                  [class.has-value]="jobTypeFilter() !== 'All'"
+                  [value]="jobTypeFilter()"
+                  (change)="onJobTypeFilterChange($event)"
+                  aria-label="Filter by job type"
+                >
+                  <option value="All">All Types</option>
+                  <option value="FullTime">Full-time</option>
+                  <option value="PartTime">Part-time</option>
+                  <option value="Contract">Contract</option>
+                  <option value="Internship">Internship</option>
+                  <option value="Freelance">Freelance</option>
+                </select>
+              </div>
+
+              <div class="compact-select-wrap">
+                <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M9 12l2 2 4-4"></path>
+                </svg>
+                <select
+                  id="emp-job-status-filter"
+                  class="compact-select"
+                  [class.has-value]="statusFilter() !== 'All'"
+                  [value]="statusFilter()"
+                  (change)="onStatusFilterChange($event)"
+                  aria-label="Filter by job status"
+                >
+                  <option value="All">All Statuses</option>
+                  <option value="Active">Active</option>
+                  <option value="Closed">Closed</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Collapsible Date Drawer Toggle & Reset -->
+            <div class="filter-toolbar-actions">
+              <button
+                type="button"
+                class="btn-advanced-toggle"
+                [class.is-open]="showAdvancedFilters()"
+                [class.has-active]="datePreset() !== 'all' || postedFromDate() || postedToDate()"
+                (click)="toggleAdvancedFilters()"
+                [attr.aria-expanded]="showAdvancedFilters()"
+                aria-controls="emp-jobs-advanced-filters"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>Posting Date</span>
+                @if (datePreset() !== 'all' || postedFromDate() || postedToDate()) {
+                  <span class="active-count-badge">1</span>
+                }
+                <svg class="chevron" [class.rotated]="showAdvancedFilters()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+
+              @if (hasActiveFilters()) {
+                <button type="button" class="btn-reset-filters" (click)="clearAllFilters()" aria-label="Reset all filters">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                    <path d="M3 3v5h5"></path>
+                  </svg>
+                  <span>Reset</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Collapsible Posting Date Panel -->
+          @if (showAdvancedFilters()) {
+            <div id="emp-jobs-advanced-filters" class="advanced-filter-panel">
+              <div class="advanced-filter-grid">
+                <div class="adv-field">
+                  <label class="adv-label" for="emp-date-preset">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    Posting Date Preset
+                  </label>
+                  <select
+                    id="emp-date-preset"
+                    class="adv-control"
+                    [value]="datePreset()"
+                    (change)="onDatePresetChange($event)"
+                  >
+                    @for (opt of datePresetOptions; track opt.value) {
+                      <option [value]="opt.value">{{ opt.label }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="adv-field">
+                  <label class="adv-label" for="emp-posted-from">Posted From</label>
+                  <input
+                    id="emp-posted-from"
+                    type="date"
+                    class="adv-control"
+                    [value]="postedFromDate()"
+                    (change)="onPostedFromChange($event)"
+                  />
+                </div>
+
+                <div class="adv-field">
+                  <label class="adv-label" for="emp-posted-to">Posted To</label>
+                  <input
+                    id="emp-posted-to"
+                    type="date"
+                    class="adv-control"
+                    [value]="postedToDate()"
+                    (change)="onPostedToChange($event)"
+                  />
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Active Filters Summary -->
+          @if (hasActiveFilters()) {
+            <div class="active-filters-summary" aria-label="Active filters">
+              <span class="summary-prefix">Active:</span>
+
+              @if (searchTitleQuery().trim()) {
+                <span class="active-filter-pill">
+                  <span>Title: "{{ searchTitleQuery().trim() }}"</span>
+                  <button type="button" class="pill-remove" (click)="clearTitleSearch()" aria-label="Clear title filter">&times;</button>
+                </span>
+              }
+
+              @if (departmentFilter() !== 'all') {
+                <span class="active-filter-pill">
+                  <span>Department: {{ getDepartmentNameById(departmentFilter()) }}</span>
+                  <button type="button" class="pill-remove" (click)="departmentFilter.set('all'); currentPage.set(1)" aria-label="Clear department filter">&times;</button>
+                </span>
+              }
+
+              @if (jobTypeFilter() !== 'All') {
+                <span class="active-filter-pill">
+                  <span>Type: {{ formatJobType(jobTypeFilter()) }}</span>
+                  <button type="button" class="pill-remove" (click)="jobTypeFilter.set('All'); currentPage.set(1)" aria-label="Clear job type filter">&times;</button>
+                </span>
+              }
+
+              @if (statusFilter() !== 'All') {
+                <span class="active-filter-pill">
+                  <span>Status: {{ statusFilter() }}</span>
+                  <button type="button" class="pill-remove" (click)="statusFilter.set('All'); currentPage.set(1)" aria-label="Clear status filter">&times;</button>
+                </span>
+              }
+
+              @if (datePreset() !== 'all' || postedFromDate() || postedToDate()) {
+                <span class="active-filter-pill">
+                  <span>Posted: {{ datePreset() === 'custom' ? ((postedFromDate() || 'Any') + ' → ' + (postedToDate() || 'Any')) : datePreset() }}</span>
+                  <button type="button" class="pill-remove" (click)="clearDateFilters()" aria-label="Clear posting date filter">&times;</button>
+                </span>
+              }
+            </div>
+          }
+        </section>
+
+        @if (filteredJobs().length === 0) {
+          <section class="empty-state empty-filter-state">
+            <span class="empty-eyebrow">No matching openings</span>
+            <h2>No jobs match your filters</h2>
+            <p>Try adjusting your search query, department, job type, status, or posting date criteria.</p>
+            <button type="button" class="primary-action empty-action-btn" (click)="clearAllFilters()">
+              Reset All Filters
+            </button>
+          </section>
+        } @else {
+          <div class="jobs-grid">
+            @for (job of paginatedJobs(); track job.id) {
             <article class="job-card">
               <div class="card-topline">
                 <div class="status-group">
@@ -287,6 +529,17 @@
             </article>
           }
         </div>
+
+        <app-pagination
+          [currentPage]="effectivePage()"
+          [totalItems]="filteredJobs().length"
+          [pageSize]="pageSize()"
+          [pageSizeOptions]="[6, 9, 12, 24]"
+          itemLabel="jobs"
+          (pageChange)="onPageChange($event)"
+          (pageSizeChange)="onPageSizeChange($event)"
+        />
+        }
       </section>
     }
   </div>

@@ -573,7 +573,7 @@
         @if (isLoadingJobs()) {
           <span>Loading open roles...</span>
         } @else {
-          <strong>{{ jobs().length }}</strong> open position{{ jobs().length === 1 ? '' : 's' }}
+          <strong>{{ totalCount() }}</strong> open position{{ totalCount() === 1 ? '' : 's' }}
           @if (hasActiveFilters()) {
             <span> matching your filter criteria</span>
           }
@@ -602,10 +602,10 @@
           </div>
         }
       </div>
-    } @else if (jobs().length > 0) {
+    } @else if (paginatedJobs().length > 0) {
       <!-- Responsive Job Card Grid -->
       <div class="jobs-grid">
-        @for (job of jobs(); track job.id) {
+        @for (job of paginatedJobs(); track job.id) {
           <article
             class="job-card"
             [class.has-applied-card]="job.hasApplied && job.applicationStatus !== 'Withdrawn'"
@@ -828,6 +828,16 @@
           </article>
         }
       </div>
+
+      <app-pagination
+        [currentPage]="currentPage()"
+        [totalItems]="totalCount()"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="[6, 9, 12, 24]"
+        itemLabel="jobs"
+        (pageChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)"
+      />
     } @else {
       <!-- Edge State: Empty State Placeholder -->
       <div class="empty-state-card" role="status">

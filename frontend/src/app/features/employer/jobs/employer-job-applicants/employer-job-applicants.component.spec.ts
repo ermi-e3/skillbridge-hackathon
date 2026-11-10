@@ -286,4 +286,62 @@ describe('EmployerJobApplicantsComponent', () => {
     expect(downloadBtn).toBeTruthy();
     expect(downloadBtn.textContent).toContain('Download CV');
   });
+
+  it('filters applicants by name, skills match percentage, and application date, and paginates results', () => {
+    const secondApplicant: JobApplicantItemDto = {
+      ...mockApplicant,
+      applicationId: 43,
+      candidate: {
+        ...mockApplicant.candidate,
+        userId: 'cand-2',
+        fullName: 'Sara Tadesse',
+        headline: 'Financial Controller',
+      },
+      appliedAt: '2026-10-02T10:00:00Z',
+      match: { ...mockApplicant.match, percent: 62 },
+    };
+    const thirdApplicant: JobApplicantItemDto = {
+      ...mockApplicant,
+      applicationId: 44,
+      candidate: {
+        ...mockApplicant.candidate,
+        userId: 'cand-3',
+        fullName: 'Dawit Mekonnen',
+        headline: 'Data Specialist',
+      },
+      appliedAt: '2026-10-12T10:00:00Z',
+      match: { ...mockApplicant.match, percent: 40 },
+    };
+
+    applicationsServiceSpy.getJobApplicants.mockReturnValue(
+      of({ ...mockApplicantsResponse, applicants: [mockApplicant, secondApplicant, thirdApplicant] })
+    );
+    fixture.detectChanges();
+
+    // Filter by applicant name
+    component.searchNameQuery.set('Sara');
+    expect(component.filteredApplicants().map((a) => a.applicationId)).toEqual([43]);
+
+    // Filter by skills match percentage
+    component.clearNameSearch();
+    component.matchRangeFilter.set('75');
+    expect(component.filteredApplicants().map((a) => a.applicationId)).toEqual([42]);
+
+    component.matchRangeFilter.set('under50');
+    expect(component.filteredApplicants().map((a) => a.applicationId)).toEqual([44]);
+
+    // Filter by application date
+    component.matchRangeFilter.set('all');
+    component.appliedFromDate.set('2026-10-11');
+    component.datePreset.set('custom');
+    expect(component.filteredApplicants().map((a) => a.applicationId)).toEqual([44]);
+
+    // Pagination check
+    component.clearDateFilters();
+    component.pageSize.set(2);
+    expect(component.paginatedApplicants().length).toBe(2);
+    component.onPageChange(2);
+    expect(component.paginatedApplicants().length).toBe(1);
+    expect(component.paginatedApplicants()[0].applicationId).toBe(44);
+  });
 });

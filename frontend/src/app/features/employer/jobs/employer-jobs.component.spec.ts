@@ -181,4 +181,65 @@ describe('EmployerJobsComponent', () => {
     expect(editBtn.hasAttribute('disabled')).toBe(true);
     expect(editBtn.textContent).toContain('Edit Expired');
   });
+
+  it('filters employer jobs by title, department, job type, status, and posting date, and supports pagination', () => {
+    const multiJobs: EmployerJobDto[] = [
+      mockJobs[0], // Junior Backend Developer (Technology, FullTime, Active, 2026-10-10)
+      {
+        ...mockJobs[0],
+        id: 13,
+        title: 'Registered Nurse',
+        jobType: 'PartTime',
+        isOpen: false,
+        createdAt: '2026-10-01T10:00:00Z',
+        requiredSkills: [{ id: 41, name: 'Patient Care' }],
+        preferredSkills: [],
+      },
+      {
+        ...mockJobs[0],
+        id: 14,
+        title: 'Financial Analyst',
+        jobType: 'Contract',
+        isOpen: true,
+        createdAt: '2026-10-12T10:00:00Z',
+        requiredSkills: [{ id: 56, name: 'Financial Analysis' }],
+        preferredSkills: [],
+      },
+    ];
+    jobsServiceSpy.getEmployerJobs.mockReturnValue(of(multiJobs));
+    fixture.detectChanges();
+
+    // Filter by job title
+    component.searchTitleQuery.set('Nurse');
+    expect(component.filteredJobs().map((j) => j.id)).toEqual([13]);
+
+    // Filter by department
+    component.clearTitleSearch();
+    component.departmentFilter.set('finance');
+    expect(component.filteredJobs().map((j) => j.id)).toEqual([14]);
+
+    // Filter by job type
+    component.departmentFilter.set('all');
+    component.jobTypeFilter.set('PartTime');
+    expect(component.filteredJobs().map((j) => j.id)).toEqual([13]);
+
+    // Filter by status
+    component.jobTypeFilter.set('All');
+    component.statusFilter.set('Closed');
+    expect(component.filteredJobs().map((j) => j.id)).toEqual([13]);
+
+    // Filter by posting date
+    component.statusFilter.set('All');
+    component.postedFromDate.set('2026-10-11');
+    component.datePreset.set('custom');
+    expect(component.filteredJobs().map((j) => j.id)).toEqual([14]);
+
+    // Pagination check
+    component.clearAllFilters();
+    component.pageSize.set(2);
+    expect(component.paginatedJobs().length).toBe(2);
+    component.onPageChange(2);
+    expect(component.paginatedJobs().length).toBe(1);
+    expect(component.paginatedJobs()[0].id).toBe(14);
+  });
 });

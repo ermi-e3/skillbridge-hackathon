@@ -26,6 +26,78 @@ export class JobsService {
     experienceLevel?: string,
     location?: string
   ): Observable<JobDto[]> {
+    const params = this.buildJobQueryParams(
+      skillIds, search, sort, page, pageSize, jobType, workArrangement, experienceLevel, location
+    );
+
+    return this.http.get<JobDto[] | PagedJobsResponse>(this.baseUrl, { params }).pipe(
+      map((response) => {
+        if (Array.isArray(response)) {
+          return response;
+        }
+        if (response && Array.isArray(response.items)) {
+          return response.items;
+        }
+        return [];
+      })
+    );
+  }
+
+  /**
+   * Fetch open jobs with full server-side pagination metadata.
+   */
+  getJobsPaged(
+    skillIds?: number[],
+    search?: string,
+    sort?: string,
+    page = 1,
+    pageSize = 9,
+    jobType?: string,
+    workArrangement?: string,
+    experienceLevel?: string,
+    location?: string
+  ): Observable<PagedJobsResponse> {
+    const params = this.buildJobQueryParams(
+      skillIds, search, sort, page, pageSize, jobType, workArrangement, experienceLevel, location
+    );
+
+    return this.http.get<JobDto[] | PagedJobsResponse>(this.baseUrl, { params }).pipe(
+      map((response) => {
+        if (Array.isArray(response)) {
+          return {
+            items: response,
+            page,
+            pageSize,
+            totalCount: response.length,
+            totalPages: Math.max(1, Math.ceil(response.length / pageSize)),
+          };
+        }
+        const items = response?.items ?? [];
+        const totalCount = response?.totalCount ?? items.length;
+        const resolvedSize = response?.pageSize ?? pageSize;
+        const totalPages = response?.totalPages ?? Math.max(1, Math.ceil(totalCount / resolvedSize));
+        return {
+          items,
+          page: response?.page ?? page,
+          pageSize: resolvedSize,
+          totalCount,
+          totalPages,
+        };
+      })
+    );
+  }
+
+  private buildJobQueryParams(
+    skillIds?: number[],
+    search?: string,
+    sort?: string,
+    page?: number,
+    pageSize?: number,
+    jobType?: string,
+    workArrangement?: string,
+    experienceLevel?: string,
+    location?: string
+  ): HttpParams {
     let params = new HttpParams();
 
     if (skillIds && skillIds.length > 0) {
@@ -64,17 +136,7 @@ export class JobsService {
       params = params.set('location', location.trim());
     }
 
-    return this.http.get<JobDto[] | PagedJobsResponse>(this.baseUrl, { params }).pipe(
-      map((response) => {
-        if (Array.isArray(response)) {
-          return response;
-        }
-        if (response && Array.isArray(response.items)) {
-          return response.items;
-        }
-        return [];
-      })
-    );
+    return params;
   }
 
   /**

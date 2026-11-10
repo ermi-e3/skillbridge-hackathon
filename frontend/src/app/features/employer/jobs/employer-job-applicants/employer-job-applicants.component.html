@@ -147,66 +147,261 @@
       </section>
     }
 
-    <!-- Filtering Bar -->
-    <div class="filters-bar" aria-label="Filter applicants">
-      <div class="filter-tabs" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          [attr.aria-selected]="statusFilter() === 'All'"
-          class="tab-btn"
-          [class.active]="statusFilter() === 'All'"
-          (click)="setStatusFilter('All')"
-        >
-          All Applicants
-        </button>
-        <button
-          type="button"
-          role="tab"
-          [attr.aria-selected]="statusFilter() === 'Received'"
-          class="tab-btn"
-          [class.active]="statusFilter() === 'Received'"
-          (click)="setStatusFilter('Received')"
-        >
-          Received
-        </button>
-        <button
-          type="button"
-          role="tab"
-          [attr.aria-selected]="statusFilter() === 'Shortlisted'"
-          class="tab-btn"
-          [class.active]="statusFilter() === 'Shortlisted'"
-          (click)="setStatusFilter('Shortlisted')"
-        >
-          Shortlisted
-        </button>
-        <button
-          type="button"
-          role="tab"
-          [attr.aria-selected]="statusFilter() === 'Rejected'"
-          class="tab-btn"
-          [class.active]="statusFilter() === 'Rejected'"
-          (click)="setStatusFilter('Rejected')"
-        >
-          Rejected
-        </button>
+    <!-- Modern Enterprise Applicant Filters -->
+    <section class="modern-filter-card applicants-filter-card" aria-label="Filter applicants">
+      <!-- Row 1: Search Input, Match % Select, Date Filter Drawer Toggle & Reset -->
+      <div class="modern-filter-toolbar">
+        <div class="filter-search-box">
+          <svg class="filter-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="text"
+            id="applicant-name-search"
+            class="filter-search-input"
+            [value]="searchNameQuery()"
+            (input)="onNameSearchInput($event)"
+            placeholder="Search by applicant name or headline..."
+            aria-label="Search applicants by name or headline"
+          />
+          @if (searchNameQuery()) {
+            <button
+              type="button"
+              class="filter-clear-btn"
+              (click)="clearNameSearch()"
+              aria-label="Clear applicant search"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          }
+        </div>
+
+        <div class="filter-quick-controls">
+          <div class="compact-select-wrap">
+            <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            <select
+              id="applicant-match-filter"
+              class="compact-select"
+              [class.has-value]="matchRangeFilter() !== 'all'"
+              [value]="matchRangeFilter()"
+              (change)="onMatchRangeChange($event)"
+              aria-label="Filter by skills match percentage"
+            >
+              <option value="all">Any Match %</option>
+              <option value="100">100% Match</option>
+              <option value="90">90%+ Match</option>
+              <option value="75">75%+ High Match</option>
+              <option value="50">50%+ Moderate</option>
+              <option value="under50">Under 50%</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-toolbar-actions">
+          <button
+            type="button"
+            class="btn-advanced-toggle"
+            [class.is-open]="showAdvancedFilters()"
+            [class.has-active]="datePreset() !== 'all' || appliedFromDate() || appliedToDate()"
+            (click)="toggleAdvancedFilters()"
+            [attr.aria-expanded]="showAdvancedFilters()"
+            aria-controls="applicants-advanced-filters"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>Application Date</span>
+            @if (datePreset() !== 'all' || appliedFromDate() || appliedToDate()) {
+              <span class="active-count-badge">1</span>
+            }
+            <svg class="chevron" [class.rotated]="showAdvancedFilters()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+
+          @if (hasActiveFilters()) {
+            <button type="button" class="btn-reset-filters" (click)="clearAllFilters()" aria-label="Reset all filters">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+              </svg>
+              <span>Reset</span>
+            </button>
+          }
+        </div>
       </div>
 
-      <div class="filter-toggles">
-        <button
-          type="button"
-          class="toggle-btn"
-          [class.active]="fullMatchOnly()"
-          (click)="toggleFullMatch()"
-          [attr.aria-pressed]="fullMatchOnly()"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-          <span>100% Match Only</span>
-        </button>
+      <!-- Row 2: Status Tabs & 100% Match Quick Toggle -->
+      <div class="filters-bar applicants-sub-toolbar">
+        <div class="filter-tabs" role="tablist" aria-label="Application status filter">
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="statusFilter() === 'All'"
+            class="tab-btn"
+            [class.active]="statusFilter() === 'All'"
+            (click)="setStatusFilter('All')"
+          >
+            All Applicants
+          </button>
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="statusFilter() === 'Received'"
+            class="tab-btn"
+            [class.active]="statusFilter() === 'Received'"
+            (click)="setStatusFilter('Received')"
+          >
+            Received
+          </button>
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="statusFilter() === 'Shortlisted'"
+            class="tab-btn"
+            [class.active]="statusFilter() === 'Shortlisted'"
+            (click)="setStatusFilter('Shortlisted')"
+          >
+            Shortlisted
+          </button>
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="statusFilter() === 'Rejected'"
+            class="tab-btn"
+            [class.active]="statusFilter() === 'Rejected'"
+            (click)="setStatusFilter('Rejected')"
+          >
+            Rejected
+          </button>
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="statusFilter() === 'Withdrawn'"
+            class="tab-btn"
+            [class.active]="statusFilter() === 'Withdrawn'"
+            (click)="setStatusFilter('Withdrawn')"
+          >
+            Withdrawn
+          </button>
+        </div>
+
+        <div class="filter-toggles">
+          <button
+            type="button"
+            class="toggle-btn"
+            [class.active]="fullMatchOnly()"
+            (click)="toggleFullMatch()"
+            [attr.aria-pressed]="fullMatchOnly()"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>100% Match Only</span>
+          </button>
+        </div>
       </div>
-    </div>
+
+      <!-- Collapsible Application Date Drawer -->
+      @if (showAdvancedFilters()) {
+        <div id="applicants-advanced-filters" class="advanced-filter-panel">
+          <div class="advanced-filter-grid">
+            <div class="adv-field">
+              <label class="adv-label" for="applicant-date-preset">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                Application Date Preset
+              </label>
+              <select
+                id="applicant-date-preset"
+                class="adv-control"
+                [value]="datePreset()"
+                (change)="onDatePresetChange($event)"
+              >
+                @for (opt of datePresetOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="adv-field">
+              <label class="adv-label" for="applicant-from-date">Applied From</label>
+              <input
+                id="applicant-from-date"
+                type="date"
+                class="adv-control"
+                [value]="appliedFromDate()"
+                (change)="onFromDateChange($event)"
+              />
+            </div>
+
+            <div class="adv-field">
+              <label class="adv-label" for="applicant-to-date">Applied To</label>
+              <input
+                id="applicant-to-date"
+                type="date"
+                class="adv-control"
+                [value]="appliedToDate()"
+                (change)="onToDateChange($event)"
+              />
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Active Filter Pills -->
+      @if (hasActiveFilters()) {
+        <div class="active-filters-summary" aria-label="Active applicant filters">
+          <span class="summary-prefix">Filtered by:</span>
+
+          @if (searchNameQuery().trim()) {
+            <span class="active-filter-pill">
+              <span>Name: "{{ searchNameQuery().trim() }}"</span>
+              <button type="button" class="pill-remove" (click)="clearNameSearch()" aria-label="Clear applicant name filter">&times;</button>
+            </span>
+          }
+
+          @if (statusFilter() !== 'All') {
+            <span class="active-filter-pill">
+              <span>Status: {{ statusFilter() }}</span>
+              <button type="button" class="pill-remove" (click)="setStatusFilter('All')" aria-label="Clear status filter">&times;</button>
+            </span>
+          }
+
+          @if (fullMatchOnly()) {
+            <span class="active-filter-pill">
+              <span>100% Match Only</span>
+              <button type="button" class="pill-remove" (click)="toggleFullMatch()" aria-label="Clear 100% match filter">&times;</button>
+            </span>
+          }
+
+          @if (matchRangeFilter() !== 'all') {
+            <span class="active-filter-pill">
+              <span>Skills Match: {{ getMatchBandLabel(matchRangeFilter()) }}</span>
+              <button type="button" class="pill-remove" (click)="matchRangeFilter.set('all'); currentPage.set(1)" aria-label="Clear match range filter">&times;</button>
+            </span>
+          }
+
+          @if (datePreset() !== 'all' || appliedFromDate() || appliedToDate()) {
+            <span class="active-filter-pill">
+              <span>Date: {{ datePreset() === 'custom' ? ((appliedFromDate() || 'Any') + ' → ' + (appliedToDate() || 'Any')) : datePreset() }}</span>
+              <button type="button" class="pill-remove" (click)="clearDateFilters()" aria-label="Clear application date filter">&times;</button>
+            </span>
+          }
+        </div>
+      }
+    </section>
 
     <!-- Loading Skeleton -->
     @if (isLoading()) {
@@ -225,7 +420,7 @@
           </article>
         }
       </div>
-    } @else if (!errorMessage() && applicants().length === 0) {
+    } @else if (!errorMessage() && filteredApplicants().length === 0) {
       <!-- Empty State -->
       <section class="empty-state">
         <div class="empty-icon" aria-hidden="true">
@@ -237,9 +432,9 @@
           </svg>
         </div>
         <h2>No applicants found</h2>
-        @if (statusFilter() !== 'All' || fullMatchOnly()) {
-          <p>No candidates match the current filter criteria. Try resetting your filters to view all applicants.</p>
-          <button type="button" class="reset-filter-btn" (click)="statusFilter.set('All'); fullMatchOnly.set(false); loadApplicants()">
+        @if (hasActiveFilters()) {
+          <p>No candidates match the current filter criteria. Try adjusting or resetting your filters to view all applicants.</p>
+          <button type="button" class="reset-filter-btn" (click)="clearAllFilters()">
             Clear Filters
           </button>
         } @else {
@@ -249,7 +444,7 @@
     } @else if (!errorMessage()) {
       <!-- Applicants List -->
       <section class="applicants-list" aria-label="Applicants for this job">
-        @for (applicant of applicants(); track applicant.applicationId) {
+        @for (applicant of paginatedApplicants(); track applicant.applicationId) {
           <article class="applicant-card">
             <!-- Card Header: Candidate Info & Badges -->
             <div class="applicant-header">
@@ -459,6 +654,16 @@
           </article>
         }
       </section>
+
+      <app-pagination
+        [currentPage]="effectivePage()"
+        [totalItems]="filteredApplicants().length"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="[5, 10, 20, 50]"
+        itemLabel="applicants"
+        (pageChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)"
+      />
     }
   </div>
 

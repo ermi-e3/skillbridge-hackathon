@@ -1,3 +1,5 @@
+@use '../../../shared/styles/modern-filters';
+
 // Palette tokens aligned with specification & screenshot
 $primary: #0d9488; // Teal-600
 $primary-hover: #0f766e; // Teal-700
@@ -750,8 +752,10 @@ $status-gray-border: #cbd5e1;
     font-weight: 600;
     background: $primary;
     color: #ffffff;
+    border: none;
     border-radius: 8px;
     text-decoration: none;
+    cursor: pointer;
     transition: background-color 0.15s ease;
 
     &:hover {

@@ -11,11 +11,12 @@ import { RealtimeService } from '../../../../core/services/realtime.service';
 import { SkillsService } from '../../../../core/services/skills.service';
 import { calculateCountdown, CountdownDetails } from '../../../../core/utils/countdown';
 import { extractErrorMessage } from '../../../../core/utils/error-formatter';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-job-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, DatePipe],
+  imports: [CommonModule, RouterLink, DatePipe, PaginationComponent],
   templateUrl: './job-list.component.html',
   styleUrl: './job-list.component.scss',
 })
@@ -44,6 +45,20 @@ export class JobListComponent implements OnInit {
   readonly selectedJobType = signal<string>('All');
   readonly selectedExperienceLevel = signal<string>('All');
   readonly jobs = signal<JobDto[]>([]);
+
+  // Pagination signals
+  readonly currentPage = signal<number>(1);
+  readonly pageSize = signal<number>(9);
+  readonly totalCount = signal<number>(0);
+  readonly usedServerPagination = signal<boolean>(false);
+
+  readonly paginatedJobs = computed(() => {
+    if (this.usedServerPagination()) {
+      return this.jobs();
+    }
+    const start = (this.currentPage() - 1) * this.pageSize();
+    return this.jobs().slice(start, start + this.pageSize());
+  });
 
   // Filter skills for multi-select dropdown search
   readonly visibleSkills = computed(() => {
@@ -202,7 +217,7 @@ export class JobListComponent implements OnInit {
   }
 
   /**
-   * Load jobs from GET /api/jobs with optional skillIds query parameter
+   * Load jobs from GET /api/jobs with server-side pagination (with fallback for mocked getJobs)
    */
   loadJobs(): void {
     this.isLoadingJobs.set(true);
@@ -214,15 +229,45 @@ export class JobListComponent implements OnInit {
     const type = this.selectedJobType() === 'All' ? undefined : this.selectedJobType();
     const exp = this.selectedExperienceLevel() === 'All' ? undefined : this.selectedExperienceLevel();
 
-    const hasExtraFilters = arrangement !== undefined || type !== undefined || exp !== undefined || search !== undefined;
+    if (typeof this.jobsService.getJobsPaged === 'function') {
+      this.jobsService
+        .getJobsPaged(
+          filterIds,
+          search,
+          'newest',
+          this.currentPage(),
+          this.pageSize(),
+          type,
+          arrangement,
+          exp
+        )
+        .subscribe({
+          next: (res) => {
+            const items = res.items ?? [];
+            this.usedServerPagination.set(true);
+            this.jobs.set(items);
+            this.totalCount.set(res.totalCount ?? items.length);
+            this.isLoadingJobs.set(false);
+          },
+          error: (err) => {
+            this.isLoadingJobs.set(false);
+            const msg = extractErrorMessage(err, 'Failed to load jobs. Please try again.');
+            this.errorMessage.set(msg);
+          },
+        });
+      return;
+    }
 
+    const hasExtraFilters = arrangement !== undefined || type !== undefined || exp !== undefined || search !== undefined;
     const call$ = hasExtraFilters
       ? this.jobsService.getJobs(filterIds, search, 'newest', 1, 50, type, arrangement, exp)
       : this.jobsService.getJobs(filterIds);
 
     call$.subscribe({
       next: (jobsList) => {
+        this.usedServerPagination.set(false);
         this.jobs.set(jobsList);
+        this.totalCount.set(jobsList.length);
         this.isLoadingJobs.set(false);
       },
       error: (err) => {
@@ -231,6 +276,22 @@ export class JobListComponent implements OnInit {
         this.errorMessage.set(msg);
       },
     });
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
+    if (this.usedServerPagination()) {
+      this.loadJobs();
+    }
+    window?.scrollTo?.({ top: 0, behavior: 'smooth' });
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    if (this.usedServerPagination()) {
+      this.loadJobs();
+    }
   }
 
   toggleDropdown(name: string, event?: MouseEvent): void {
@@ -260,11 +321,13 @@ export class JobListComponent implements OnInit {
   onSearchInput(event: Event): void {
     const val = (event.target as HTMLInputElement).value;
     this.searchKeyword.set(val);
+    this.currentPage.set(1);
     this.loadJobs();
   }
 
   clearSearch(): void {
     this.searchKeyword.set('');
+    this.currentPage.set(1);
     this.loadJobs();
   }
 
@@ -306,18 +369,21 @@ export class JobListComponent implements OnInit {
 
   setWorkArrangement(val: string): void {
     this.selectedWorkArrangement.set(val);
+    this.currentPage.set(1);
     this.closeDropdowns();
     this.loadJobs();
   }
 
   setJobType(val: string): void {
     this.selectedJobType.set(val);
+    this.currentPage.set(1);
     this.closeDropdowns();
     this.loadJobs();
   }
 
   setExperienceLevel(val: string): void {
     this.selectedExperienceLevel.set(val);
+    this.currentPage.set(1);
     this.closeDropdowns();
     this.loadJobs();
   }
@@ -329,6 +395,7 @@ export class JobListComponent implements OnInit {
     this.selectedExperienceLevel.set('All');
     this.searchKeyword.set('');
     this.skillFilterSearch.set('');
+    this.currentPage.set(1);
     this.closeDropdowns();
     this.loadJobs();
   }
@@ -347,6 +414,7 @@ export class JobListComponent implements OnInit {
     }
 
     this.selectedSkillIds.set(current);
+    this.currentPage.set(1);
     this.loadJobs();
   }
 
@@ -357,6 +425,7 @@ export class JobListComponent implements OnInit {
   clearSkillFilters(): void {
     if (this.selectedSkillIds().length === 0) return;
     this.selectedSkillIds.set([]);
+    this.currentPage.set(1);
     this.loadJobs();
   }
 
