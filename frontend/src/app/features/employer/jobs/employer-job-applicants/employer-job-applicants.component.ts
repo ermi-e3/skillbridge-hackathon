@@ -13,11 +13,13 @@ import { ApplicationsService } from '../../../../core/services/applications.serv
 import { AuthService } from '../../../../core/services/auth.service';
 import { RealtimeService } from '../../../../core/services/realtime.service';
 import { extractErrorMessage } from '../../../../core/utils/error-formatter';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { DATE_PRESET_OPTIONS, DatePreset, matchesDateFilter } from '../../../../shared/utils/filter-date.util';
 
 @Component({
   selector: 'app-employer-job-applicants',
   standalone: true,
-  imports: [CommonModule, RouterLink, DatePipe],
+  imports: [CommonModule, RouterLink, DatePipe, PaginationComponent],
   templateUrl: './employer-job-applicants.component.html',
   styleUrl: './employer-job-applicants.component.scss',
 })
@@ -38,6 +40,19 @@ export class EmployerJobApplicantsComponent implements OnInit, OnDestroy {
   readonly fullMatchOnly = signal<boolean>(false);
   readonly updatingApplicationId = signal<number | null>(null);
   readonly feedbackMessage = signal<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Additional Modern Filter Signals
+  readonly searchNameQuery = signal<string>('');
+  readonly matchRangeFilter = signal<string>('all');
+  readonly datePreset = signal<DatePreset>('all');
+  readonly appliedFromDate = signal<string>('');
+  readonly appliedToDate = signal<string>('');
+  readonly showAdvancedFilters = signal<boolean>(false);
+  readonly datePresetOptions = DATE_PRESET_OPTIONS;
+
+  // Pagination Signals
+  readonly currentPage = signal<number>(1);
+  readonly pageSize = signal<number>(10);
 
   // Applicant Profile & CV Signals
   readonly selectedApplicantProfile = signal<ApplicantProfileDto | null>(null);
@@ -71,6 +86,60 @@ export class EmployerJobApplicantsComponent implements OnInit, OnDestroy {
   readonly withdrawnCount = computed(
     () => this.applicants().filter((a) => a.status === 'Withdrawn').length
   );
+
+  readonly activeFilterCount = computed(() => {
+    let count = 0;
+    if (this.searchNameQuery().trim()) count++;
+    if (this.statusFilter() !== 'All') count++;
+    if (this.fullMatchOnly() || this.matchRangeFilter() !== 'all') count++;
+    if (this.datePreset() !== 'all' || this.appliedFromDate() || this.appliedToDate()) count++;
+    return count;
+  });
+
+  readonly hasActiveFilters = computed(() => this.activeFilterCount() > 0);
+
+  readonly filteredApplicants = computed(() => {
+    const query = this.searchNameQuery().trim().toLowerCase();
+    const matchBand = this.matchRangeFilter();
+    const preset = this.datePreset();
+    const from = this.appliedFromDate();
+    const to = this.appliedToDate();
+
+    return this.applicants().filter((applicant) => {
+      if (query) {
+        const name = applicant.candidate.fullName?.toLowerCase() ?? '';
+        const headline = applicant.candidate.headline?.toLowerCase() ?? '';
+        if (!name.includes(query) && !headline.includes(query)) {
+          return false;
+        }
+      }
+
+      const pct = applicant.match?.percent ?? 0;
+      if (matchBand === '100' && pct < 100) return false;
+      if (matchBand === '90' && pct < 90) return false;
+      if (matchBand === '75' && pct < 75) return false;
+      if (matchBand === '50' && pct < 50) return false;
+      if (matchBand === 'under50' && pct >= 50) return false;
+
+      if (!matchesDateFilter(applicant.appliedAt, preset, from, to)) {
+        return false;
+      }
+
+      return true;
+    });
+  });
+
+  readonly effectivePage = computed(() => {
+    const totalPages = Math.max(1, Math.ceil(this.filteredApplicants().length / this.pageSize()));
+    return Math.min(this.currentPage(), totalPages);
+  });
+
+  readonly paginatedApplicants = computed(() => {
+    const page = this.effectivePage();
+    const size = this.pageSize();
+    const start = (page - 1) * size;
+    return this.filteredApplicants().slice(start, start + size);
+  });
 
   // 2-hour window applies strictly to editing job details, NOT to hiring decisions (shortlisting/rejecting)
   readonly canEditJob = computed(() => {
@@ -203,12 +272,108 @@ export class EmployerJobApplicantsComponent implements OnInit, OnDestroy {
   setStatusFilter(status: string): void {
     if (this.statusFilter() === status) return;
     this.statusFilter.set(status);
+    this.currentPage.set(1);
     this.loadApplicants();
   }
 
   toggleFullMatch(): void {
     this.fullMatchOnly.update((v) => !v);
+    this.currentPage.set(1);
     this.loadApplicants();
+  }
+
+  onNameSearchInput(event: Event): void {
+    this.searchNameQuery.set((event.target as HTMLInputElement).value);
+    this.currentPage.set(1);
+  }
+
+  clearNameSearch(): void {
+    this.searchNameQuery.set('');
+    this.currentPage.set(1);
+  }
+
+  onMatchRangeChange(event: Event): void {
+    this.matchRangeFilter.set((event.target as HTMLSelectElement).value);
+    this.currentPage.set(1);
+  }
+
+  onDatePresetChange(event: Event): void {
+    const val = (event.target as HTMLSelectElement).value as DatePreset;
+    this.datePreset.set(val);
+    if (val !== 'custom') {
+      this.appliedFromDate.set('');
+      this.appliedToDate.set('');
+    }
+    this.currentPage.set(1);
+  }
+
+  onFromDateChange(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    this.appliedFromDate.set(val);
+    if (val) {
+      this.datePreset.set('custom');
+    } else if (!this.appliedToDate()) {
+      this.datePreset.set('all');
+    }
+    this.currentPage.set(1);
+  }
+
+  onToDateChange(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    this.appliedToDate.set(val);
+    if (val) {
+      this.datePreset.set('custom');
+    } else if (!this.appliedFromDate()) {
+      this.datePreset.set('all');
+    }
+    this.currentPage.set(1);
+  }
+
+  toggleAdvancedFilters(): void {
+    this.showAdvancedFilters.update((v) => !v);
+  }
+
+  clearDateFilters(): void {
+    this.datePreset.set('all');
+    this.appliedFromDate.set('');
+    this.appliedToDate.set('');
+    this.currentPage.set(1);
+  }
+
+  clearAllFilters(): void {
+    const needsReload = this.statusFilter() !== 'All' || this.fullMatchOnly();
+    this.searchNameQuery.set('');
+    this.statusFilter.set('All');
+    this.fullMatchOnly.set(false);
+    this.matchRangeFilter.set('all');
+    this.datePreset.set('all');
+    this.appliedFromDate.set('');
+    this.appliedToDate.set('');
+    this.currentPage.set(1);
+    if (needsReload) {
+      this.loadApplicants();
+    }
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
+    window?.scrollTo?.({ top: 0, behavior: 'smooth' });
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+  }
+
+  getMatchBandLabel(val: string): string {
+    switch (val) {
+      case '100': return '100% Match';
+      case '90': return '90%+ Match';
+      case '75': return '75%+ High Match';
+      case '50': return '50%+ Moderate';
+      case 'under50': return 'Under 50%';
+      default: return val;
+    }
   }
 
   updateStatus(applicant: JobApplicantItemDto, newStatus: 'Shortlisted' | 'Rejected'): void {

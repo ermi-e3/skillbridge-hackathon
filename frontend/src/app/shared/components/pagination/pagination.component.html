@@ -1,0 +1,79 @@
+@if (totalItems() > 0) {
+  <nav class="pagination-bar" aria-label="Pagination">
+    <div class="pagination-summary">
+      <span>
+        Showing <strong>{{ startIndex() }}&ndash;{{ endIndex() }}</strong> of <strong>{{ totalItems() }}</strong>
+        {{ itemLabel() }}
+      </span>
+    </div>
+
+    <div class="pagination-controls">
+      @if (pageSizeOptions().length > 1) {
+        <div class="page-size-picker">
+          <label class="page-size-label" for="pagination-page-size">Per page</label>
+          <select
+            id="pagination-page-size"
+            class="page-size-select"
+            [value]="pageSize()"
+            (change)="onPageSizeSelect($event)"
+            aria-label="Items per page"
+          >
+            @for (size of pageSizeOptions(); track size) {
+              <option [value]="size" [selected]="size === pageSize()">{{ size }}</option>
+            }
+          </select>
+        </div>
+      }
+
+      @if (totalPages() > 1) {
+        <div class="page-buttons" role="group" aria-label="Page navigation">
+          <button
+            type="button"
+            class="page-btn nav-prev-btn"
+            [disabled]="currentPage() <= 1"
+            (click)="goToPage(currentPage() - 1)"
+            aria-label="Previous page"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span class="nav-btn-text">Prev</span>
+          </button>
+
+          <div class="page-number-group">
+            @for (token of pageTokens(); track $index) {
+              @if (token === 'ellipsis') {
+                <span class="page-ellipsis" aria-hidden="true">&hellip;</span>
+              } @else {
+                <button
+                  type="button"
+                  class="page-btn page-num-btn"
+                  [class.active]="token === currentPage()"
+                  [attr.aria-current]="token === currentPage() ? 'page' : null"
+                  [attr.aria-label]="'Page ' + token"
+                  (click)="goToPage(token)"
+                >
+                  {{ token }}
+                </button>
+              }
+            }
+          </div>
+
+          <button
+            type="button"
+            class="page-btn nav-next-btn"
+            [disabled]="currentPage() >= totalPages()"
+            (click)="goToPage(currentPage() + 1)"
+            aria-label="Next page"
+          >
+            <span class="nav-btn-text">Next</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+      }
+    </div>
+  </nav>
+}
+

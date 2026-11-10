@@ -347,4 +347,21 @@ describe('JobListComponent', () => {
     expect(component.searchKeyword()).toBe('');
     expect(component.hasActiveFilters()).toBe(false);
   });
+
+  it('should paginate jobs cleanly across pages', () => {
+    component.pageSize.set(2);
+    fixture.detectChanges();
+
+    expect(component.paginatedJobs().length).toBe(2);
+    expect(component.paginatedJobs()[0].id).toBe(101);
+    expect(component.paginatedJobs()[1].id).toBe(102);
+
+    component.onPageChange(2);
+    fixture.detectChanges();
+
+    expect(component.currentPage()).toBe(2);
+    expect(component.paginatedJobs().length).toBe(2);
+    expect(component.paginatedJobs()[0].id).toBe(103);
+    expect(component.paginatedJobs()[1].id).toBe(104);
+  });
 });

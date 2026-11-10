@@ -1,3 +1,5 @@
+@use '../../../../shared/styles/modern-filters';
+
 :host {
   display: block;
   min-height: 100vh;
@@ -480,10 +482,18 @@
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1.75rem;
+
+  &.applicants-sub-toolbar {
+    margin-bottom: 0;
+    padding: 0.75rem 1.25rem;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+  }
 }
 
 .filter-tabs {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.35rem;
   padding: 0.3rem;
