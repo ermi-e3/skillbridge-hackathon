@@ -90,12 +90,12 @@
       <section class="jobs-section" aria-label="Jobs posted by you">
         <div class="section-heading">
           <div>
-            <h2>Your openings</h2>
+            <h2>{{ statusFilter() === 'Closed' ? 'Closed openings' : 'Active openings' }}</h2>
             <p>
               @if (hasActiveFilters()) {
-                Showing {{ filteredJobs().length }} of {{ jobs().length }} {{ jobs().length === 1 ? 'job' : 'jobs' }}
+                Showing {{ filteredJobs().length }} {{ statusFilter() === 'Closed' ? 'closed' : 'active' }} {{ filteredJobs().length === 1 ? 'job' : 'jobs' }}
               } @else {
-                {{ jobs().length }} {{ jobs().length === 1 ? 'job' : 'jobs' }} listed
+                {{ activeJobsCount() }} active {{ activeJobsCount() === 1 ? 'job' : 'jobs' }}
               }
             </p>
           </div>
@@ -177,24 +177,24 @@
                 </select>
               </div>
 
-              <div class="compact-select-wrap">
-                <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M9 12l2 2 4-4"></path>
+              <button
+                type="button"
+                id="emp-job-status-filter"
+                class="btn-status-closed-toggle"
+                [class.active]="statusFilter() === 'Closed'"
+                (click)="toggleClosedFilter()"
+                [attr.aria-pressed]="statusFilter() === 'Closed'"
+                aria-label="Filter by closed jobs"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
-                <select
-                  id="emp-job-status-filter"
-                  class="compact-select"
-                  [class.has-value]="statusFilter() !== 'All'"
-                  [value]="statusFilter()"
-                  (change)="onStatusFilterChange($event)"
-                  aria-label="Filter by job status"
-                >
-                  <option value="All">All Statuses</option>
-                  <option value="Active">Active</option>
-                  <option value="Closed">Closed</option>
-                </select>
-              </div>
+                <span>Closed</span>
+                @if (closedJobsCount() > 0) {
+                  <span class="closed-count-pill">{{ closedJobsCount() }}</span>
+                }
+              </button>
             </div>
 
             <!-- Collapsible Date Drawer Toggle & Reset -->
@@ -310,10 +310,10 @@
                 </span>
               }
 
-              @if (statusFilter() !== 'All') {
+              @if (statusFilter() === 'Closed') {
                 <span class="active-filter-pill">
-                  <span>Status: {{ statusFilter() }}</span>
-                  <button type="button" class="pill-remove" (click)="statusFilter.set('All'); currentPage.set(1)" aria-label="Clear status filter">&times;</button>
+                  <span>Status: Closed</span>
+                  <button type="button" class="pill-remove" (click)="statusFilter.set('Active'); currentPage.set(1)" aria-label="Clear closed status filter">&times;</button>
                 </span>
               }
 
@@ -328,14 +328,25 @@
         </section>
 
         @if (filteredJobs().length === 0) {
-          <section class="empty-state empty-filter-state">
-            <span class="empty-eyebrow">No matching openings</span>
-            <h2>No jobs match your filters</h2>
-            <p>Try adjusting your search query, department, job type, status, or posting date criteria.</p>
-            <button type="button" class="primary-action empty-action-btn" (click)="clearAllFilters()">
-              Reset All Filters
-            </button>
-          </section>
+          @if (!hasActiveFilters() && statusFilter() === 'Active' && closedJobsCount() > 0) {
+            <section class="empty-state empty-filter-state">
+              <span class="empty-eyebrow">All openings closed</span>
+              <h2>No active jobs right now</h2>
+              <p>All your posted openings are currently closed. Click Closed in the filter bar to view them.</p>
+              <button type="button" class="primary-action empty-action-btn" (click)="toggleClosedFilter()">
+                View Closed Jobs ({{ closedJobsCount() }})
+              </button>
+            </section>
+          } @else {
+            <section class="empty-state empty-filter-state">
+              <span class="empty-eyebrow">No matching openings</span>
+              <h2>No jobs match your filters</h2>
+              <p>Try adjusting your search query, department, job type, status, or posting date criteria.</p>
+              <button type="button" class="primary-action empty-action-btn" (click)="clearAllFilters()">
+                Reset All Filters
+              </button>
+            </section>
+          }
         } @else {
           <div class="jobs-grid">
             @for (job of paginatedJobs(); track job.id) {
@@ -377,6 +388,14 @@
 
               <!-- Key Job Requirements & Attributes -->
               <div class="job-attributes-row">
+                @if (job.category) {
+                  <span class="attr-chip category-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    {{ job.category }}
+                  </span>
+                }
                 @if (job.workArrangement) {
                   <span class="attr-chip arrangement-chip">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">

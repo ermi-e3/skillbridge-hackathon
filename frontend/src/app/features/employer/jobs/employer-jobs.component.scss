@@ -588,6 +588,12 @@
     flex-shrink: 0;
   }
 
+  &.category-chip {
+    background: #f0fdfa;
+    color: #0f766e;
+    border: 1px solid #99f6e4;
+  }
+
   &.arrangement-chip {
     background: #eff6ff;
     color: #1d4ed8;
@@ -866,6 +872,68 @@
 @keyframes shimmer {
   to {
     background-position: -200% 0;
+  }
+}
+
+.btn-status-closed-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.84375rem;
+  font-weight: 600;
+  color: #334155;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  svg {
+    width: 0.95rem;
+    height: 0.95rem;
+    color: #94a3b8;
+    flex-shrink: 0;
+  }
+
+  .closed-count-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #475569;
+    background: #f1f5f9;
+    border-radius: 9999px;
+  }
+
+  &:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+  }
+
+  &.active {
+    background: #f0fdfa;
+    border-color: rgba(13, 148, 136, 0.55);
+    color: #0f766e;
+
+    svg {
+      color: #0d9488;
+    }
+
+    .closed-count-pill {
+      background: #0d9488;
+      color: #ffffff;
+    }
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: #0d9488;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.22);
   }
 }
 

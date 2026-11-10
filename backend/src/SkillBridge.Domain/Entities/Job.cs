@@ -27,12 +27,14 @@ public class Job
         int minExperienceYears = 0,
         IEnumerable<int>? preferredSkillIds = null,
         IEnumerable<(int SkillId, bool IsRequired, SkillProficiency MinProficiency)>? skillDetails = null,
-        DateTime? deadline = null)
+        DateTime? deadline = null,
+        string? category = null)
     {
         EmployerId = employerId;
         Title = title.Trim();
         Description = description.Trim();
         Location = string.IsNullOrWhiteSpace(location) ? null : location.Trim();
+        Category = string.IsNullOrWhiteSpace(category) ? null : category.Trim();
         IsOpen = true;
         CreatedAt = createdAt;
         Deadline = deadline;
@@ -98,6 +100,7 @@ public class Job
     public string Title { get; private set; } = null!;
     public string Description { get; private set; } = null!;
     public string? Location { get; private set; }
+    public string? Category { get; private set; }
     public bool IsOpen { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? Deadline { get; private set; }
@@ -129,6 +132,11 @@ public class Job
 
     public void Close() => IsOpen = false;
 
+    public void SetCategory(string? category)
+    {
+        Category = string.IsNullOrWhiteSpace(category) ? null : category.Trim();
+    }
+
     public void Update(
         string title,
         string description,
@@ -140,11 +148,13 @@ public class Job
         int minExperienceYears,
         IEnumerable<int>? preferredSkillIds = null,
         IEnumerable<(int SkillId, bool IsRequired, SkillProficiency MinProficiency)>? skillDetails = null,
-        DateTime? deadline = null)
+        DateTime? deadline = null,
+        string? category = null)
     {
         Title = title.Trim();
         Description = description.Trim();
         Location = string.IsNullOrWhiteSpace(location) ? null : location.Trim();
+        Category = string.IsNullOrWhiteSpace(category) ? null : category.Trim();
         JobType = jobType;
         ExperienceLevel = experienceLevel;
         MinExperienceYears = Math.Max(0, minExperienceYears);

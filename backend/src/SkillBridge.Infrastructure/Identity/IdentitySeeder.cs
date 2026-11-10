@@ -232,7 +232,8 @@ public sealed class IdentitySeeder(
                     ExperienceLevel.MidLevel,
                     minExperienceYears: 2,
                     preferredSkillIds: [43, 44, 49], // Pharmacology, Medical Records (EHR), Nursing
-                    deadline: now.AddDays(14)),
+                    deadline: now.AddDays(14),
+                    category: "Healthcare & Medical"),
 
                 // 2. Healthcare: Medical Laboratory Scientist
                 new Job(
@@ -247,7 +248,8 @@ public sealed class IdentitySeeder(
                     ExperienceLevel.Junior,
                     minExperienceYears: 1,
                     preferredSkillIds: [92, 50], // Quality Control, Health Education
-                    deadline: now.AddDays(21)),
+                    deadline: now.AddDays(21),
+                    category: "Healthcare & Medical"),
 
                 // 3. Finance: Senior Financial Analyst
                 new Job(
@@ -262,7 +264,8 @@ public sealed class IdentitySeeder(
                     ExperienceLevel.Senior,
                     minExperienceYears: 5,
                     preferredSkillIds: [65, 60], // Risk Management, IFRS Compliance
-                    deadline: now.AddDays(18)),
+                    deadline: now.AddDays(18),
+                    category: "Finance & Accounting"),
 
                 // 4. Finance: Accountant & Tax Associate
                 new Job(
@@ -277,7 +280,8 @@ public sealed class IdentitySeeder(
                     ExperienceLevel.Junior,
                     minExperienceYears: 2,
                     preferredSkillIds: [64, 63], // Payroll Management, Auditing
-                    deadline: now.AddDays(10)),
+                    deadline: now.AddDays(10),
+                    category: "Finance & Accounting"),
 
                 // 5. Education: High School STEM Educator
                 new Job(
@@ -292,7 +296,8 @@ public sealed class IdentitySeeder(
                     ExperienceLevel.MidLevel,
                     minExperienceYears: 3,
                     preferredSkillIds: [74, 77], // Educational Technology, Mentoring
-                    deadline: now.AddDays(25)),
+                    deadline: now.AddDays(25),
+                    category: "Education & Training"),
 
                 // 6. Education: Instructional Designer & E-Learning Coordinator
                 new Job(
@@ -307,7 +312,8 @@ public sealed class IdentitySeeder(
                     ExperienceLevel.MidLevel,
                     minExperienceYears: 2,
                     preferredSkillIds: [81, 168], // E-Learning, Technical Writing
-                    deadline: now.AddDays(12)),
+                    deadline: now.AddDays(12),
+                    category: "Education & Training"),
 
                 // 7. Engineering: Civil Site Engineer
                 new Job(
@@ -322,7 +328,8 @@ public sealed class IdentitySeeder(
                     ExperienceLevel.MidLevel,
                     minExperienceYears: 3,
                     preferredSkillIds: [91, 88], // Project Estimation, Structural Analysis
-                    deadline: now.AddDays(15)),
+                    deadline: now.AddDays(15),
+                    category: "Engineering & Architecture"),
 
                 // 8. Engineering: Electrical Systems Maintenance Technician
                 new Job(
@@ -337,7 +344,8 @@ public sealed class IdentitySeeder(
                     ExperienceLevel.Junior,
                     minExperienceYears: 2,
                     preferredSkillIds: [92], // Quality Control
-                    deadline: now.AddDays(8)),
+                    deadline: now.AddDays(8),
+                    category: "Logistics & Skilled Trades"),
 
                 // 9. Business: Operations & HR Generalist
                 new Job(
@@ -352,7 +360,8 @@ public sealed class IdentitySeeder(
                     ExperienceLevel.MidLevel,
                     minExperienceYears: 3,
                     preferredSkillIds: [108, 109], // Performance Management, Contract Negotiation
-                    deadline: now.AddDays(20)),
+                    deadline: now.AddDays(20),
+                    category: "Business & Operations"),
 
                 // 10. Business: Project Manager (Strategic Initiatives)
                 new Job(
@@ -367,7 +376,8 @@ public sealed class IdentitySeeder(
                     ExperienceLevel.Senior,
                     minExperienceYears: 5,
                     preferredSkillIds: [112, 111], // Change Management, Vendor Management
-                    deadline: now.AddDays(28)),
+                    deadline: now.AddDays(28),
+                    category: "Business & Operations"),
 
                 // 11. Marketing: Digital Marketing Specialist
                 new Job(
@@ -382,7 +392,8 @@ public sealed class IdentitySeeder(
                     ExperienceLevel.Junior,
                     minExperienceYears: 2,
                     preferredSkillIds: [118, 125], // SEO, Brand Development
-                    deadline: now.AddDays(16)),
+                    deadline: now.AddDays(16),
+                    category: "Sales & Marketing"),
 
                 // 12. Sales: B2B Corporate Sales Executive
                 new Job(
@@ -397,7 +408,8 @@ public sealed class IdentitySeeder(
                     ExperienceLevel.MidLevel,
                     minExperienceYears: 3,
                     preferredSkillIds: [126, 109], // Market Research, Contract Negotiation
-                    deadline: now.AddDays(19)),
+                    deadline: now.AddDays(19),
+                    category: "Sales & Marketing"),
 
                 // 13. Hospitality: Front Desk & Guest Experience Supervisor
                 new Job(
@@ -412,7 +424,8 @@ public sealed class IdentitySeeder(
                     ExperienceLevel.Junior,
                     minExperienceYears: 2,
                     preferredSkillIds: [140, 138], // Customer Retention, Hospitality Management
-                    deadline: now.AddDays(11)),
+                    deadline: now.AddDays(11),
+                    category: "Hospitality & Customer Service"),
 
                 // 14. Customer Service: Customer Support Team Lead
                 new Job(
@@ -427,7 +440,8 @@ public sealed class IdentitySeeder(
                     ExperienceLevel.MidLevel,
                     minExperienceYears: 3,
                     preferredSkillIds: [140, 157], // Customer Retention, Quality Assurance
-                    deadline: now.AddDays(22)),
+                    deadline: now.AddDays(22),
+                    category: "Hospitality & Customer Service"),
 
                 // 15. Technology: Full-Stack Software Engineer
                 new Job(
@@ -442,7 +456,8 @@ public sealed class IdentitySeeder(
                     ExperienceLevel.MidLevel,
                     minExperienceYears: 3,
                     preferredSkillIds: [12, 13, 39], // Docker, Git, CI/CD
-                    deadline: now.AddDays(24)),
+                    deadline: now.AddDays(24),
+                    category: "Technology & Software"),
 
                 // 16. Data & Analytics: Data Analyst & Business Intelligence Specialist
                 new Job(
@@ -457,7 +472,8 @@ public sealed class IdentitySeeder(
                     ExperienceLevel.Junior,
                     minExperienceYears: 1,
                     preferredSkillIds: [21, 170], // Python, Statistical Modeling
-                    deadline: now.AddDays(17))
+                    deadline: now.AddDays(17),
+                    category: "Data & Analytics")
             };
 
             var jobsToInsert = jobs
@@ -469,6 +485,46 @@ public sealed class IdentitySeeder(
                 dbContext.Jobs.AddRange(jobsToInsert);
                 await dbContext.SaveChangesAsync(cancellationToken);
             }
+        }
+
+        // Backfill categories for any existing seeded jobs that predate the Category column
+        var defaultCategoryByTitle = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Registered Nurse (Inpatient Care)"] = "Healthcare & Medical",
+            ["Medical Laboratory Scientist"] = "Healthcare & Medical",
+            ["Senior Financial Analyst"] = "Finance & Accounting",
+            ["Accountant & Tax Associate"] = "Finance & Accounting",
+            ["High School STEM Educator"] = "Education & Training",
+            ["Instructional Designer & E-Learning Coordinator"] = "Education & Training",
+            ["Civil Site Engineer"] = "Engineering & Architecture",
+            ["Electrical Systems Maintenance Technician"] = "Logistics & Skilled Trades",
+            ["Operations & HR Generalist"] = "Business & Operations",
+            ["Project Manager (Strategic Initiatives)"] = "Business & Operations",
+            ["Digital Marketing Specialist"] = "Sales & Marketing",
+            ["B2B Corporate Sales Executive"] = "Sales & Marketing",
+            ["Front Desk & Guest Experience Supervisor"] = "Hospitality & Customer Service",
+            ["Customer Support Team Lead"] = "Hospitality & Customer Service",
+            ["Full-Stack Software Engineer"] = "Technology & Software",
+            ["Data Analyst & BI Specialist"] = "Data & Analytics"
+        };
+
+        var uncategorizedJobs = await dbContext.Jobs
+            .Where(j => j.Category == null || j.Category == "")
+            .ToListAsync(cancellationToken);
+
+        if (uncategorizedJobs.Count > 0)
+        {
+            var updatedAny = false;
+            foreach (var job in uncategorizedJobs)
+            {
+                if (defaultCategoryByTitle.TryGetValue(job.Title, out var cat))
+                {
+                    job.SetCategory(cat);
+                    updatedAny = true;
+                }
+            }
+            if (updatedAny)
+                await dbContext.SaveChangesAsync(cancellationToken);
         }
 
         if (candidateUser is not null)

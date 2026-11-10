@@ -299,4 +299,45 @@ describe('EmployerPostJobComponent', () => {
     );
     expect(router.navigate).toHaveBeenCalledWith(['/employer/jobs']);
   });
+
+  it('allows selecting, loading, and updating job category when posting or editing a job', () => {
+    component.jobForm.patchValue({
+      title: 'Registered Staff Nurse',
+      category: 'Healthcare & Medical',
+      description: 'Provide attentive clinical nursing support across medical wards.',
+    });
+    component.toggleSkill(1);
+    component.onSubmit();
+
+    expect(jobsServiceSpy.postJob).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Registered Staff Nurse',
+        category: 'Healthcare & Medical',
+      })
+    );
+
+    // Edit mode pre-populates and updates category
+    const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    jobsServiceSpy.getJobById.mockReturnValue(
+      of({
+        ...mockCreatedJob,
+        category: 'Finance & Accounting',
+        createdAt: thirtyMinsAgo,
+      })
+    );
+
+    component.jobId.set(101);
+    component.loadJobForEdit(101);
+    expect(component.jobForm.get('category')?.value).toBe('Finance & Accounting');
+
+    component.jobForm.patchValue({ category: 'Business & Operations' });
+    component.onSubmit();
+
+    expect(jobsServiceSpy.updateJob).toHaveBeenCalledWith(
+      101,
+      expect.objectContaining({
+        category: 'Business & Operations',
+      })
+    );
+  });
 });

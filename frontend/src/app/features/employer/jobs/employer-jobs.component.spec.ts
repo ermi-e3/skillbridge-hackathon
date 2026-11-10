@@ -182,9 +182,9 @@ describe('EmployerJobsComponent', () => {
     expect(editBtn.textContent).toContain('Edit Expired');
   });
 
-  it('filters employer jobs by title, department, job type, status, and posting date, and supports pagination', () => {
+  it('shows only active jobs by default, filters to closed status via toggle, and supports pagination and attribute filters', () => {
     const multiJobs: EmployerJobDto[] = [
-      mockJobs[0], // Junior Backend Developer (Technology, FullTime, Active, 2026-10-10)
+      mockJobs[0], // id: 12 Junior Backend Developer (Technology, FullTime, Active, 2026-10-10)
       {
         ...mockJobs[0],
         id: 13,
@@ -205,13 +205,27 @@ describe('EmployerJobsComponent', () => {
         requiredSkills: [{ id: 56, name: 'Financial Analysis' }],
         preferredSkills: [],
       },
+      {
+        ...mockJobs[0],
+        id: 15,
+        title: 'High School Educator',
+        jobType: 'FullTime',
+        isOpen: true,
+        createdAt: '2026-10-13T10:00:00Z',
+        requiredSkills: [{ id: 72, name: 'Classroom Management' }],
+        preferredSkills: [],
+      },
     ];
     jobsServiceSpy.getEmployerJobs.mockReturnValue(of(multiJobs));
     fixture.detectChanges();
 
-    // Filter by job title
-    component.searchTitleQuery.set('Nurse');
-    expect(component.filteredJobs().map((j) => j.id)).toEqual([13]);
+    // Default state shows ONLY active jobs (12, 14, 15) and hides closed job (13)
+    expect(component.statusFilter()).toBe('Active');
+    expect(component.filteredJobs().map((j) => j.id)).toEqual([12, 14, 15]);
+
+    // Filter by job title (within active jobs)
+    component.searchTitleQuery.set('Educator');
+    expect(component.filteredJobs().map((j) => j.id)).toEqual([15]);
 
     // Filter by department
     component.clearTitleSearch();
@@ -220,26 +234,35 @@ describe('EmployerJobsComponent', () => {
 
     // Filter by job type
     component.departmentFilter.set('all');
-    component.jobTypeFilter.set('PartTime');
-    expect(component.filteredJobs().map((j) => j.id)).toEqual([13]);
-
-    // Filter by status
-    component.jobTypeFilter.set('All');
-    component.statusFilter.set('Closed');
-    expect(component.filteredJobs().map((j) => j.id)).toEqual([13]);
-
-    // Filter by posting date
-    component.statusFilter.set('All');
-    component.postedFromDate.set('2026-10-11');
-    component.datePreset.set('custom');
+    component.jobTypeFilter.set('Contract');
     expect(component.filteredJobs().map((j) => j.id)).toEqual([14]);
 
-    // Pagination check
+    // Filter by Closed status toggle -> shows ONLY closed jobs (13)
+    component.jobTypeFilter.set('All');
+    const closedBtn = fixture.nativeElement.querySelector('#emp-job-status-filter') as HTMLButtonElement;
+    expect(closedBtn).toBeTruthy();
+    closedBtn.click();
+    fixture.detectChanges();
+    expect(component.statusFilter()).toBe('Closed');
+    expect(component.filteredJobs().map((j) => j.id)).toEqual([13]);
+
+    // Clear filters -> returns to showing Active jobs (12, 14, 15)
+    component.clearAllFilters();
+    fixture.detectChanges();
+    expect(component.statusFilter()).toBe('Active');
+    expect(component.filteredJobs().map((j) => j.id)).toEqual([12, 14, 15]);
+
+    // Filter by posting date
+    component.postedFromDate.set('2026-10-12');
+    component.datePreset.set('custom');
+    expect(component.filteredJobs().map((j) => j.id)).toEqual([14, 15]);
+
+    // Pagination check over active jobs
     component.clearAllFilters();
     component.pageSize.set(2);
     expect(component.paginatedJobs().length).toBe(2);
     component.onPageChange(2);
     expect(component.paginatedJobs().length).toBe(1);
-    expect(component.paginatedJobs()[0].id).toBe(14);
+    expect(component.paginatedJobs()[0].id).toBe(15);
   });
 });

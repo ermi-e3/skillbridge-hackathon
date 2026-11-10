@@ -137,39 +137,51 @@
             }
           </div>
 
-          <!-- Location -->
-          <div class="form-group full-width">
-            <div class="label-row">
-              <label for="location" class="form-label">Location (Optional)</label>
-              <span class="char-count" [class.near-limit]="locationLength > 85">
-                {{ locationLength }}/100
-              </span>
+          <!-- Category & Location -->
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="category" class="form-label">Job Category</label>
+              <select id="category" class="form-input form-select" formControlName="category">
+                <option value="">Select job category</option>
+                @for (cat of jobCategories; track cat) {
+                  <option [value]="cat">{{ cat }}</option>
+                }
+              </select>
             </div>
-            <div class="input-with-icon">
-              <svg class="leading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path>
-                <circle cx="12" cy="10" r="2.5"></circle>
-              </svg>
-              <input
-                id="location"
-                type="text"
-                class="form-input with-icon"
-                [class.input-invalid]="locationControl?.invalid && (locationControl?.touched || locationControl?.dirty)"
-                formControlName="location"
-                placeholder="e.g. Addis Ababa, Remote, or Hybrid"
-                maxlength="100"
-              />
-            </div>
-            @if (locationControl?.invalid && (locationControl?.touched || locationControl?.dirty)) {
-              <div class="inline-error" role="alert">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-                <span>Location cannot exceed 100 characters.</span>
+
+            <div class="form-group">
+              <div class="label-row">
+                <label for="location" class="form-label">Location (Optional)</label>
+                <span class="char-count" [class.near-limit]="locationLength > 85">
+                  {{ locationLength }}/100
+                </span>
               </div>
-            }
+              <div class="input-with-icon">
+                <svg class="leading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path>
+                  <circle cx="12" cy="10" r="2.5"></circle>
+                </svg>
+                <input
+                  id="location"
+                  type="text"
+                  class="form-input with-icon"
+                  [class.input-invalid]="locationControl?.invalid && (locationControl?.touched || locationControl?.dirty)"
+                  formControlName="location"
+                  placeholder="e.g. Addis Ababa, Remote, or Hybrid"
+                  maxlength="100"
+                />
+              </div>
+              @if (locationControl?.invalid && (locationControl?.touched || locationControl?.dirty)) {
+                <div class="inline-error" role="alert">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  <span>Location cannot exceed 100 characters.</span>
+                </div>
+              }
+            </div>
           </div>
 
           <!-- Matching Criteria: Arrangement, Job Type, Experience Level, Min Years -->

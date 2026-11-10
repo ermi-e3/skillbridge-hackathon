@@ -17,6 +17,7 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
         builder.Property(j => j.Title).IsRequired().HasMaxLength(120);
         builder.Property(j => j.Description).IsRequired().HasMaxLength(4000);
         builder.Property(j => j.Location).HasMaxLength(100);
+        builder.Property(j => j.Category).HasMaxLength(100);
         builder.Property(j => j.IsOpen).IsRequired();
         builder.Property(j => j.CreatedAt).IsRequired();
         builder.Property(j => j.Deadline).IsRequired(false);
@@ -49,5 +50,6 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
         builder.HasIndex(j => new { j.IsOpen, j.JobType });
         builder.HasIndex(j => new { j.IsOpen, j.WorkArrangement });
         builder.HasIndex(j => new { j.IsOpen, j.ExperienceLevel });
+        builder.HasIndex(j => new { j.IsOpen, j.Category });
     }
 }

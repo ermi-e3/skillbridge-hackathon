@@ -715,8 +715,16 @@
             <!-- Job Title -->
             <h2 class="job-title">{{ job.title }}</h2>
 
-            <!-- Attributes Badges Row: Arrangement, Job Type, Experience Level -->
+            <!-- Attributes Badges Row: Category, Arrangement, Job Type, Experience Level -->
             <div class="job-attributes-row">
+              @if (job.category) {
+                <span class="attr-chip category-chip">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  {{ job.category }}
+                </span>
+              }
               @if (job.workArrangement) {
                 <span class="attr-chip arrangement-chip">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">

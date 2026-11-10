@@ -36,11 +36,11 @@ export class EmployerJobsComponent implements OnInit {
   readonly closingJobId = signal<number | null>(null);
   readonly jobToClose = signal<EmployerJobDto | null>(null);
 
-  // Filter Signals
+  // Filter Signals (Default view shows only Active jobs; filter can apply Closed status)
   readonly searchTitleQuery = signal<string>('');
   readonly departmentFilter = signal<string>('all');
   readonly jobTypeFilter = signal<string>('All');
-  readonly statusFilter = signal<'All' | 'Active' | 'Closed'>('All');
+  readonly statusFilter = signal<'Active' | 'Closed'>('Active');
   readonly datePreset = signal<DatePreset>('all');
   readonly postedFromDate = signal<string>('');
   readonly postedToDate = signal<string>('');
@@ -53,12 +53,15 @@ export class EmployerJobsComponent implements OnInit {
   readonly currentPage = signal<number>(1);
   readonly pageSize = signal<number>(6);
 
+  readonly activeJobsCount = computed(() => this.jobs().filter((j) => j.isOpen).length);
+  readonly closedJobsCount = computed(() => this.jobs().filter((j) => !j.isOpen).length);
+
   readonly activeFilterCount = computed(() => {
     let count = 0;
     if (this.searchTitleQuery().trim()) count++;
     if (this.departmentFilter() !== 'all') count++;
     if (this.jobTypeFilter() !== 'All') count++;
-    if (this.statusFilter() !== 'All') count++;
+    if (this.statusFilter() === 'Closed') count++;
     if (this.datePreset() !== 'all' || this.postedFromDate() || this.postedToDate()) count++;
     return count;
   });
@@ -79,7 +82,7 @@ export class EmployerJobsComponent implements OnInit {
         return false;
       }
 
-      if (dept !== 'all' && !jobMatchesDepartment(job.requiredSkills, job.preferredSkills, dept)) {
+      if (dept !== 'all' && !jobMatchesDepartment(job.requiredSkills, job.preferredSkills, dept, job.category)) {
         return false;
       }
 
@@ -275,7 +278,13 @@ export class EmployerJobsComponent implements OnInit {
   }
 
   onStatusFilterChange(event: Event): void {
-    this.statusFilter.set((event.target as HTMLSelectElement).value as 'All' | 'Active' | 'Closed');
+    const val = (event.target as HTMLSelectElement).value;
+    this.statusFilter.set(val === 'Closed' ? 'Closed' : 'Active');
+    this.currentPage.set(1);
+  }
+
+  toggleClosedFilter(): void {
+    this.statusFilter.update((s) => (s === 'Closed' ? 'Active' : 'Closed'));
     this.currentPage.set(1);
   }
 
@@ -326,7 +335,7 @@ export class EmployerJobsComponent implements OnInit {
     this.searchTitleQuery.set('');
     this.departmentFilter.set('all');
     this.jobTypeFilter.set('All');
-    this.statusFilter.set('All');
+    this.statusFilter.set('Active');
     this.datePreset.set('all');
     this.postedFromDate.set('');
     this.postedToDate.set('');
@@ -344,7 +353,7 @@ export class EmployerJobsComponent implements OnInit {
   }
 
   getDepartmentLabel(job: EmployerJobDto): string | null {
-    return getPrimaryJobDepartmentLabel(job.requiredSkills, job.preferredSkills);
+    return getPrimaryJobDepartmentLabel(job.requiredSkills, job.preferredSkills, job.category);
   }
 
   getDepartmentNameById(deptId: string): string {

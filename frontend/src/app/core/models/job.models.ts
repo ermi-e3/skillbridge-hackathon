@@ -30,6 +30,7 @@ export interface JobDto {
   title: string;
   description: string;
   location?: string;
+  category?: string | null;
   jobType?: string;
   workArrangement?: string;
   experienceLevel?: string;
@@ -60,6 +61,7 @@ export interface EmployerJobDto {
   title: string;
   description?: string;
   location?: string | null;
+  category?: string | null;
   jobType?: string;
   workArrangement?: string;
   experienceLevel?: string;
@@ -88,6 +90,7 @@ export interface CreateJobRequest {
   title: string;
   description: string;
   location?: string | null;
+  category?: string | null;
   jobType?: string;
   workArrangement?: string;
   experienceLevel?: string;
@@ -104,6 +107,7 @@ export interface UpdateJobRequest {
   title: string;
   description: string;
   location?: string | null;
+  category?: string | null;
   jobType?: string;
   workArrangement?: string;
   experienceLevel?: string;
