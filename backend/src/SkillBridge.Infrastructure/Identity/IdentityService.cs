@@ -560,7 +560,11 @@ public sealed class IdentityService(UserManager<AppUser> userManager, AppDbConte
         if (result.Errors.Any(error => error.Code is "DuplicateEmail" or "DuplicateUserName"))
             throw EmailTaken();
 
-        throw new BusinessRuleException("validation.failed", "Invalid registration", "Registration details are invalid.");
+        var detail = string.Join("; ", result.Errors.Select(e => e.Description));
+        if (string.IsNullOrWhiteSpace(detail))
+            detail = "Registration details are invalid.";
+
+        throw new BusinessRuleException("validation.failed", "Invalid registration", detail);
     }
 
     private static bool IsDuplicateEmail(DbUpdateException exception) =>

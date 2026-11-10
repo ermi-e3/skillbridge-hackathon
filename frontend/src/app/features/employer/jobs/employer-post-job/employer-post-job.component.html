@@ -115,7 +115,7 @@
               class="form-input"
               [class.input-invalid]="titleControl?.invalid && (titleControl?.touched || titleControl?.dirty)"
               formControlName="title"
-              placeholder="e.g. Senior Full-Stack .NET & Angular Engineer"
+              placeholder="e.g. Operations Manager, Registered Nurse, or Senior Analyst"
               maxlength="120"
               autocomplete="off"
             />
@@ -303,14 +303,14 @@
         <div class="custom-skills-section">
           <div class="custom-skills-header">
             <label for="custom-skill-input" class="custom-skills-label">Add Custom Skill Tag</label>
-            <span class="custom-skills-hint">Add custom domain or tech tags not in the catalog.</span>
+            <span class="custom-skills-hint">Add custom industry or domain skill tags not in the catalog.</span>
           </div>
           <div class="custom-skill-input-group">
             <input
               id="custom-skill-input"
               type="text"
               class="form-input custom-skill-input"
-              placeholder="Enter custom skill name (e.g. Next.js, gRPC, Pinia)..."
+              placeholder="Enter custom skill name (e.g. Clinical Research, Six Sigma, IFRS)..."
               [value]="customSkillInput()"
               (input)="onCustomSkillInput($event)"
               (keydown.enter)="$event.preventDefault(); addCustomSkill()"
@@ -335,7 +335,7 @@
         <!-- Selected Skills Tray (Catalog + Custom Tags) -->
         <div class="selected-skills-tray-container">
           <div class="tray-header-row">
-            <span class="tray-label">Selected Required Technologies ({{ totalRequiredSkillsCount() }}):</span>
+            <span class="tray-label">Selected Required Skills ({{ totalRequiredSkillsCount() }}):</span>
             @if (totalRequiredSkillsCount() > 0) {
               <button type="button" class="btn-clear-tray" (click)="clearAllCoreSkills()" [disabled]="isEditingExpired()">Clear all</button>
             }
@@ -385,14 +385,14 @@
                 <line x1="12" y1="8" x2="12" y2="12"></line>
                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
               </svg>
-              <span>No required skills selected yet. Select 1 to 20 core technologies in the dropdown below or add custom tags.</span>
+              <span>No required skills selected yet. Select 1 to 20 core skills in the dropdown below or add custom tags.</span>
             </div>
           }
         </div>
 
         <!-- Modern Searchable Multi-Select Dropdown Component (Teal Accent) -->
         <div class="multi-select-dropdown-wrapper core-dropdown-wrapper" [class.is-open]="isCoreDropdownOpen()">
-          <label class="dropdown-field-label">Add Required Technologies from Catalog</label>
+          <label class="dropdown-field-label">Add Required Skills from Catalog</label>
 
           <!-- Dropdown Trigger Button -->
           <div
@@ -414,7 +414,7 @@
               </svg>
               <span class="trigger-text">
                 @if (selectedSkillIds().length === 0) {
-                  Click to search & select required technologies...
+                  Click to search & select required skills...
                 } @else if (totalRequiredSkillsCount() >= 20) {
                   Maximum 20 required skills selected (click to view/edit)
                 } @else {
@@ -445,7 +445,7 @@
                     type="text"
                     [value]="skillSearchQuery()"
                     (input)="onSearchChange($event)"
-                    placeholder="Search skills (e.g. C#, Angular, PostgreSQL)..."
+                    placeholder="Search skills (e.g. Financial Reporting, Patient Care, Project Management)..."
                     class="dropdown-search-input"
                     autofocus
                   />
@@ -523,7 +523,7 @@
                       <circle cx="11" cy="11" r="8"></circle>
                       <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
-                    <p>No technologies match "{{ skillSearchQuery() }}"</p>
+                    <p>No skills match "{{ skillSearchQuery() }}"</p>
                     <button type="button" class="btn-reset-filters" (click)="clearSearch(); setCategory('all')">
                       Clear search & filters
                     </button>
@@ -572,11 +572,11 @@
           <div class="header-text-with-badge">
             <div>
               <div class="category-badge-inline">
-                <span class="category-pill">Nice-to-Have Skills</span>
+                <span class="category-pill">Preferred Skills</span>
               </div>
               <h2 class="card-title">Preferred Skills (Optional)</h2>
               <p class="card-desc">
-                Select bonus competencies and secondary tools. Candidates with these skills receive up to 15% bonus match points without penalizing candidates who don't have them.
+                Select bonus competencies and secondary skills. Candidates with these skills receive up to 15% bonus match points without penalizing candidates who don't have them.
               </p>
             </div>
             <div class="selection-badge badge-preferred" [class.badge-valid]="selectedPreferredSkillIds().length > 0">
@@ -588,7 +588,7 @@
         <!-- Selected Preferred Skills Tray -->
         <div class="selected-skills-tray-container preferred-tray-container">
           <div class="tray-header-row">
-            <span class="tray-label">Selected Nice-to-Have Technologies ({{ selectedPreferredSkills().length }}):</span>
+            <span class="tray-label">Selected Preferred Skills ({{ selectedPreferredSkills().length }}):</span>
             @if (selectedPreferredSkills().length > 0) {
               <button type="button" class="btn-clear-tray" (click)="clearAllPreferredSkills()" [disabled]="isEditingExpired()">Clear all</button>
             }
@@ -619,14 +619,14 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
               </svg>
-              <span>No nice-to-have skills selected yet (optional, up to 15). Select secondary tools in the dropdown below.</span>
+              <span>No preferred skills selected yet (optional, up to 15). Select secondary skills in the dropdown below.</span>
             </div>
           }
         </div>
 
         <!-- Modern Searchable Multi-Select Dropdown Component (Purple Accent) -->
         <div class="multi-select-dropdown-wrapper preferred-dropdown-wrapper" [class.is-open]="isPreferredDropdownOpen()">
-          <label class="dropdown-field-label">Add Nice-to-Have Technologies from Catalog</label>
+          <label class="dropdown-field-label">Add Preferred Skills from Catalog</label>
 
           <!-- Dropdown Trigger Button -->
           <div
@@ -648,11 +648,11 @@
               </svg>
               <span class="trigger-text">
                 @if (selectedPreferredSkillIds().length === 0) {
-                  Click to search & select nice-to-have technologies...
+                  Click to search & select preferred skills...
                 } @else if (selectedPreferredSkillIds().length >= 15) {
-                  Maximum 15 nice-to-have technologies selected (click to edit)
+                  Maximum 15 preferred skills selected (click to edit)
                 } @else {
-                  Search & add secondary technologies ({{ 15 - selectedPreferredSkillIds().length }} remaining)...
+                  Search & add secondary skills ({{ 15 - selectedPreferredSkillIds().length }} remaining)...
                 }
               </span>
             </div>
@@ -679,7 +679,7 @@
                     type="text"
                     [value]="preferredSkillSearchQuery()"
                     (input)="onPreferredSearchChange($event)"
-                    placeholder="Search nice-to-have skills (e.g. Redis, GraphQL, Flutter, AWS)..."
+                    placeholder="Search preferred skills (e.g. Data Analysis, Customer Support, Team Leadership)..."
                     class="dropdown-search-input"
                     autofocus
                   />
@@ -757,7 +757,7 @@
                       <circle cx="11" cy="11" r="8"></circle>
                       <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
-                    <p>No technologies match "{{ preferredSkillSearchQuery() }}"</p>
+                    <p>No skills match "{{ preferredSkillSearchQuery() }}"</p>
                     <button type="button" class="btn-reset-filters" (click)="clearPreferredSearch(); setPreferredCategory('all')">
                       Clear search & filters
                     </button>
