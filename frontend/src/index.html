@@ -5,7 +5,26 @@
   <title>SkillBridge</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Internships and entry jobs matched to the skills you actually have.">
+  <meta name="theme-color" content="#f8fafc">
+  <meta name="description" content="Internships and jobs matched to the verified skills you have across diverse industries.">
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('skillbridge_theme');
+        var pref = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var resolved = pref === 'dark' || (pref === 'system' && prefersDark) ? 'dark' : 'light';
+        var root = document.documentElement;
+        root.setAttribute('data-theme', resolved);
+        root.setAttribute('data-theme-preference', pref);
+        root.style.colorScheme = resolved;
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) {
+          meta.setAttribute('content', resolved === 'dark' ? '#0b1120' : '#f8fafc');
+        }
+      } catch (e) {}
+    })();
+  </script>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>

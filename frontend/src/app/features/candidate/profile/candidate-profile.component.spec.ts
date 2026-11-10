@@ -317,4 +317,33 @@ describe('CandidateProfileComponent', () => {
     expect(component.defaultCvOriginalFileName()).toBeNull();
     expect(component.successToast()).toContain('Default CV removed');
   });
+
+  it('should render experience level select dropdown with text-only labels matching the clean design', () => {
+    fixture.detectChanges();
+    const selectEl = fixture.nativeElement.querySelector('#experienceLevel') as HTMLSelectElement;
+    expect(selectEl).toBeTruthy();
+
+    const optionLabels = Array.from(selectEl.options)
+      .filter((opt) => !opt.disabled)
+      .map((opt) => opt.textContent?.trim() ?? '');
+
+    expect(optionLabels).toEqual([
+      'Entry Level',
+      'Junior',
+      'Mid Level',
+      'Senior',
+      'Lead / Architect',
+    ]);
+
+    // Ensure no numerical ranges are shown
+    for (const label of optionLabels) {
+      expect(/\d/.test(label)).toBe(false);
+    }
+
+    selectEl.value = 'MidLevel';
+    selectEl.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(component.experienceLevelControl?.value).toBe('MidLevel');
+  });
 });

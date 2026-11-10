@@ -15,5 +15,6 @@ public sealed record UpdateJobRequest(
     IReadOnlyList<JobSkillRequirementDto>? SkillRequirements = null,
     DateTime? Deadline = null,
     IReadOnlyList<string>? CustomSkills = null,
-    IReadOnlyList<string>? CustomPreferredSkills = null);
+    IReadOnlyList<string>? CustomPreferredSkills = null,
+    string? Category = null);
 

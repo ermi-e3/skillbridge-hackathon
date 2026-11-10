@@ -217,7 +217,8 @@ public sealed class JobsService(
                 preferredSkills,
                 applicationStatus,
                 applicationId,
-                job.Deadline);
+                job.Deadline,
+                job.Category);
         }).ToList();
 
         // Sort
@@ -354,7 +355,8 @@ public sealed class JobsService(
             preferredSkills,
             applicationStatus,
             applicationId,
-            job.Deadline);
+            job.Deadline,
+            job.Category);
     }
 
     public async Task<JobDto> CreateJobAsync(CreateJobRequest request, CancellationToken cancellationToken = default)
@@ -412,7 +414,8 @@ public sealed class JobsService(
             request.MinExperienceYears,
             finalPreferredSkillIds,
             skillDetails,
-            request.Deadline);
+            request.Deadline,
+            request.Category);
 
         dbContext.Jobs.Add(job);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -495,7 +498,8 @@ public sealed class JobsService(
             request.MinExperienceYears,
             finalPreferredSkillIds,
             skillDetails,
-            request.Deadline);
+            request.Deadline,
+            request.Category);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -621,7 +625,8 @@ public sealed class JobsService(
                 job.ExperienceLevel,
                 job.MinExperienceYears,
                 job.Description,
-                job.Deadline);
+                job.Deadline,
+                job.Category);
         }).ToList();
     }
 

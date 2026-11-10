@@ -9,12 +9,13 @@ import { AuthService } from '../../../core/services/auth.service';
 import { RealtimeService } from '../../../core/services/realtime.service';
 import { extractErrorMessage } from '../../../core/utils/error-formatter';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { UserProfileMenuComponent } from '../../../shared/components/user-profile-menu/user-profile-menu.component';
 import { DATE_PRESET_OPTIONS, DatePreset, matchesDateFilter } from '../../../shared/utils/filter-date.util';
 
 @Component({
   selector: 'app-candidate-applications',
   standalone: true,
-  imports: [CommonModule, RouterLink, DatePipe, PaginationComponent],
+  imports: [CommonModule, RouterLink, DatePipe, PaginationComponent, UserProfileMenuComponent],
   templateUrl: './candidate-applications.component.html',
   styleUrl: './candidate-applications.component.scss',
 })

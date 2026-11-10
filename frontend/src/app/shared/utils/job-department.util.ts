@@ -9,8 +9,7 @@ export interface DepartmentOption {
 const TECH_CATEGORY_IDS = new Set(['frontend', 'backend', 'database', 'devops', 'mobile']);
 
 /**
- * Industry-wide departments derived from SKILL_CATEGORIES,
- * grouping software sub-disciplines into "Technology & Software".
+ * Industry-wide categories/departments available across job posting, filtering, and discovery.
  */
 export const DEPARTMENT_OPTIONS: DepartmentOption[] = [
   ...SKILL_CATEGORIES.filter((c) => c.id !== 'all' && !TECH_CATEGORY_IDS.has(c.id)).map((c) => ({
@@ -18,24 +17,35 @@ export const DEPARTMENT_OPTIONS: DepartmentOption[] = [
     name: c.name,
   })),
   { id: 'technology', name: 'Technology & Software' },
+  { id: 'hr', name: 'Human Resources' },
+  { id: 'legal', name: 'Legal & Compliance' },
+  { id: 'creative', name: 'Creative & Design' },
+  { id: 'general', name: 'Other / General' },
 ];
 
+export const JOB_CATEGORY_NAMES: string[] = DEPARTMENT_OPTIONS.map((d) => d.name);
+
 /**
- * Resolves all matching department IDs for a job based on its required and preferred skills.
+ * Resolves all matching department IDs for a job based on its stored category or skills.
  */
 export function getJobDepartments(
   requiredSkills: SkillDto[] = [],
-  preferredSkills: SkillDto[] = []
+  preferredSkills: SkillDto[] = [],
+  category?: string | null
 ): string[] {
+  const matchedIds = new Set<string>();
+
+  if (category && category.trim()) {
+    const normalizedCategory = category.trim().toLowerCase();
+    const directMatch = DEPARTMENT_OPTIONS.find((d) => d.name.toLowerCase() === normalizedCategory);
+    if (directMatch) {
+      matchedIds.add(directMatch.id);
+    }
+  }
+
   const skillNames = new Set(
     [...requiredSkills, ...preferredSkills].map((s) => s.name.toLowerCase())
   );
-
-  if (skillNames.size === 0) {
-    return [];
-  }
-
-  const matchedIds = new Set<string>();
 
   for (const group of SKILL_CATEGORIES) {
     if (group.id === 'all' || group.skillNames.length === 0) {
@@ -52,12 +62,16 @@ export function getJobDepartments(
 }
 
 /**
- * Returns the primary human-readable department label for a job, or null if unmatched.
+ * Returns the primary human-readable department/category label for a job.
  */
 export function getPrimaryJobDepartmentLabel(
   requiredSkills: SkillDto[] = [],
-  preferredSkills: SkillDto[] = []
+  preferredSkills: SkillDto[] = [],
+  category?: string | null
 ): string | null {
+  if (category && category.trim()) {
+    return category.trim();
+  }
   const deptIds = getJobDepartments(requiredSkills, preferredSkills);
   if (deptIds.length === 0) {
     return null;
@@ -72,12 +86,12 @@ export function getPrimaryJobDepartmentLabel(
 export function jobMatchesDepartment(
   requiredSkills: SkillDto[] = [],
   preferredSkills: SkillDto[] | undefined,
-  departmentId: string
+  departmentId: string,
+  category?: string | null
 ): boolean {
   if (!departmentId || departmentId === 'all') {
     return true;
   }
-  const deptIds = getJobDepartments(requiredSkills, preferredSkills ?? []);
+  const deptIds = getJobDepartments(requiredSkills, preferredSkills ?? [], category);
   return deptIds.includes(departmentId);
 }
-

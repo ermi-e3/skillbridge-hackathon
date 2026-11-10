@@ -13,6 +13,12 @@
         <h1 class="page-title">Account & Security</h1>
         <p class="page-subtitle">Manage your profile, password, and email verification</p>
       </div>
+      <div class="header-right">
+        <app-user-profile-menu
+          [fallbackName]="status()?.fullName ?? null"
+          [fallbackEmail]="status()?.email ?? null"
+        />
+      </div>
     </header>
 
     <!-- Global Alerts -->
@@ -44,7 +50,7 @@
     } @else {
       <div class="settings-grid">
         <!-- 1. Profile Information -->
-        <section class="card settings-card">
+        <section id="profile" class="card settings-card">
           <div class="card-header">
             <h2>Profile Information</h2>
             <p>Update your personal and organizational details</p>
@@ -111,7 +117,7 @@
         </section>
 
         <!-- 3. Password Management -->
-        <section class="card settings-card">
+        <section id="security" class="card settings-card">
           <div class="card-header">
             <h2>{{ status()?.hasPassword ? 'Change Password' : 'Set Account Password' }}</h2>
             <p>

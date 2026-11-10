@@ -13,11 +13,12 @@ import { ProfileService } from '../../../../core/services/profile.service';
 import { RealtimeService } from '../../../../core/services/realtime.service';
 import { calculateCountdown, CountdownDetails } from '../../../../core/utils/countdown';
 import { extractErrorMessage } from '../../../../core/utils/error-formatter';
+import { UserProfileMenuComponent } from '../../../../shared/components/user-profile-menu/user-profile-menu.component';
 
 @Component({
   selector: 'app-job-detail',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, DatePipe],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, DatePipe, UserProfileMenuComponent],
   templateUrl: './job-detail.component.html',
   styleUrl: './job-detail.component.scss',
 })

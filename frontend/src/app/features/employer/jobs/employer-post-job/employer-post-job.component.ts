@@ -15,6 +15,8 @@ import { SkillDto } from '../../../../core/models/profile.models';
 import { JobsService } from '../../../../core/services/jobs.service';
 import { SkillsService } from '../../../../core/services/skills.service';
 import { extractErrorMessage } from '../../../../core/utils/error-formatter';
+import { JOB_CATEGORY_NAMES } from '../../../../shared/utils/job-department.util';
+import { UserProfileMenuComponent } from '../../../../shared/components/user-profile-menu/user-profile-menu.component';
 import { SKILL_CATEGORIES } from '../../../candidate/onboarding/candidate-skill-onboarding.component';
 
 /**
@@ -38,7 +40,7 @@ export const requiredSkillsValidator = (min = 1, max = 20, getCustomCount?: () =
 @Component({
   selector: 'app-employer-post-job',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, UserProfileMenuComponent],
   templateUrl: './employer-post-job.component.html',
   styleUrl: './employer-post-job.component.scss',
 })
@@ -136,9 +138,13 @@ export class EmployerPostJobComponent implements OnInit {
     return this.allSkills().filter((s) => selectedIds.has(s.id));
   });
 
+  // Job Categories for dropdown
+  readonly jobCategories = JOB_CATEGORY_NAMES;
+
   // Reactive Form
   readonly jobForm: FormGroup = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(120)]],
+    category: ['', [Validators.maxLength(100)]],
     location: ['', [Validators.maxLength(100)]],
     jobType: ['FullTime', [Validators.required]],
     workArrangement: ['Remote', [Validators.required]],
@@ -192,6 +198,7 @@ export class EmployerPostJobComponent implements OnInit {
 
         this.jobForm.patchValue({
           title: job.title,
+          category: job.category || '',
           description: job.description,
           location: job.location || '',
           jobType: job.jobType || 'FullTime',
@@ -517,6 +524,7 @@ export class EmployerPostJobComponent implements OnInit {
     if (this.isEditMode()) {
       const editPayload: UpdateJobRequest = {
         title: formValue.title.trim(),
+        category: formValue.category?.trim() ? formValue.category.trim() : null,
         description: formValue.description.trim(),
         location: formValue.location?.trim() ? formValue.location.trim() : null,
         jobType: formValue.jobType,
@@ -546,6 +554,7 @@ export class EmployerPostJobComponent implements OnInit {
     } else {
       const createPayload: CreateJobRequest = {
         title: formValue.title.trim(),
+        category: formValue.category?.trim() ? formValue.category.trim() : null,
         description: formValue.description.trim(),
         location: formValue.location?.trim() ? formValue.location.trim() : null,
         jobType: formValue.jobType,

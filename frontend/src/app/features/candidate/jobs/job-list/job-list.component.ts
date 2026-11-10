@@ -12,11 +12,12 @@ import { SkillsService } from '../../../../core/services/skills.service';
 import { calculateCountdown, CountdownDetails } from '../../../../core/utils/countdown';
 import { extractErrorMessage } from '../../../../core/utils/error-formatter';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { UserProfileMenuComponent } from '../../../../shared/components/user-profile-menu/user-profile-menu.component';
 
 @Component({
   selector: 'app-job-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, DatePipe, PaginationComponent],
+  imports: [CommonModule, RouterLink, DatePipe, PaginationComponent, UserProfileMenuComponent],
   templateUrl: './job-list.component.html',
   styleUrl: './job-list.component.scss',
 })

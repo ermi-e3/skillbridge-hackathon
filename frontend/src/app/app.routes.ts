@@ -133,6 +133,14 @@ export const routes: Routes = [
       ).then((m) => m.EmployerJobApplicantsComponent),
   },
   {
+    path: 'employer/applications',
+    canActivate: [authGuard, roleGuard('Employer')],
+    loadComponent: () =>
+      import('./features/employer/applications/employer-applications.component').then(
+        (m) => m.EmployerApplicationsComponent
+      ),
+  },
+  {
     path: 'employer/jobs',
     canActivate: [authGuard, roleGuard('Employer')],
     loadComponent: () =>

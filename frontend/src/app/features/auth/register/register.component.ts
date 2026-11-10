@@ -6,6 +6,7 @@ import { environment } from '../../../../environments/environment';
 import { UserRole } from '../../../core/models/auth.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { extractErrorMessage } from '../../../core/utils/error-formatter';
+import { ThemeToggleComponent } from '../../../shared/components/theme-toggle/theme-toggle.component';
 
 /**
  * Validates that the password has at least:
@@ -46,7 +47,7 @@ export const passwordComplexityValidator: ValidatorFn = (control: AbstractContro
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ThemeToggleComponent],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })

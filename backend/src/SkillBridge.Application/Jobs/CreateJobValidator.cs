@@ -18,6 +18,10 @@ public sealed class CreateJobValidator : AbstractValidator<CreateJobRequest>
             .MaximumLength(100).WithMessage("Location cannot exceed 100 characters.")
             .When(x => !string.IsNullOrEmpty(x.Location));
 
+        RuleFor(x => x.Category)
+            .MaximumLength(100).WithMessage("Category cannot exceed 100 characters.")
+            .When(x => !string.IsNullOrEmpty(x.Category));
+
         RuleFor(x => x.RequiredSkillIds)
             .Must((req, skills) =>
             {

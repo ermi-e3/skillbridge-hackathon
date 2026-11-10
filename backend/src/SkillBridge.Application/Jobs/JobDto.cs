@@ -23,4 +23,5 @@ public sealed record JobDto(
     IReadOnlyList<SkillDto>? PreferredSkills = null,
     string? ApplicationStatus = null,
     int? ApplicationId = null,
-    DateTime? Deadline = null);
+    DateTime? Deadline = null,
+    string? Category = null);

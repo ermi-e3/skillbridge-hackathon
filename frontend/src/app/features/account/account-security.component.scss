@@ -1,11 +1,11 @@
-$primary: #0d9488;
-$primary-hover: #0f766e;
-$danger: #dc2626;
-$danger-hover: #b91c1c;
+$primary: var(--primary);
+$primary-hover: var(--primary-hover);
+$danger: var(--danger);
+$danger-hover: var(--danger-hover);
 
 .account-page {
   min-height: 100vh;
-  background-color: #f8fafc;
+  background-color: var(--bg);
   padding: 2.5rem 1.5rem;
   box-sizing: border-box;
 }
@@ -16,7 +16,16 @@ $danger-hover: #b91c1c;
 }
 
 .page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
   margin-bottom: 2rem;
+}
+
+.header-right {
+  flex-shrink: 0;
 }
 
 .back-btn {
@@ -25,7 +34,7 @@ $danger-hover: #b91c1c;
   gap: 0.5rem;
   background: none;
   border: none;
-  color: #0d9488;
+  color: $primary;
   font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
@@ -36,18 +45,22 @@ $danger-hover: #b91c1c;
     width: 16px;
     height: 16px;
   }
+
+  &:hover {
+    color: $primary-hover;
+  }
 }
 
 .page-title {
   font-size: 1.875rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--ink);
   margin: 0 0 0.5rem;
 }
 
 .page-subtitle {
   font-size: 0.95rem;
-  color: #64748b;
+  color: var(--ink-muted);
   margin: 0;
 }
 
@@ -67,15 +80,15 @@ $danger-hover: #b91c1c;
   }
 
   &.alert-success {
-    background: #ecfdf5;
-    border: 1px solid #a7f3d0;
-    color: #065f46;
+    background: var(--ok-soft);
+    border: 1px solid var(--ok-border);
+    color: var(--ok-text);
   }
 
   &.alert-danger {
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #991b1b;
+    background: var(--danger-soft);
+    border: 1px solid var(--danger-border);
+    color: var(--danger-text);
   }
 }
 
@@ -86,26 +99,26 @@ $danger-hover: #b91c1c;
 }
 
 .card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 12px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-xs);
   overflow: hidden;
 
   .card-header {
     padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--line-subtle);
 
     h2 {
       font-size: 1.15rem;
       font-weight: 600;
-      color: #0f172a;
+      color: var(--ink);
       margin: 0 0 0.25rem;
     }
 
     p {
       font-size: 0.85rem;
-      color: #64748b;
+      color: var(--ink-muted);
       margin: 0;
     }
   }
@@ -123,7 +136,7 @@ $danger-hover: #b91c1c;
   display: block;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #334155;
+  color: var(--ink-strong);
   margin-bottom: 0.5rem;
 }
 
@@ -131,15 +144,18 @@ $danger-hover: #b91c1c;
   width: 100%;
   max-width: 440px;
   padding: 0.65rem 0.85rem;
-  border: 1px solid #cbd5e1;
+  background: var(--surface-muted);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
   border-radius: 6px;
   font-size: 0.95rem;
   box-sizing: border-box;
 
   &:focus {
     outline: none;
+    background: var(--surface);
     border-color: $primary;
-    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+    box-shadow: 0 0 0 3px var(--primary-ring);
   }
 }
 
@@ -161,27 +177,27 @@ $danger-hover: #b91c1c;
   }
 
   &.btn-primary {
-    background: $primary;
-    color: white;
+    background: var(--primary-btn-bg);
+    color: var(--primary-btn-ink);
 
     &:hover:not(:disabled) {
-      background: $primary-hover;
+      background: var(--primary-btn-hover);
     }
   }
 
   &.btn-secondary {
-    background: #f1f5f9;
-    color: #334155;
-    border: 1px solid #cbd5e1;
+    background: var(--bg-subtle);
+    color: var(--ink-strong);
+    border: 1px solid var(--line-strong);
 
     &:hover:not(:disabled) {
-      background: #e2e8f0;
+      background: var(--bg-hover);
     }
   }
 
   &.btn-danger {
-    background: $danger;
-    color: white;
+    background: var(--danger-btn-bg);
+    color: #ffffff;
 
     &:hover:not(:disabled) {
       background: $danger-hover;
@@ -190,11 +206,11 @@ $danger-hover: #b91c1c;
 
   &.btn-outline-danger {
     background: transparent;
-    color: $danger;
-    border: 1px solid #fecaca;
+    color: var(--danger-text);
+    border: 1px solid var(--danger-border);
 
     &:hover:not(:disabled) {
-      background: #fef2f2;
+      background: var(--danger-soft);
     }
   }
 
@@ -219,23 +235,23 @@ $danger-hover: #b91c1c;
   }
 
   &.badge-success {
-    background: #dcfce7;
-    color: #15803d;
+    background: var(--ok-soft);
+    color: var(--ok-text);
   }
 
   &.badge-warning {
-    background: #fef3c7;
-    color: #b45309;
+    background: var(--warn-soft);
+    color: var(--warn-text);
   }
 
   &.badge-neutral {
-    background: #f1f5f9;
-    color: #64748b;
+    background: var(--bg-subtle);
+    color: var(--ink-muted);
   }
 
   &.role-badge {
-    background: #e0f2fe;
-    color: #0369a1;
+    background: var(--info-soft);
+    color: var(--info-text);
   }
 }
 
@@ -255,19 +271,19 @@ $danger-hover: #b91c1c;
   .email-text {
     font-size: 1rem;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--ink);
   }
 }
 
 .divider {
   border: none;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--line-subtle);
   margin: 1.5rem 0;
 }
 
 .section-desc {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--ink-muted);
   margin: 0.25rem 0 1rem;
 }
 
@@ -289,8 +305,8 @@ $danger-hover: #b91c1c;
   align-items: center;
   justify-content: space-between;
   padding: 0.875rem 1rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
   border-radius: 8px;
 
   .social-left {
@@ -300,24 +316,24 @@ $danger-hover: #b91c1c;
 
     .social-provider-name {
       font-weight: 600;
-      color: #1e293b;
+      color: var(--ink-strong);
     }
   }
 }
 
 .danger-card {
-  border-color: #fecaca;
+  border-color: var(--danger-border);
 }
 
 .text-danger {
-  color: $danger !important;
+  color: var(--danger-text) !important;
 }
 
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(2px);
+  background: var(--backdrop);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -326,21 +342,22 @@ $danger-hover: #b91c1c;
 }
 
 .modal-card {
-  background: #ffffff;
+  background: var(--surface-elevated);
+  border: 1px solid var(--line);
   border-radius: 12px;
   max-width: 440px;
   width: 100%;
   padding: 1.75rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-lg);
 
   h3 {
     margin: 0 0 0.5rem;
-    color: #0f172a;
+    color: var(--ink);
   }
 
   .text-muted {
     font-size: 0.875rem;
-    color: #64748b;
+    color: var(--ink-muted);
     margin-bottom: 1.25rem;
   }
 
@@ -358,7 +375,7 @@ $danger-hover: #b91c1c;
 .spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #e2e8f0;
+  border: 3px solid var(--line);
   border-top-color: $primary;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -370,4 +387,3 @@ $danger-hover: #b91c1c;
     transform: rotate(360deg);
   }
 }
-

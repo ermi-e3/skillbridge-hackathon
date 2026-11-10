@@ -24,4 +24,5 @@ public sealed record EmployerJobDto(
     ExperienceLevel ExperienceLevel = ExperienceLevel.EntryLevel,
     int MinExperienceYears = 0,
     string? Description = null,
-    DateTime? Deadline = null);
+    DateTime? Deadline = null,
+    string? Category = null);
