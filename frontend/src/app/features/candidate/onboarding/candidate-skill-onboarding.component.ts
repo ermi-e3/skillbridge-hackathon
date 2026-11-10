@@ -30,6 +30,86 @@ export const SKILL_CATEGORIES: SkillCategoryGroup[] = [
     skillNames: [],
   },
   {
+    id: 'healthcare',
+    name: 'Healthcare & Medical',
+    skillNames: [
+      'Patient Care', 'Clinical Assessment', 'Pharmacology', 'Medical Records (EHR)', 'First Aid & BLS',
+      'Triage', 'Phlebotomy', 'Infection Control', 'Nursing', 'Health Education',
+      'Medical Laboratory', 'Patient Counseling', 'Vital Signs Monitoring', 'Public Health', 'Emergency Response',
+    ],
+  },
+  {
+    id: 'finance',
+    name: 'Finance & Accounting',
+    skillNames: [
+      'Financial Analysis', 'Financial Modeling', 'Bookkeeping', 'QuickBooks', 'IFRS Compliance',
+      'Tax Compliance', 'Budgeting & Forecasting', 'Auditing', 'Payroll Management', 'Risk Management',
+      'Corporate Finance', 'Investment Analysis', 'Accounts Payable/Receivable', 'Internal Audit', 'Cost Accounting',
+    ],
+  },
+  {
+    id: 'education',
+    name: 'Education & Training',
+    skillNames: [
+      'Curriculum Development', 'Classroom Management', 'Lesson Planning', 'Educational Technology', 'Student Assessment',
+      'Instructional Design', 'Academic Advising', 'Special Education', 'Pedagogy', 'Adult Education',
+      'E-Learning', 'Workshop Facilitation', 'Educational Leadership', 'Tutoring', 'Course Evaluation',
+    ],
+  },
+  {
+    id: 'engineering',
+    name: 'Engineering & Architecture',
+    skillNames: [
+      'AutoCAD', 'Civil Engineering', 'Structural Analysis', 'Electrical Systems', 'Mechanical Design',
+      'Project Estimation', 'Quality Control', 'Revit', 'Site Supervision', 'Safety Compliance',
+      'HVAC Design', 'Construction Management', 'Surveying', 'SolidWorks', 'BIM Modeling',
+    ],
+  },
+  {
+    id: 'business',
+    name: 'Business & Operations',
+    skillNames: [
+      'Operations Management', 'Strategic Planning', 'Business Analysis', 'Human Resources (HR)', 'Project Management',
+      'Office Administration', 'Talent Acquisition', 'Performance Management', 'Contract Negotiation', 'Agile & Scrum',
+      'Vendor Management', 'Change Management', 'Process Optimization', 'Executive Support', 'Event Planning',
+    ],
+  },
+  {
+    id: 'sales',
+    name: 'Sales & Marketing',
+    skillNames: [
+      'Digital Marketing', 'Content Strategy', 'SEO', 'Social Media Marketing', 'Copywriting',
+      'Public Relations', 'Sales Management', 'B2B Sales', 'CRM Systems', 'Brand Development',
+      'Market Research', 'Email Marketing', 'Advertising', 'Lead Generation', 'Direct Sales',
+    ],
+  },
+  {
+    id: 'hospitality',
+    name: 'Hospitality & Customer Service',
+    skillNames: [
+      'Customer Relationship Management', 'Conflict Resolution', 'Front Desk Operations', 'Food & Beverage Service', 'Guest Relations',
+      'Call Center Operations', 'Reservation Systems', 'Hospitality Management', 'Event Coordination', 'Customer Retention',
+      'Concierge Services', 'Menu Planning', 'Housekeeping Management', 'Help Desk Support', 'Client Onboarding',
+    ],
+  },
+  {
+    id: 'trades',
+    name: 'Logistics & Skilled Trades',
+    skillNames: [
+      'Supply Chain Management', 'Inventory Control', 'Logistics Planning', 'Procurement', 'Electrical Installation',
+      'Plumbing', 'HVAC Maintenance', 'Facilities Maintenance', 'Workplace Safety (OSHA)', 'Heavy Equipment Operation',
+      'Warehouse Operations', 'Quality Assurance', 'Welding', 'Preventative Maintenance', 'Fleet Management',
+    ],
+  },
+  {
+    id: 'data',
+    name: 'Data & Analytics',
+    skillNames: [
+      'Data Analysis', 'Machine Learning', 'Power BI', 'Microsoft Excel', 'Cybersecurity',
+      'UI/UX Design', 'Graphic Design', 'Technical Writing', 'Tableau', 'Statistical Modeling',
+    ],
+  },
+  {
     id: 'frontend',
     name: 'Frontend',
     skillNames: ['Angular', 'React', 'Vue.js', 'JavaScript', 'TypeScript', 'HTML', 'CSS', 'Tailwind CSS', 'Figma'],

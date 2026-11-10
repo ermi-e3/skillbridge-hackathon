@@ -398,7 +398,7 @@
 
           <!-- Required Skills Section -->
           <section class="detail-section">
-            <h2 class="section-title">Required Technical Skills</h2>
+            <h2 class="section-title">Required Skills &amp; Qualifications</h2>
             <div class="skills-pill-group">
               @for (skill of j.requiredSkills; track skill.id) {
                 <span class="skill-pill">{{ skill.name }}</span>
@@ -409,7 +409,7 @@
           <!-- Preferred Skills Section if any -->
           @if (j.preferredSkills && j.preferredSkills.length > 0) {
             <section class="detail-section">
-              <h2 class="section-title">Preferred / Nice-to-Have Skills</h2>
+              <h2 class="section-title">Preferred Skills &amp; Competencies</h2>
               <div class="skills-pill-group">
                 @for (skill of j.preferredSkills; track skill.id) {
                   <span class="skill-pill preferred-pill">{{ skill.name }}</span>

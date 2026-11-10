@@ -15,7 +15,7 @@
 
       <h1 class="onboarding-title">Welcome, {{ candidateName() }}!</h1>
       <p class="onboarding-subtitle">
-        Register your core technical skills and professional focus. SkillBridge matches you with tech openings and internships based on these exact tags.
+        Register your professional skills and career focus. SkillBridge matches you with career openings and opportunities across diverse industries based on your verified skills.
       </p>
 
       <div class="progress-bar-container" aria-hidden="true">
@@ -78,7 +78,7 @@
             </div>
             <div>
               <h2 class="section-title">Professional Headline <span class="required-star">*</span></h2>
-              <p class="section-desc">A concise summary of your developer role and focus.</p>
+              <p class="section-desc">A concise summary of your professional role and expertise.</p>
             </div>
           </div>
 
@@ -88,7 +88,7 @@
                 id="headline"
                 type="text"
                 formControlName="headline"
-                placeholder="e.g. Junior .NET & Angular Developer | REST APIs & Cloud"
+                placeholder="e.g. Operations Coordinator | Project Management & Business Analysis"
                 class="form-input"
                 [attr.aria-invalid]="headlineControl?.invalid && headlineControl?.touched"
               />
@@ -114,7 +114,7 @@
           </div>
         </section>
 
-        <!-- 2. Technical Skills Section -->
+        <!-- 2. Core Skills Section -->
         <section class="form-section skills-catalog-section">
           <div class="section-heading-row">
             <div class="section-heading">
@@ -124,8 +124,8 @@
                 </svg>
               </div>
               <div>
-                <h2 class="section-title">Technical Skills Catalog</h2>
-                <p class="section-desc">Select between <strong>1 and 10 technical skills</strong>. Job recommendations will be prioritized by your skills.</p>
+                <h2 class="section-title">Core Skills Catalog</h2>
+                <p class="section-desc">Select between <strong>1 and 10 core skills</strong>. Job recommendations will be prioritized by your skills.</p>
               </div>
             </div>
 
@@ -178,7 +178,7 @@
                   <line x1="12" y1="8" x2="12" y2="12"></line>
                   <line x1="12" y1="16" x2="12.01" y2="16"></line>
                 </svg>
-                <span>No technical skills selected yet. Use the searchable dropdown below to select 1 to 10 skills.</span>
+                <span>No core skills selected yet. Use the searchable dropdown below to select 1 to 10 skills.</span>
               </div>
             }
           </div>
@@ -190,7 +190,7 @@
                 <circle cx="12" cy="12" r="10"></circle>
               </svg>
               @if (skillIdsControl?.errors?.['minSkills']) {
-                <span>Please select at least 1 technical skill to continue.</span>
+                <span>Please select at least 1 core skill to continue.</span>
               } @else if (skillIdsControl?.errors?.['maxSkills']) {
                 <span>You can select a maximum of 10 skills.</span>
               }
@@ -199,7 +199,7 @@
 
           <!-- Modern Searchable Multi-Select Dropdown Component -->
           <div class="multi-select-dropdown-wrapper technical-dropdown-wrapper" [class.is-open]="isTechnicalDropdownOpen()">
-            <label class="dropdown-field-label">Add Technical Skills</label>
+            <label class="dropdown-field-label">Add Core Skills</label>
 
             <!-- Dropdown Trigger Bar -->
             <div
@@ -220,9 +220,9 @@
                 </svg>
                 <span class="trigger-text">
                   @if (selectedSkillIds().length === 0) {
-                    Click to search & select technical skills...
+                    Click to search & select core skills...
                   } @else if (selectedSkillIds().length >= 10) {
-                    Maximum 10 technical skills selected (click to edit)
+                    Maximum 10 core skills selected (click to edit)
                   } @else {
                     Search & add more skills ({{ 10 - selectedSkillIds().length }} remaining)...
                   }
@@ -251,7 +251,7 @@
                       type="text"
                       [value]="searchQuery()"
                       (input)="onSearchChange($event)"
-                      placeholder="Search skills (e.g. Angular, C#, PostgreSQL, Docker)..."
+                      placeholder="Search skills (e.g. Project Management, Financial Analysis, Patient Care, Python)..."
                       class="dropdown-search-input"
                       autofocus
                     />
