@@ -1,13 +1,16 @@
 <div class="job-detail-page">
   <div class="detail-container">
-    <!-- Back to Catalog Link -->
-    <a routerLink="/jobs" class="back-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="back-arrow">
-        <line x1="19" y1="12" x2="5" y2="12"></line>
-        <polyline points="12 19 5 12 12 5"></polyline>
-      </svg>
-      <span>Back to Jobs</span>
-    </a>
+    <!-- Top Bar Navigation -->
+    <header class="detail-top-bar">
+      <a routerLink="/jobs" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="back-arrow">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Back to Jobs</span>
+      </a>
+      <app-user-profile-menu />
+    </header>
 
     <!-- Confirmation Modal for Withdraw -->
     @if (showWithdrawModal()) {

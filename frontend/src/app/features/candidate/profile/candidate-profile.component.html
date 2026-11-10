@@ -42,17 +42,13 @@
         <p class="page-subtitle">Curate your professional headline and skills to match with Ethiopian employers across industries</p>
       </div>
 
-      @if (candidateUser(); as user) {
-        <div class="candidate-pill">
-          <div class="candidate-avatar">
-            {{ user.fullName ? user.fullName[0].toUpperCase() : 'C' }}
-          </div>
-          <div class="candidate-meta">
-            <span class="candidate-name">{{ user.fullName }}</span>
-            <span class="candidate-email">{{ user.email }}</span>
-          </div>
-        </div>
-      }
+      <div class="header-right">
+        <app-user-profile-menu
+          [fallbackName]="candidateUser()?.fullName ?? null"
+          [fallbackEmail]="candidateUser()?.email ?? null"
+          fallbackRole="Candidate"
+        />
+      </div>
     </header>
 
     <!-- Error Alert Banner -->

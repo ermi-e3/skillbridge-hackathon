@@ -16,6 +16,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ProfileService } from '../../../core/services/profile.service';
 import { SkillsService } from '../../../core/services/skills.service';
 import { extractErrorMessage } from '../../../core/utils/error-formatter';
+import { ThemeToggleComponent } from '../../../shared/components/theme-toggle/theme-toggle.component';
 
 export interface SkillCategoryGroup {
   id: string;
@@ -172,7 +173,7 @@ export const skillCountValidator = (min = 1, max = 10): ValidatorFn => {
 @Component({
   selector: 'app-candidate-skill-onboarding',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ThemeToggleComponent],
   templateUrl: './candidate-skill-onboarding.component.html',
   styleUrl: './candidate-skill-onboarding.component.scss',
 })

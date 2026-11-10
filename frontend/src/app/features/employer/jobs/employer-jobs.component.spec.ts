@@ -107,10 +107,15 @@ describe('EmployerJobsComponent', () => {
     expect(fixture.nativeElement.querySelector('.retry-button')).toBeTruthy();
   });
 
-  it('signs out when clicking the sign out button', () => {
+  it('signs out when clicking sign out in the user profile dropdown', () => {
     fixture.detectChanges();
 
-    const signoutBtn = fixture.nativeElement.querySelector('.signout-button');
+    const avatarTrigger = fixture.nativeElement.querySelector('.user-avatar-trigger') as HTMLButtonElement;
+    expect(avatarTrigger).toBeTruthy();
+    avatarTrigger.click();
+    fixture.detectChanges();
+
+    const signoutBtn = fixture.nativeElement.querySelector('.dropdown-signout-btn') as HTMLButtonElement;
     expect(signoutBtn).toBeTruthy();
     signoutBtn.click();
 

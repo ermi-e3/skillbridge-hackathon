@@ -63,11 +63,12 @@ export const skillCountValidator = (min = 1, max = 20): ValidatorFn => {
 };
 
 import { SKILL_CATEGORIES } from '../onboarding/candidate-skill-onboarding.component';
+import { UserProfileMenuComponent } from '../../../shared/components/user-profile-menu/user-profile-menu.component';
 
 @Component({
   selector: 'app-candidate-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, DatePipe],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, DatePipe, UserProfileMenuComponent],
   templateUrl: './candidate-profile.component.html',
   styleUrl: './candidate-profile.component.scss',
 })

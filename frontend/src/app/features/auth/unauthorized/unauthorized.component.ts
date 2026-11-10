@@ -2,13 +2,17 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { ThemeToggleComponent } from '../../../shared/components/theme-toggle/theme-toggle.component';
 
 @Component({
   selector: 'app-unauthorized',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ThemeToggleComponent],
   template: `
     <div class="unauthorized-page">
+      <div class="auth-theme-corner">
+        <app-theme-toggle variant="icon" />
+      </div>
       <div class="unauthorized-card">
         <div class="icon-circle">
           <svg
@@ -64,28 +68,28 @@ import { AuthService } from '../../../core/services/auth.service';
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #f8fafc;
+      background: var(--bg);
       padding: 1.5rem;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
 
     .unauthorized-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
+      background: var(--surface);
+      border: 1px solid var(--line);
       border-radius: 16px;
       padding: 3rem 2rem;
       max-width: 480px;
       width: 100%;
       text-align: center;
-      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+      box-shadow: var(--shadow-lg);
     }
 
     .icon-circle {
       width: 72px;
       height: 72px;
       border-radius: 50%;
-      background: #fef2f2;
-      color: #ef4444;
+      background: var(--danger-soft);
+      color: var(--danger);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -95,7 +99,7 @@ import { AuthService } from '../../../core/services/auth.service';
     .status-code {
       font-size: 0.875rem;
       font-weight: 700;
-      color: #ef4444;
+      color: var(--danger);
       letter-spacing: 0.1em;
       text-transform: uppercase;
       margin-bottom: 0.5rem;
@@ -104,23 +108,23 @@ import { AuthService } from '../../../core/services/auth.service';
     h1 {
       font-size: 1.75rem;
       font-weight: 700;
-      color: #0f172a;
+      color: var(--ink);
       margin: 0 0 0.75rem;
     }
 
     .description {
       font-size: 0.95rem;
-      color: #64748b;
+      color: var(--ink-muted);
       line-height: 1.5;
       margin: 0 0 1.5rem;
     }
 
     .user-info {
-      background: #f1f5f9;
+      background: var(--bg-subtle);
       border-radius: 8px;
       padding: 0.75rem 1rem;
       font-size: 0.875rem;
-      color: #334155;
+      color: var(--ink-strong);
       margin-bottom: 1.5rem;
     }
 
@@ -145,22 +149,23 @@ import { AuthService } from '../../../core/services/auth.service';
     }
 
     .btn-primary {
-      background: #0284c7;
-      color: #ffffff;
+      background: var(--primary-btn-bg);
+      color: var(--primary-btn-ink);
     }
 
     .btn-primary:hover {
-      background: #0369a1;
+      background: var(--primary-btn-hover);
     }
 
     .btn-secondary {
-      background: #f1f5f9;
-      color: #475569;
+      background: var(--bg-subtle);
+      color: var(--ink-soft);
+      border: 1px solid var(--line);
     }
 
     .btn-secondary:hover {
-      background: #e2e8f0;
-      color: #1e293b;
+      background: var(--bg-hover);
+      color: var(--ink);
     }
   `]
 })

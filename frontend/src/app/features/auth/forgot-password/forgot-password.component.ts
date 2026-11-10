@@ -4,13 +4,17 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { extractErrorMessage } from '../../../core/utils/error-formatter';
+import { ThemeToggleComponent } from '../../../shared/components/theme-toggle/theme-toggle.component';
 
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ThemeToggleComponent],
   template: `
     <div class="auth-page">
+      <div class="auth-theme-corner">
+        <app-theme-toggle variant="icon" />
+      </div>
       <div class="auth-card">
         <header class="auth-header">
           <div class="brand-badge">
@@ -86,16 +90,16 @@ import { extractErrorMessage } from '../../../core/utils/error-formatter';
       display: flex;
       align-items: center;
       justify-content: center;
-      background-color: #f8fafc;
+      background-color: var(--bg);
       padding: 1.5rem;
     }
     .auth-card {
       width: 100%;
       max-width: 440px;
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
+      background: var(--surface);
+      border: 1px solid var(--line);
       border-radius: 16px;
-      box-shadow: 0 10px 25px -5px rgba(30, 41, 59, 0.06);
+      box-shadow: var(--shadow-lg);
       padding: 2.25rem;
     }
     .auth-header {
@@ -111,22 +115,22 @@ import { extractErrorMessage } from '../../../core/utils/error-formatter';
     .brand-icon {
       width: 24px;
       height: 24px;
-      color: #0d9488;
+      color: var(--primary);
     }
     .brand-title {
       font-weight: 700;
       font-size: 1.25rem;
-      color: #0f172a;
+      color: var(--ink);
     }
     .auth-title {
       font-size: 1.5rem;
       font-weight: 700;
-      color: #0f172a;
+      color: var(--ink);
       margin: 0 0 0.5rem;
     }
     .auth-subtitle {
       font-size: 0.875rem;
-      color: #64748b;
+      color: var(--ink-muted);
       margin: 0;
     }
     .form-group {
@@ -136,19 +140,21 @@ import { extractErrorMessage } from '../../../core/utils/error-formatter';
       display: block;
       font-size: 0.875rem;
       font-weight: 600;
-      color: #334155;
+      color: var(--ink-strong);
       margin-bottom: 0.5rem;
     }
     .form-input {
       width: 100%;
       padding: 0.75rem 1rem;
-      border: 1px solid #cbd5e1;
+      background: var(--surface-muted);
+      color: var(--ink);
+      border: 1px solid var(--line-strong);
       border-radius: 8px;
       box-sizing: border-box;
       font-size: 0.95rem;
     }
     .inline-error {
-      color: #dc2626;
+      color: var(--danger-text);
       font-size: 0.85rem;
       margin-top: 0.35rem;
     }
@@ -156,13 +162,16 @@ import { extractErrorMessage } from '../../../core/utils/error-formatter';
       display: block;
       width: 100%;
       padding: 0.75rem 1rem;
-      background: #0d9488;
-      color: white;
+      background: var(--primary-btn-bg);
+      color: var(--primary-btn-ink);
       border: none;
       border-radius: 8px;
       font-weight: 600;
       font-size: 1rem;
       cursor: pointer;
+    }
+    .submit-btn:hover:not(:disabled) {
+      background: var(--primary-btn-hover);
     }
     .submit-btn:disabled {
       opacity: 0.6;
@@ -171,30 +180,34 @@ import { extractErrorMessage } from '../../../core/utils/error-formatter';
     .success-box {
       text-align: center;
       padding: 1rem 0;
+      color: var(--ink-soft);
+    }
+    .success-box h3 {
+      color: var(--ink);
     }
     .success-icon {
       width: 48px;
       height: 48px;
-      color: #0d9488;
+      color: var(--primary);
       margin-bottom: 1rem;
     }
     .auth-footer {
       text-align: center;
       margin-top: 1.5rem;
       padding-top: 1.25rem;
-      border-top: 1px solid #f1f5f9;
+      border-top: 1px solid var(--line-subtle);
       font-size: 0.875rem;
-      color: #64748b;
+      color: var(--ink-muted);
     }
     .auth-link {
-      color: #0d9488;
+      color: var(--primary);
       font-weight: 600;
       text-decoration: none;
     }
     .alert-banner {
-      background-color: #fef2f2;
-      border: 1px solid #fecaca;
-      color: #b91c1c;
+      background-color: var(--danger-soft);
+      border: 1px solid var(--danger-border);
+      color: var(--danger-text);
       padding: 0.75rem;
       border-radius: 8px;
       font-size: 0.875rem;

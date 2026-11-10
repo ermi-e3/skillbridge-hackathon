@@ -14,28 +14,14 @@
       </div>
 
       <div class="header-actions">
-        <a routerLink="/account/security" class="security-button" style="text-decoration: none;" aria-label="Account and Security">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-          </svg>
-          <span>Security</span>
-        </a>
-
-        <button type="button" class="signout-button" (click)="signOut()" aria-label="Sign out">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
-          <span>Sign Out</span>
-        </button>
-
         <a class="primary-action" routerLink="/employer/jobs/new">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
             <path d="M12 5v14M5 12h14"></path>
           </svg>
           <span>Post New Job</span>
         </a>
+
+        <app-user-profile-menu />
       </div>
     </header>
 

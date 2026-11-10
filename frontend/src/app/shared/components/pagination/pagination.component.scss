@@ -1,11 +1,11 @@
-$primary: #0d9488;
-$primary-hover: #0f766e;
-$primary-light: #f0fdfa;
-$primary-focus: rgba(13, 148, 136, 0.25);
-$neutral-text: #1e293b;
-$neutral-muted: #64748b;
-$neutral-border: #e2e8f0;
-$neutral-bg: #f8fafc;
+$primary: var(--primary);
+$primary-hover: var(--primary-hover);
+$primary-light: var(--primary-light);
+$primary-focus: var(--primary-ring);
+$neutral-text: var(--ink-strong);
+$neutral-muted: var(--ink-muted);
+$neutral-border: var(--line);
+$neutral-bg: var(--surface-muted);
 
 .pagination-bar {
   display: flex;
@@ -15,10 +15,10 @@ $neutral-bg: #f8fafc;
   gap: 1rem;
   margin-top: 1.5rem;
   padding: 0.9rem 1.25rem;
-  background: #ffffff;
+  background: var(--surface);
   border: 1px solid $neutral-border;
   border-radius: 14px;
-  box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.04);
+  box-shadow: var(--shadow-xs);
 }
 
 .pagination-summary {
@@ -26,7 +26,7 @@ $neutral-bg: #f8fafc;
   color: $neutral-muted;
 
   strong {
-    color: $neutral-text;
+    color: var(--ink);
     font-weight: 700;
   }
 }
@@ -63,7 +63,7 @@ $neutral-bg: #f8fafc;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
     &:hover {
-      border-color: #cbd5e1;
+      border-color: var(--line-strong);
     }
 
     &:focus-visible {
@@ -97,7 +97,7 @@ $neutral-bg: #f8fafc;
   font-size: 0.8125rem;
   font-weight: 600;
   color: $neutral-text;
-  background: #ffffff;
+  background: var(--surface);
   border: 1px solid $neutral-border;
   border-radius: 8px;
   cursor: pointer;
@@ -110,9 +110,9 @@ $neutral-bg: #f8fafc;
   }
 
   &:hover:not(:disabled):not(.active) {
-    background: $neutral-bg;
-    border-color: #cbd5e1;
-    color: $primary-hover;
+    background: var(--bg-subtle);
+    border-color: var(--line-strong);
+    color: var(--primary-text);
   }
 
   &:focus-visible {
@@ -122,9 +122,9 @@ $neutral-bg: #f8fafc;
   }
 
   &.active {
-    background: $primary;
-    border-color: $primary;
-    color: #ffffff;
+    background: var(--primary-btn-bg);
+    border-color: var(--primary-btn-bg);
+    color: var(--primary-btn-ink);
     box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3);
   }
 
@@ -159,4 +159,3 @@ $neutral-bg: #f8fafc;
     display: none;
   }
 }
-

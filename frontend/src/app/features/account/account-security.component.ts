@@ -5,11 +5,12 @@ import { Router } from '@angular/router';
 import { AccountSecurityStatus } from '../../core/models/auth.models';
 import { AuthService } from '../../core/services/auth.service';
 import { extractErrorMessage } from '../../core/utils/error-formatter';
+import { UserProfileMenuComponent } from '../../shared/components/user-profile-menu/user-profile-menu.component';
 
 @Component({
   selector: 'app-account-security',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, UserProfileMenuComponent],
   templateUrl: './account-security.component.html',
   styleUrl: './account-security.component.scss',
 })

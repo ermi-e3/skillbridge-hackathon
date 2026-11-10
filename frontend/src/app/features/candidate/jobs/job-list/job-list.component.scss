@@ -1,42 +1,42 @@
 // Palette tokens aligned with specification & screenshot
-$primary: #0d9488; // Teal-600
-$primary-hover: #0f766e; // Teal-700
-$primary-light: #ccfbf1; // Teal-100
-$primary-focus: rgba(13, 148, 136, 0.25);
+$primary: var(--primary); // Teal-600
+$primary-hover: var(--primary-hover); // Teal-700
+$primary-light: var(--primary-light); // Teal-100
+$primary-focus: var(--primary-ring);
 
-$neutral-bg: #f8fafc; // Slate-50
-$neutral-card: #ffffff;
-$neutral-text: #1e293b; // Slate-800
-$neutral-muted: #64748b; // Slate-500
-$neutral-border: #e2e8f0; // Slate-200
-$neutral-border-focus: #cbd5e1; // Slate-300
+$neutral-bg: var(--bg); // Slate-50
+$neutral-card: var(--surface);
+$neutral-text: var(--ink); // Slate-800
+$neutral-muted: var(--ink-muted); // Slate-500
+$neutral-border: var(--line); // Slate-200
+$neutral-border-focus: var(--line-strong); // Slate-300
 
-$accent: #f97316; // Orange-500
-$accent-hover: #ea580c; // Orange-600
-$accent-light: #ffedd5; // Orange-100
+$accent: var(--accent); // Orange-500
+$accent-hover: var(--accent-hover); // Orange-600
+$accent-light: var(--accent-light); // Orange-100
 
-$danger: #dc2626; // Red-600
-$danger-bg: #fef2f2; // Red-50
-$danger-border: #fecaca; // Red-200
+$danger: var(--danger); // Red-600
+$danger-bg: var(--danger-soft); // Red-50
+$danger-border: var(--danger-border); // Red-200
 
 // Match score badge colors
-$match-green: #15803d;
-$match-green-bg: #dcfce7;
-$match-green-border: #bbf7d0;
+$match-green: var(--ok-text);
+$match-green-bg: var(--ok-soft);
+$match-green-border: var(--ok-border);
 
-$match-yellow: #a16207;
-$match-yellow-bg: #fef9c3;
-$match-yellow-border: #fef08a;
+$match-yellow: var(--warn-text);
+$match-yellow-bg: var(--warn-soft);
+$match-yellow-border: var(--warn-border);
 
-$match-red: #b91c1c;
-$match-red-bg: #fee2e2;
-$match-red-border: #fecaca;
+$match-red: var(--danger-text);
+$match-red-bg: var(--danger-tint);
+$match-red-border: var(--danger-border);
 
 .jobs-page {
   min-height: 100vh;
   background-color: $neutral-bg;
-  background-image: radial-gradient(at 0% 0%, rgba(13, 148, 136, 0.05) 0px, transparent 40%),
-    radial-gradient(at 100% 100%, rgba(249, 115, 22, 0.04) 0px, transparent 40%);
+  background-image: radial-gradient(at 0% 0%, var(--mesh-teal) 0px, transparent 40%),
+    radial-gradient(at 100% 100%, var(--mesh-accent) 0px, transparent 40%);
   padding: 2rem 1.5rem 4rem;
   box-sizing: border-box;
 }
@@ -123,13 +123,13 @@ $match-red-border: #fecaca;
         }
 
         &:hover {
-          background: #99f6e4;
+          background: var(--primary-border);
           color: $primary-hover;
         }
       }
 
       &.profile-link {
-        background: $primary;
+        background: var(--primary-btn-bg);
         color: #ffffff;
         border: none;
 
@@ -139,7 +139,7 @@ $match-red-border: #fecaca;
         }
 
         &:hover {
-          background: $primary-hover;
+          background: var(--primary-btn-hover);
         }
       }
 
@@ -149,7 +149,7 @@ $match-red-border: #fecaca;
         border: 1px solid $neutral-border;
 
         &:hover {
-          background: #f1f5f9;
+          background: var(--bg-subtle);
         }
       }
     }
@@ -162,12 +162,12 @@ $match-red-border: #fecaca;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  background: #ecfdf5;
-  border: 1px solid #a7f3d0;
+  background: var(--ok-tint);
+  border: 1px solid var(--ok-border);
   border-radius: 12px;
   padding: 0.9rem 1.25rem;
   margin-bottom: 1.5rem;
-  color: #065f46;
+  color: var(--ok-text);
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
 
   .welcome-content {
@@ -177,13 +177,13 @@ $match-red-border: #fecaca;
 
     strong {
       font-weight: 700;
-      color: #047857;
+      color: var(--ok-text);
     }
 
     p {
       margin: 0.15rem 0 0;
       font-size: 0.875rem;
-      color: #065f46;
+      color: var(--ok-text);
     }
   }
 
@@ -209,12 +209,12 @@ $match-red-border: #fecaca;
     border: none;
     font-size: 1.25rem;
     cursor: pointer;
-    color: #059669;
+    color: var(--ok);
     padding: 0 0.25rem;
     line-height: 1;
 
     &:hover {
-      color: #047857;
+      color: var(--ok-text);
     }
   }
 }
@@ -225,8 +225,8 @@ $match-red-border: #fecaca;
   align-items: center;
   justify-content: space-between;
   gap: 1.25rem;
-  background: linear-gradient(90deg, #fffbeb 0%, #fef3c7 100%);
-  border: 1.5px solid #fde68a;
+  background: var(--warn-soft);
+  border: 1.5px solid var(--warn-border);
   border-radius: 14px;
   padding: 1.1rem 1.35rem;
   margin-bottom: 1.75rem;
@@ -236,7 +236,7 @@ $match-red-border: #fecaca;
     width: 42px;
     height: 42px;
     border-radius: 10px;
-    background: #f59e0b;
+    background: var(--warn);
     color: #ffffff;
     display: flex;
     align-items: center;
@@ -255,13 +255,13 @@ $match-red-border: #fecaca;
     .reminder-title {
       font-size: 1rem;
       font-weight: 700;
-      color: #92400e;
+      color: var(--warn-text);
       margin: 0 0 0.2rem;
     }
 
     .reminder-desc {
       font-size: 0.875rem;
-      color: #78350f;
+      color: var(--warn-text);
       margin: 0;
       line-height: 1.4;
     }
@@ -271,7 +271,7 @@ $match-red-border: #fecaca;
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    background: #0d9488;
+    background: var(--primary-btn-bg);
     color: #ffffff;
     text-decoration: none;
     padding: 0.65rem 1.15rem;
@@ -288,7 +288,7 @@ $match-red-border: #fecaca;
     }
 
     &:hover {
-      background: #0f766e;
+      background: var(--primary-btn-hover);
       transform: translateY(-1px);
       box-shadow: 0 4px 10px rgba(13, 148, 136, 0.35);
     }
@@ -396,24 +396,24 @@ $match-red-border: #fecaca;
         padding: 0.75rem 2.5rem 0.75rem 2.75rem;
         font-size: 0.9375rem;
         color: $neutral-text;
-        background: #f8fafc;
+        background: var(--surface-muted);
         border: 1.5px solid $neutral-border;
         border-radius: 12px;
         outline: none;
         transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 
         &::placeholder {
-          color: #94a3b8;
+          color: var(--ink-faint);
           font-weight: 400;
         }
 
         &:hover {
-          background: #ffffff;
-          border-color: #cbd5e1;
+          background: var(--surface);
+          border-color: var(--line-strong);
         }
 
         &:focus {
-          background: #ffffff;
+          background: var(--surface);
           border-color: $primary;
           box-shadow: 0 0 0 3px $primary-focus;
         }
@@ -440,7 +440,7 @@ $match-red-border: #fecaca;
 
         &:hover {
           color: $neutral-text;
-          background: #f1f5f9;
+          background: var(--bg-subtle);
         }
       }
     }
@@ -469,8 +469,8 @@ $match-red-border: #fecaca;
         align-items: center;
         gap: 0.4rem;
         background: transparent;
-        border: 1px solid #f1f5f9;
-        color: #64748b;
+        border: 1px solid var(--bg-subtle);
+        color: var(--ink-muted);
         font-size: 0.8125rem;
         font-weight: 600;
         cursor: pointer;
@@ -485,9 +485,9 @@ $match-red-border: #fecaca;
         }
 
         &:hover {
-          background: #fef2f2;
+          background: var(--danger-soft);
           color: $danger;
-          border-color: #fecaca;
+          border-color: var(--danger-border);
         }
       }
     }
@@ -505,8 +505,8 @@ $match-red-border: #fecaca;
       padding: 0 0.85rem;
       font-size: 0.8125rem;
       font-weight: 500;
-      color: #334155;
-      background: #ffffff;
+      color: var(--ink-strong);
+      background: var(--surface);
       border: 1px solid $neutral-border;
       border-radius: 9px;
       cursor: pointer;
@@ -529,7 +529,7 @@ $match-red-border: #fecaca;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: $primary;
+        background: var(--primary-btn-bg);
         color: #ffffff;
         font-size: 0.7rem;
         font-weight: 700;
@@ -542,7 +542,7 @@ $match-red-border: #fecaca;
         width: 6px;
         height: 6px;
         border-radius: 50%;
-        background: $primary;
+        background: var(--primary-btn-bg);
       }
 
       .chevron-icon {
@@ -553,8 +553,8 @@ $match-red-border: #fecaca;
       }
 
       &:hover {
-        background: #f8fafc;
-        border-color: #cbd5e1;
+        background: var(--surface-muted);
+        border-color: var(--line-strong);
         color: $neutral-text;
 
         .trigger-icon,
@@ -578,8 +578,8 @@ $match-red-border: #fecaca;
       }
 
       &.active {
-        background: #f0fdfa;
-        border-color: #99f6e4;
+        background: var(--primary-light);
+        border-color: var(--primary-border);
         color: $primary-hover;
         font-weight: 600;
 
@@ -596,7 +596,7 @@ $match-red-border: #fecaca;
       top: calc(100% + 6px);
       left: 0;
       z-index: 60;
-      background: #ffffff;
+      background: var(--surface);
       border: 1px solid $neutral-border;
       border-radius: 12px;
       box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
@@ -622,7 +622,7 @@ $match-red-border: #fecaca;
     // Dropdown Search
     .dropdown-header {
       padding: 0.65rem 0.75rem 0.5rem;
-      border-bottom: 1px solid #f1f5f9;
+      border-bottom: 1px solid var(--bg-subtle);
 
       .dropdown-search-wrapper {
         position: relative;
@@ -645,13 +645,13 @@ $match-red-border: #fecaca;
           font-size: 0.8125rem;
           border: 1px solid $neutral-border;
           border-radius: 8px;
-          background: #f8fafc;
+          background: var(--surface-muted);
           color: $neutral-text;
           outline: none;
           transition: all 0.15s ease;
 
           &:focus {
-            background: #ffffff;
+            background: var(--surface);
             border-color: $primary;
             box-shadow: 0 0 0 2px $primary-focus;
           }
@@ -692,7 +692,7 @@ $match-red-border: #fecaca;
         width: 5px;
       }
       &::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
+        background: var(--line-strong);
         border-radius: 3px;
       }
 
@@ -713,7 +713,7 @@ $match-red-border: #fecaca;
       padding: 0.45rem 0.65rem;
       font-size: 0.8125rem;
       font-weight: 500;
-      color: #334155;
+      color: var(--ink-strong);
       background: transparent;
       border: none;
       border-radius: 7px;
@@ -726,13 +726,13 @@ $match-red-border: #fecaca;
       .custom-checkbox {
         width: 17px;
         height: 17px;
-        border: 1.5px solid #cbd5e1;
+        border: 1.5px solid var(--line-strong);
         border-radius: 4px;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        background: #ffffff;
+        background: var(--surface);
         transition: all 0.12s ease;
 
         svg {
@@ -742,7 +742,7 @@ $match-red-border: #fecaca;
         }
 
         &.checked {
-          background: $primary;
+          background: var(--primary-btn-bg);
           border-color: $primary;
           color: #ffffff;
         }
@@ -756,17 +756,17 @@ $match-red-border: #fecaca;
       }
 
       &:hover {
-        background: #f8fafc;
+        background: var(--surface-muted);
         color: $neutral-text;
 
         .custom-checkbox:not(.checked) {
-          border-color: #94a3b8;
+          border-color: var(--ink-faint);
         }
       }
 
       &.selected,
       &.active {
-        background: #f0fdfa;
+        background: var(--primary-light);
         color: $primary-hover;
         font-weight: 600;
       }
@@ -784,7 +784,7 @@ $match-red-border: #fecaca;
         }
 
         &.active {
-          background: #f0fdfa;
+          background: var(--primary-light);
           color: $primary-hover;
           font-weight: 600;
         }
@@ -797,8 +797,8 @@ $match-red-border: #fecaca;
       align-items: center;
       justify-content: space-between;
       padding: 0.55rem 0.75rem;
-      border-top: 1px solid #f1f5f9;
-      background: #f8fafc;
+      border-top: 1px solid var(--bg-subtle);
+      background: var(--surface-muted);
       border-bottom-left-radius: 12px;
       border-bottom-right-radius: 12px;
 
@@ -831,17 +831,17 @@ $match-red-border: #fecaca;
             padding: 0.25rem 0.5rem;
 
             &:hover {
-              background: #fee2e2;
+              background: var(--danger-tint);
             }
           }
 
           &.apply-btn {
-            background: $primary;
+            background: var(--primary-btn-bg);
             color: #ffffff;
             padding: 0.35rem 0.75rem;
 
             &:hover {
-              background: $primary-hover;
+              background: var(--primary-btn-hover);
             }
           }
         }
@@ -856,12 +856,12 @@ $match-red-border: #fecaca;
     gap: 0.6rem;
     flex-wrap: wrap;
     padding-top: 0.85rem;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--bg-subtle);
 
     .active-tray-label {
       font-size: 0.75rem;
       font-weight: 700;
-      color: #94a3b8;
+      color: var(--ink-faint);
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
@@ -878,12 +878,12 @@ $match-red-border: #fecaca;
       align-items: center;
       gap: 0.35rem;
       padding: 0.25rem 0.6rem;
-      background: #f0fdfa;
-      border: 1px solid #ccfbf1;
+      background: var(--primary-light);
+      border: 1px solid var(--primary-tint);
       border-radius: 9999px;
       font-size: 0.75rem;
       font-weight: 600;
-      color: #0f766e;
+      color: var(--primary-text);
       transition: all 0.15s ease;
 
       .tag-icon {
@@ -900,7 +900,7 @@ $match-red-border: #fecaca;
         background: transparent;
         border: none;
         cursor: pointer;
-        color: #0d9488;
+        color: var(--primary);
         font-size: 0.95rem;
         line-height: 1;
         padding: 0 0.15rem;
@@ -912,14 +912,14 @@ $match-red-border: #fecaca;
 
         &:hover {
           color: $danger;
-          background: #fee2e2;
+          background: var(--danger-tint);
         }
       }
 
       &.search-tag {
-        background: #f8fafc;
-        border-color: #e2e8f0;
-        color: #334155;
+        background: var(--surface-muted);
+        border-color: var(--line);
+        color: var(--ink-strong);
 
         .tag-icon {
           color: $neutral-muted;
@@ -930,7 +930,7 @@ $match-red-border: #fecaca;
 
           &:hover {
             color: $danger;
-            background: #fee2e2;
+            background: var(--danger-tint);
           }
         }
       }
@@ -949,7 +949,7 @@ $match-red-border: #fecaca;
 
       &:hover {
         text-decoration: underline;
-        background: #fef2f2;
+        background: var(--danger-soft);
       }
     }
   }
@@ -1008,13 +1008,13 @@ $match-red-border: #fecaca;
   &:hover {
     transform: translateY(-3px);
     box-shadow: 0 12px 20px -5px rgba(30, 41, 59, 0.08), 0 4px 6px -2px rgba(30, 41, 59, 0.03);
-    border-color: #cbd5e1;
+    border-color: var(--line-strong);
   }
 
   // Applied Badge Card Styling
   &.has-applied-card {
-    border-color: #86efac;
-    background: #fbfdfb;
+    border-color: var(--ok-border);
+    background: var(--surface);
 
     &::before {
       content: '';
@@ -1023,13 +1023,13 @@ $match-red-border: #fecaca;
       left: 0;
       right: 0;
       height: 3px;
-      background: #16a34a;
+      background: var(--ok);
     }
   }
 
   &.withdrawn-card {
-    border-color: #e2e8f0;
-    background: #fcfcfc;
+    border-color: var(--line);
+    background: var(--surface-muted);
 
     &::before {
       content: '';
@@ -1038,13 +1038,13 @@ $match-red-border: #fecaca;
       left: 0;
       right: 0;
       height: 3px;
-      background: #94a3b8;
+      background: var(--ink-faint);
     }
   }
 
   &.closed-card {
-    border-color: #e2e8f0;
-    background: #fafafa;
+    border-color: var(--line);
+    background: var(--surface-muted);
     opacity: 0.9;
 
     &::before {
@@ -1054,7 +1054,7 @@ $match-red-border: #fecaca;
       left: 0;
       right: 0;
       height: 3px;
-      background: #ef4444;
+      background: var(--danger);
     }
   }
 
@@ -1079,15 +1079,15 @@ $match-red-border: #fecaca;
         font-size: 0.75rem;
         font-weight: 700;
         border-radius: 9999px;
-        background: #fee2e2;
-        color: #b91c1c;
-        border: 1px solid #fca5a5;
+        background: var(--danger-tint);
+        color: var(--danger-text);
+        border: 1px solid var(--danger-border);
 
         .status-dot {
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background-color: #ef4444;
+          background-color: var(--danger);
         }
       }
 
@@ -1099,9 +1099,9 @@ $match-red-border: #fecaca;
         font-size: 0.75rem;
         font-weight: 700;
         border-radius: 9999px;
-        background: #dcfce7;
-        color: #166534;
-        border: 1px solid #86efac;
+        background: var(--ok-soft);
+        color: var(--ok-text);
+        border: 1px solid var(--ok-border);
 
         svg {
           width: 0.85rem;
@@ -1117,14 +1117,14 @@ $match-red-border: #fecaca;
         font-size: 0.75rem;
         font-weight: 700;
         border-radius: 9999px;
-        background: #f1f5f9;
-        color: #475569;
-        border: 1px solid #cbd5e1;
+        background: var(--bg-subtle);
+        color: var(--ink-soft);
+        border: 1px solid var(--line-strong);
 
         svg {
           width: 0.85rem;
           height: 0.85rem;
-          color: #64748b;
+          color: var(--ink-muted);
         }
       }
 
@@ -1136,25 +1136,25 @@ $match-red-border: #fecaca;
         border-radius: 9999px;
         font-size: 0.75rem;
         font-weight: 600;
-        color: #475569;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
+        color: var(--ink-soft);
+        background: var(--surface-muted);
+        border: 1px solid var(--line);
 
         .countdown-icon {
           width: 0.8rem;
           height: 0.8rem;
-          color: #64748b;
+          color: var(--ink-muted);
         }
 
         &.urgent {
-          background: #fef2f2;
-          border-color: #fca5a5;
-          color: #b91c1c;
+          background: var(--danger-soft);
+          border-color: var(--danger-border);
+          color: var(--danger-text);
           box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.15);
 
           .countdown-icon,
           .warning-icon {
-            color: #dc2626;
+            color: var(--danger);
           }
 
           .urgent-text {
@@ -1172,9 +1172,9 @@ $match-red-border: #fecaca;
         }
 
         &.expired {
-          background: #f1f5f9;
-          border-color: #cbd5e1;
-          color: #64748b;
+          background: var(--bg-subtle);
+          border-color: var(--line-strong);
+          color: var(--ink-muted);
         }
       }
     }
@@ -1221,7 +1221,7 @@ $match-red-border: #fecaca;
     }
 
     &.match-none {
-      background-color: #f1f5f9;
+      background-color: var(--bg-subtle);
       color: $neutral-muted;
       border: 1px solid $neutral-border;
       cursor: help;
@@ -1231,12 +1231,12 @@ $match-red-border: #fecaca;
       .match-info-icon {
         width: 0.85rem;
         height: 0.85rem;
-        color: #64748b;
+        color: var(--ink-muted);
       }
 
       &:hover {
-        background-color: #f8fafc;
-        border-color: #cbd5e1;
+        background-color: var(--surface-muted);
+        border-color: var(--line-strong);
       }
 
       &:hover .match-na-popover,
@@ -1258,9 +1258,9 @@ $match-red-border: #fecaca;
       right: 0;
       width: 250px;
       padding: 0.85rem 1rem;
-      background: #ffffff;
-      color: #1e293b;
-      border: 1px solid #e2e8f0;
+      background: var(--surface);
+      color: var(--ink-strong);
+      border: 1px solid var(--line);
       border-radius: 8px;
       box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
       z-index: 100;
@@ -1278,9 +1278,9 @@ $match-red-border: #fecaca;
         right: 18px;
         width: 10px;
         height: 10px;
-        background: #ffffff;
-        border-top: 1px solid #e2e8f0;
-        border-left: 1px solid #e2e8f0;
+        background: var(--surface);
+        border-top: 1px solid var(--line);
+        border-left: 1px solid var(--line);
         transform: rotate(45deg);
       }
 
@@ -1289,33 +1289,33 @@ $match-red-border: #fecaca;
         align-items: center;
         gap: 0.35rem;
         font-weight: 700;
-        color: #b45309;
+        color: var(--warn-text);
         margin-bottom: 0.35rem;
 
         .popover-icon {
           width: 14px;
           height: 14px;
           flex-shrink: 0;
-          color: #d97706;
+          color: var(--warn);
         }
       }
 
       .popover-message {
         margin: 0 0 0.5rem;
-        color: #475569;
+        color: var(--ink-soft);
         font-size: 0.775rem;
       }
 
       .popover-action {
         display: inline-block;
-        color: #0284c7;
+        color: var(--info);
         font-weight: 600;
         font-size: 0.775rem;
         text-decoration: underline;
         transition: color 0.15s ease;
 
         &:hover {
-          color: #0369a1;
+          color: var(--info-text);
         }
       }
     }
@@ -1352,27 +1352,27 @@ $match-red-border: #fecaca;
       }
 
       &.category-chip {
-        background: #f0fdfa;
-        color: #0f766e;
-        border: 1px solid #99f6e4;
+        background: var(--primary-light);
+        color: var(--primary-text);
+        border: 1px solid var(--primary-border);
       }
 
       &.arrangement-chip {
-        background: #f0fdf4;
-        color: #166534;
-        border: 1px solid #bbf7d0;
+        background: var(--ok-tint);
+        color: var(--ok-text);
+        border: 1px solid var(--ok-border);
       }
 
       &.type-chip {
-        background: #eff6ff;
-        color: #1e40af;
-        border: 1px solid #bfdbfe;
+        background: var(--info-soft);
+        color: var(--info-text);
+        border: 1px solid var(--info-border);
       }
 
       &.exp-chip {
-        background: #faf5ff;
-        color: #6b21a8;
-        border: 1px solid #e9d5ff;
+        background: var(--purple-soft);
+        color: var(--purple-text);
+        border: 1px solid var(--purple-border);
       }
     }
   }
@@ -1444,18 +1444,18 @@ $match-red-border: #fecaca;
     .required-skill-tag {
       display: inline-block;
       padding: 0.2rem 0.55rem;
-      background: #f1f5f9;
-      color: #334155;
+      background: var(--bg-subtle);
+      color: var(--ink-strong);
       font-size: 0.75rem;
       font-weight: 500;
       border-radius: 6px;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--line);
       transition: all 0.15s ease;
 
       &.highlight-match {
-        background: #f0fdfa;
+        background: var(--primary-light);
         color: $primary;
-        border-color: #99f6e4;
+        border-color: var(--primary-border);
         font-weight: 600;
       }
     }
@@ -1465,18 +1465,18 @@ $match-red-border: #fecaca;
       margin-bottom: 1.25rem;
 
       .preferred-label {
-        color: #78716c;
+        color: var(--ink-muted);
       }
 
       .preferred-skill-tag {
         display: inline-block;
         padding: 0.2rem 0.55rem;
-        background: #fafaf9;
-        color: #44403c;
+        background: var(--surface-muted);
+        color: var(--ink-soft);
         font-size: 0.75rem;
         font-weight: 500;
         border-radius: 6px;
-        border: 1px dashed #d6d3d1;
+        border: 1px dashed var(--line-strong);
       }
     }
   }
@@ -1496,8 +1496,8 @@ $match-red-border: #fecaca;
       font-size: 0.875rem;
       font-weight: 600;
       color: $primary;
-      background: #f0fdfa;
-      border: 1px solid #99f6e4;
+      background: var(--primary-light);
+      border: 1px solid var(--primary-border);
       border-radius: 8px;
       text-decoration: none;
       cursor: pointer;
@@ -1511,7 +1511,7 @@ $match-red-border: #fecaca;
       }
 
       &:hover {
-        background: $primary;
+        background: var(--primary-btn-bg);
         color: #ffffff;
         border-color: $primary;
 
@@ -1539,7 +1539,7 @@ $match-red-border: #fecaca;
     width: 3.5rem;
     height: 3.5rem;
     border-radius: 50%;
-    background: #f1f5f9;
+    background: var(--bg-subtle);
     color: $neutral-muted;
     display: flex;
     align-items: center;
@@ -1569,7 +1569,7 @@ $match-red-border: #fecaca;
 
   .reset-filters-btn {
     padding: 0.625rem 1.25rem;
-    background: $primary;
+    background: var(--primary-btn-bg);
     color: #ffffff;
     font-size: 0.875rem;
     font-weight: 600;
@@ -1579,7 +1579,7 @@ $match-red-border: #fecaca;
     transition: background-color 0.15s ease;
 
     &:hover {
-      background: $primary-hover;
+      background: var(--primary-btn-hover);
     }
   }
 }
@@ -1594,14 +1594,14 @@ $match-red-border: #fecaca;
     width: 4.5rem;
     height: 1.85rem;
     border-radius: 9999px;
-    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background: linear-gradient(90deg, var(--bg-subtle) 25%, var(--bg-hover) 50%, var(--bg-subtle) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
 }
 
 .job-card-skeleton {
-  background: #ffffff;
+  background: var(--surface);
   border: 1px solid $neutral-border;
   border-radius: 16px;
   padding: 1.5rem;
@@ -1645,7 +1645,7 @@ $match-red-border: #fecaca;
       width: 3.5rem;
       height: 1.25rem;
       border-radius: 4px;
-      background: #f1f5f9;
+      background: var(--bg-subtle);
     }
   }
 
@@ -1657,7 +1657,7 @@ $match-red-border: #fecaca;
   }
 
   .skeleton-line {
-    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background: linear-gradient(90deg, var(--bg-subtle) 25%, var(--bg-hover) 50%, var(--bg-subtle) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     border-radius: 4px;

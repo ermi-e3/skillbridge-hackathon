@@ -6,11 +6,12 @@ import { environment } from '../../../../environments/environment';
 import { UserRole } from '../../../core/models/auth.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { extractErrorMessage } from '../../../core/utils/error-formatter';
+import { ThemeToggleComponent } from '../../../shared/components/theme-toggle/theme-toggle.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ThemeToggleComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })

@@ -16,6 +16,7 @@ import { JobsService } from '../../../../core/services/jobs.service';
 import { SkillsService } from '../../../../core/services/skills.service';
 import { extractErrorMessage } from '../../../../core/utils/error-formatter';
 import { JOB_CATEGORY_NAMES } from '../../../../shared/utils/job-department.util';
+import { UserProfileMenuComponent } from '../../../../shared/components/user-profile-menu/user-profile-menu.component';
 import { SKILL_CATEGORIES } from '../../../candidate/onboarding/candidate-skill-onboarding.component';
 
 /**
@@ -39,7 +40,7 @@ export const requiredSkillsValidator = (min = 1, max = 20, getCustomCount?: () =
 @Component({
   selector: 'app-employer-post-job',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, UserProfileMenuComponent],
   templateUrl: './employer-post-job.component.html',
   styleUrl: './employer-post-job.component.scss',
 })

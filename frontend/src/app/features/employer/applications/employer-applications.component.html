@@ -1,0 +1,127 @@
+<main class="employer-apps-page">
+  <div class="employer-apps-container">
+    <header class="page-header">
+      <div class="heading-copy">
+        <a routerLink="/employer/jobs" class="back-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <path d="M19 12H5M12 19l-7-7 7-7"></path>
+          </svg>
+          <span>Back to My Jobs</span>
+        </a>
+        <h1>Application Management</h1>
+        <p>Select any of your posted openings to review applicants, preview CVs, and update hiring decisions.</p>
+      </div>
+
+      <div class="header-actions">
+        <a class="primary-action" routerLink="/employer/jobs/new">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path d="M12 5v14M5 12h14"></path>
+          </svg>
+          <span>Post New Job</span>
+        </a>
+        <app-user-profile-menu />
+      </div>
+    </header>
+
+    <!-- Summary Stats -->
+    <section class="stats-grid" aria-label="Application pipeline totals">
+      <div class="stat-card">
+        <span class="stat-value">{{ totalApplications() }}</span>
+        <span class="stat-label">Total Applications</span>
+      </div>
+      <div class="stat-card received">
+        <span class="stat-value">{{ totalReceived() }}</span>
+        <span class="stat-label">Pending Review</span>
+      </div>
+      <div class="stat-card shortlisted">
+        <span class="stat-value">{{ totalShortlisted() }}</span>
+        <span class="stat-label">Shortlisted</span>
+      </div>
+    </section>
+
+    <!-- Search Bar -->
+    @if (!isLoading() && jobs().length > 0) {
+      <div class="search-bar-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+          type="text"
+          [value]="searchQuery()"
+          (input)="onSearchInput($event)"
+          placeholder="Filter openings by job title..."
+          aria-label="Filter openings by job title"
+        />
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <section class="error-banner" role="alert">
+        <div>
+          <strong>Unable to load applications</strong>
+          <p>{{ errorMessage() }}</p>
+        </div>
+        <button type="button" class="retry-button" (click)="loadEmployerJobs()">Try again</button>
+      </section>
+    }
+
+    @if (isLoading()) {
+      <div class="pipeline-list" aria-busy="true" aria-label="Loading job applicant summaries">
+        @for (item of [1, 2, 3]; track item) {
+          <div class="pipeline-card skeleton-card">
+            <div class="skel-line skel-title"></div>
+            <div class="skel-line skel-meta"></div>
+          </div>
+        }
+      </div>
+    } @else if (filteredJobs().length === 0) {
+      <section class="empty-state">
+        <h2>No job openings found</h2>
+        <p>Post a job opening to start receiving candidate applications.</p>
+        <a routerLink="/employer/jobs/new" class="primary-action">Post Your First Job</a>
+      </section>
+    } @else {
+      <section class="pipeline-list" aria-label="Job openings and applicant counts">
+        @for (job of filteredJobs(); track job.id) {
+          <article class="pipeline-card">
+            <div class="card-main">
+              <div class="card-title-row">
+                <h2>{{ job.title }}</h2>
+                <span class="status-pill" [class.closed]="!job.isOpen">
+                  {{ job.isOpen ? 'Active' : 'Closed' }}
+                </span>
+                @if (job.category) {
+                  <span class="category-pill">{{ job.category }}</span>
+                }
+              </div>
+              <p class="card-meta">
+                Posted {{ job.createdAt | date: 'MMM d, y' }}
+                @if (job.location) {
+                  &middot; {{ job.location }}
+                }
+              </p>
+
+              <div class="counts-row">
+                <span class="count-chip total"><strong>{{ job.applicantCounts.total }}</strong> Total</span>
+                <span class="count-chip received"><strong>{{ job.applicantCounts.received }}</strong> Received</span>
+                <span class="count-chip shortlisted"><strong>{{ job.applicantCounts.shortlisted }}</strong> Shortlisted</span>
+                <span class="count-chip rejected"><strong>{{ job.applicantCounts.rejected }}</strong> Rejected</span>
+              </div>
+            </div>
+
+            <div class="card-action">
+              <a class="manage-btn" [routerLink]="['/employer/jobs', job.id, 'applicants']">
+                <span>Review Applicants</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M5 12h14M12 5l7 7-7 7"></path>
+                </svg>
+              </a>
+            </div>
+          </article>
+        }
+      </section>
+    }
+  </div>
+</main>
+
