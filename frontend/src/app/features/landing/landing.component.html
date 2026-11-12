@@ -1,0 +1,500 @@
+<div class="editorial-shell">
+  <!-- Ambient Background Grid & Radial Mesh -->
+  <div class="ambient-canvas" aria-hidden="true">
+    <div class="grid-overlay"></div>
+    <div class="orb orb-teal"></div>
+    <div class="orb orb-accent"></div>
+  </div>
+
+  <!-- 1. Minimalist Floating Header -->
+  <header class="floating-nav-wrap">
+    <nav class="floating-pill" aria-label="Primary navigation">
+      <a routerLink="/" class="brand-lockup">
+        <img src="/logo.png" alt="SkillBridge mark" class="brand-mark" />
+        <span class="brand-name">SkillBridge</span>
+        <span class="brand-tag">MATCHING</span>
+      </a>
+
+      <div class="nav-anchors">
+        <a href="#engine" (click)="scrollToSection('engine', $event)">The Engine</a>
+        <a href="#sandbox" (click)="scrollToSection('sandbox', $event)">For Talent</a>
+        <a href="#pillars" (click)="scrollToSection('pillars', $event)">For Teams</a>
+      </div>
+
+      <div class="nav-actions">
+        <app-theme-toggle variant="icon" />
+        <a routerLink="/login" class="nav-signin">Sign In</a>
+        <a
+          routerLink="/register"
+          class="magnetic-cta"
+          [style.transform]="magneticTransform()"
+          (mousemove)="onMagneticMove($event)"
+          (mouseleave)="onMagneticLeave()"
+        >
+          <span>Get Started</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+
+        <button
+          type="button"
+          class="mobile-trigger"
+          (click)="toggleMobileMenu()"
+          [attr.aria-expanded]="mobileMenuOpen()"
+          aria-label="Toggle navigation menu"
+        >
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </nav>
+
+    @if (mobileMenuOpen()) {
+      <div class="mobile-drawer" role="menu">
+        <a href="#engine" (click)="scrollToSection('engine', $event)" role="menuitem">The Engine</a>
+        <a href="#sandbox" (click)="scrollToSection('sandbox', $event)" role="menuitem">For Talent</a>
+        <a href="#pillars" (click)="scrollToSection('pillars', $event)" role="menuitem">For Teams</a>
+        <div class="drawer-divider"></div>
+        <a routerLink="/login" (click)="toggleMobileMenu()" role="menuitem">Sign In</a>
+        <a routerLink="/register" class="drawer-cta" (click)="toggleMobileMenu()" role="menuitem">Get Started</a>
+      </div>
+    }
+  </header>
+
+  <main>
+    <!-- Edge-to-Edge Autoplay Walkthrough Banner (Flush Below Sticky Navbar) -->
+    <section class="walkthrough-bleed" aria-label="SkillBridge product walkthrough">
+      <app-walkthrough-showcase />
+    </section>
+
+    <!-- 2. Hero CTA Bar & Interactive Match Engine -->
+    <section class="hero-section">
+      <!-- Dual CTA Buttons Directly Below Video -->
+      <div class="hero-cta-row">
+        <a routerLink="/register" class="cta-primary-orange">
+          <span>Build Candidate Profile</span>
+        </a>
+        <a href="#engine" (click)="scrollToSection('engine', $event)" class="cta-secondary-teal">
+          <span>Explore Match Engine</span>
+        </a>
+      </div>
+
+      <!-- Audience Switcher for Live Match Engine Preview -->
+      <div class="audience-switcher-wrap reveal-stagger">
+        <div class="audience-pill" role="tablist" aria-label="Switch perspective">
+          <button
+            type="button"
+            role="tab"
+            class="audience-btn"
+            [class.active]="audience() === 'talent'"
+            [attr.aria-selected]="audience() === 'talent'"
+            (click)="setAudience('talent')"
+          >
+            <span class="status-dot" aria-hidden="true"></span>
+            I Have Skills
+          </button>
+          <button
+            type="button"
+            role="tab"
+            class="audience-btn"
+            [class.active]="audience() === 'teams'"
+            [attr.aria-selected]="audience() === 'teams'"
+            (click)="setAudience('teams')"
+          >
+            <span class="status-dot teams" aria-hidden="true"></span>
+            I Need Talent
+          </button>
+        </div>
+      </div>
+
+      <!-- Interactive Match Engine Canvas -->
+      <div
+        id="engine"
+        class="match-engine-canvas"
+        #revealEl
+        (mousemove)="onCardPointerMove($event)"
+      >
+        <div class="canvas-topbar">
+          <div class="window-dots" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <span class="canvas-label">SKILLBRIDGE // MATCH BREAKDOWN PREVIEW</span>
+          <span class="canvas-hint">Click nodes to recalculate</span>
+        </div>
+
+        <div class="canvas-stage">
+          <!-- Interactive Floating Skill Nodes -->
+          <div class="nodes-column" role="group" aria-label="Interactive skill nodes">
+            @for (node of heroNodes(); track node.id) {
+              <button
+                type="button"
+                class="skill-node-card"
+                [class.active]="isHeroNodeActive(node.id)"
+                [attr.aria-pressed]="isHeroNodeActive(node.id)"
+                (click)="toggleHeroNode(node.id)"
+              >
+                <div class="node-header">
+                  <span class="node-pulse" aria-hidden="true"></span>
+                  <span class="node-tag">{{ node.tag }}</span>
+                </div>
+                <div class="node-title">{{ node.label }}</div>
+                <div class="node-weight">+{{ node.weight }}% weight</div>
+              </button>
+            }
+          </div>
+
+          <!-- Glowing SVG Signal Paths -->
+          <div class="svg-bridge" aria-hidden="true">
+            <svg viewBox="0 0 210 260" preserveAspectRatio="none" class="bridge-svg">
+              <defs>
+                <linearGradient id="sbSignalGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#0d9488" stop-opacity="0.35" />
+                  <stop offset="50%" stop-color="#2dd4bf" stop-opacity="0.95" />
+                  <stop offset="100%" stop-color="#5eead4" stop-opacity="1" />
+                </linearGradient>
+              </defs>
+
+              @for (node of heroNodes(); track node.id) {
+                <path
+                  [attr.d]="node.pathD"
+                  class="signal-track"
+                  [class.active]="isHeroNodeActive(node.id)"
+                />
+                @if (isHeroNodeActive(node.id)) {
+                  <path
+                    [attr.d]="node.pathD"
+                    class="signal-flow"
+                  />
+                }
+              }
+
+              <circle cx="195" cy="130" r="7" class="core-anchor" />
+            </svg>
+          </div>
+
+          <!-- High-Signal Opportunity / Applicant Match Card -->
+          <article class="opportunity-card">
+            <div class="opp-header">
+              <div class="opp-badge">
+                <span class="live-indicator"></span>
+                <span>{{ audience() === 'talent' ? 'ACTIVE OPENING' : 'APPLICANT RANKING' }}</span>
+              </div>
+              <div class="score-readout">
+                <span class="score-value">{{ heroCompatibility() }}%</span>
+                <span class="score-label">Skill Match</span>
+              </div>
+            </div>
+
+            <div class="score-bar-track" aria-hidden="true">
+              <div class="score-bar-fill" [style.width.%]="heroCompatibility()"></div>
+            </div>
+
+            <h2 class="opp-title">
+              {{ audience() === 'talent' ? 'Senior Financial Analyst' : 'Abebe B. — Candidate Match' }}
+            </h2>
+            <p class="opp-meta">
+              {{
+                audience() === 'talent'
+                  ? 'Abyssinia Capital Group · Addis Ababa · Hybrid · Full-Time'
+                  : 'Default Profile CV Attached · Experience Level: Senior'
+              }}
+            </p>
+
+            <div class="opp-comp-box">
+              <span class="comp-k">{{ audience() === 'talent' ? 'DEADLINE WINDOW' : 'CATEGORY & STATUS' }}</span>
+              <span class="comp-v">
+                {{ audience() === 'talent' ? '14d remaining · Live Countdown' : 'Finance & Accounting · Received' }}
+              </span>
+            </div>
+
+            <div class="opp-matched-row">
+              @for (node of heroNodes(); track node.id) {
+                @if (isHeroNodeActive(node.id)) {
+                  <span class="matched-chip">{{ node.label }}</span>
+                }
+              }
+            </div>
+
+            <div class="opp-footer">
+              <button
+                type="button"
+                class="accept-intro-btn"
+                [class.accepted]="previewActionDone()"
+                (click)="triggerPreviewAction()"
+              >
+                @if (previewActionDone()) {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>{{ audience() === 'talent' ? 'Applied with Profile CV' : 'Shortlisted · Alert Sent' }}</span>
+                } @else {
+                  <span>{{ audience() === 'talent' ? 'Apply with Profile CV' : 'Shortlist Applicant' }}</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                }
+              </button>
+              <a routerLink="/register" class="open-full-link">Open portal →</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Interactive Live Skill Sandbox -->
+    <section id="sandbox" class="sandbox-section reveal-block" #revealEl>
+      <div class="section-heading">
+        <span class="mono-chip">MULTI-INDUSTRY SKILL SANDBOX</span>
+        <h2>Preview how SkillBridge scores your skill set.</h2>
+        <p>Toggle skills across Technology, Finance, Healthcare, Education, and Business to see how openings match your profile.</p>
+      </div>
+
+      <div class="sandbox-pills" role="group" aria-label="Interactive capability selector">
+        @for (skill of sandboxSkills; track skill.id) {
+          <button
+            type="button"
+            class="sandbox-pill"
+            [class.selected]="isSandboxSelected(skill.id)"
+            [attr.aria-pressed]="isSandboxSelected(skill.id)"
+            (click)="toggleSandboxSkill(skill.id)"
+          >
+            <span class="pill-check" aria-hidden="true">
+              @if (isSandboxSelected(skill.id)) { ✓ } @else { + }
+            </span>
+            <span class="pill-name">{{ skill.label }}</span>
+            <span class="pill-cat">{{ skill.category }}</span>
+          </button>
+        }
+      </div>
+
+      <div class="sandbox-preview-card" (mousemove)="onCardPointerMove($event)">
+        <div class="preview-left">
+          <div class="preview-eyebrow">{{ sandboxMatch().categoryMeta }}</div>
+          <h3 class="preview-role">{{ sandboxMatch().roleTitle }}</h3>
+          <p class="preview-synergy">{{ sandboxMatch().synergyLabel }}</p>
+          <div class="preview-tags">
+            @for (tag of sandboxMatch().matchedHighlights; track tag) {
+              <span class="preview-tag">{{ tag }}</span>
+            }
+          </div>
+        </div>
+
+        <div class="preview-right">
+          <div class="metric-pair">
+            <div class="metric-block">
+              <span class="metric-label">SKILL FIT BREAKDOWN</span>
+              <span class="metric-value comp">{{ sandboxMatch().fitSummary }}</span>
+            </div>
+            <div class="metric-block">
+              <span class="metric-label">LIVE MATCH SCORE</span>
+              <span class="metric-value score">{{ sandboxMatch().compatibility }}%</span>
+            </div>
+          </div>
+
+          <a routerLink="/register" class="sandbox-cta">
+            Save Skills to Candidate Profile →
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Asymmetric Bento Grid: Real Platform Capabilities -->
+    <section id="pillars" class="bento-section reveal-block" #revealEl>
+      <div class="section-heading">
+        <span class="mono-chip">PLATFORM CAPABILITIES</span>
+        <h2>Transparent hiring for both sides.</h2>
+        <p>Built on explainable skill matching, CV management, deadline countdowns, and real-time SignalR status updates.</p>
+      </div>
+
+      <div class="bento-grid">
+        <!-- Wide Pillar 1: Real-Time Application Tracking -->
+        <article class="bento-card bento-wide" (mousemove)="onCardPointerMove($event)">
+          <div class="bento-copy">
+            <span class="pillar-index">01 / REAL-TIME UPDATES</span>
+            <h3>Live Application Status Pipeline</h3>
+            <p>Track submitted applications with filters by status, job title, company, and date—with instant SignalR toast alerts when employers review or shortlist you.</p>
+          </div>
+          <div class="timeline-widget" aria-label="Application status pipeline">
+            <div class="tl-step done">
+              <span class="tl-node"></span>
+              <div class="tl-meta">
+                <strong>Application Submitted</strong>
+                <span>Profile CV or tailored PDF/DOCX attached</span>
+              </div>
+              <span class="tl-time">Received</span>
+            </div>
+            <div class="tl-step done">
+              <span class="tl-node"></span>
+              <div class="tl-meta">
+                <strong>Match Score Ranked</strong>
+                <span>Required &amp; nice-to-have skills scored</span>
+              </div>
+              <span class="tl-time">88.5%</span>
+            </div>
+            <div class="tl-step active">
+              <span class="tl-node"></span>
+              <div class="tl-meta">
+                <strong>Employer Decision Updated</strong>
+                <span>Instant SignalR notification delivered</span>
+              </div>
+              <span class="tl-time">Shortlisted</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Tall Pillar 2: Explainable Multi-Factor Match Breakdown -->
+        <article class="bento-card bento-tall" (mousemove)="onCardPointerMove($event)">
+          <div class="bento-copy">
+            <span class="pillar-index">02 / MATCH ENGINE</span>
+            <h3>Explainable Match Breakdown</h3>
+            <p>Every job card shows matched and missing skills alongside experience level, work arrangement, and job type compatibility.</p>
+          </div>
+          <div class="telemetry-chart" aria-label="Match breakdown dimensions">
+            <div class="bar-row">
+              <span class="bar-label">Required</span>
+              <div class="bar-track"><div class="bar-fill" style="width: 95%"></div></div>
+              <span class="bar-val">Core</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Preferred</span>
+              <div class="bar-track"><div class="bar-fill" style="width: 82%"></div></div>
+              <span class="bar-val">Bonus</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Experience</span>
+              <div class="bar-track"><div class="bar-fill" style="width: 90%"></div></div>
+              <span class="bar-val">Level</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Arrangement</span>
+              <div class="bar-track"><div class="bar-fill accent" style="width: 100%"></div></div>
+              <span class="bar-val">Fit</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Full-Width Pillar 3: Employer Applicant Review & CV Preview -->
+        <article class="bento-card bento-full" (mousemove)="onCardPointerMove($event)">
+          <div class="bento-copy">
+            <span class="pillar-index">03 / EMPLOYER WORKFLOW</span>
+            <h3>Ranked Applicants &amp; In-App CV Review</h3>
+            <p>Employers filter applicants by name, status, minimum skill match percentage, and date—preview attached PDF/DOCX CVs, inspect full candidate profiles, and update statuses in one click.</p>
+          </div>
+
+          <div class="founder-snippet">
+            <div class="chat-bubble">
+              <div class="chat-author">
+                <span class="author-badge">AB</span>
+                <div>
+                  <strong>Applicant Profile &amp; CV</strong>
+                  <span>92% Skill Match · PDF CV Ready · 4 yrs exp</span>
+                </div>
+              </div>
+              <p>Review matched required skills, experience history, and attached CV before updating the applicant status.</p>
+            </div>
+
+            <div class="slot-picker">
+              <button
+                type="button"
+                class="slot-btn"
+                [class.active]="applicantStatus() === 'Received'"
+                (click)="setApplicantStatus('Received')"
+              >
+                Status: Received
+              </button>
+              <button
+                type="button"
+                class="slot-btn"
+                [class.active]="applicantStatus() === 'Shortlisted'"
+                (click)="setApplicantStatus('Shortlisted')"
+              >
+                Shortlist Candidate
+              </button>
+              <span class="slot-confirm">
+                Current: {{ applicantStatus() }}
+              </span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- 5. Multi-Industry Ticker -->
+    <section class="marquee-section" aria-label="Industries supported on SkillBridge">
+      <p class="marquee-caption">BUILT FOR EVERY PROFESSION &amp; INDUSTRY</p>
+      <div class="marquee-viewport">
+        <div class="marquee-track">
+          @for (industry of marqueeIndustries; track industry) {
+            <span class="marquee-item">{{ industry }}</span>
+          }
+          @for (industry of marqueeIndustries; track industry + '-dup') {
+            <span class="marquee-item" aria-hidden="true">{{ industry }}</span>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Full-Bleed Closing CTA -->
+    <section class="closing-section reveal-block" #revealEl>
+      <div class="closing-glow" aria-hidden="true"></div>
+      <div class="closing-inner">
+        <span class="mono-chip">GET STARTED TODAY</span>
+        <h2 class="closing-title">Match on real skills, not guesswork.</h2>
+        <p class="closing-subtitle">
+          Register as a candidate to build your skills profile and attach your CV, or join as an employer to post jobs and review ranked applicants.
+        </p>
+
+        <div
+          class="dropzone-bar"
+          [class.drag-over]="isDragOver()"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave()"
+          (drop)="onDrop($event)"
+        >
+          <input
+            type="text"
+            class="dropzone-input"
+            [ngModel]="quickStartInput()"
+            (ngModelChange)="quickStartInput.set($event)"
+            placeholder="Enter your target role, GitHub URL, or drop a PDF/DOCX CV..."
+            aria-label="Target role, portfolio URL, or resume file"
+          />
+
+          <label class="upload-trigger">
+            <input type="file" accept=".pdf,.doc,.docx" (change)="onFileSelected($event)" hidden />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span>{{ droppedFileName() ? 'CV Selected' : 'Attach CV' }}</span>
+          </label>
+
+          <button type="button" class="launch-btn" (click)="launchQuickStart()">
+            Create Account →
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="editorial-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="/logo.png" alt="SkillBridge" class="footer-logo" />
+        <span>SkillBridge</span>
+        <span class="footer-copy">© 2026 SkillBridge. Skills-matched hiring across industries.</span>
+      </div>
+      <div class="footer-links">
+        <a href="#engine" (click)="scrollToSection('engine', $event)">Matching</a>
+        <a href="#sandbox" (click)="scrollToSection('sandbox', $event)">Sandbox</a>
+        <a href="#pillars" (click)="scrollToSection('pillars', $event)">Capabilities</a>
+        <a routerLink="/login">Sign In</a>
+        <a routerLink="/register">Register</a>
+      </div>
+    </div>
+  </footer>
+</div>
