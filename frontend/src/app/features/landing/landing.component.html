@@ -6,13 +6,13 @@
     <div class="orb orb-accent"></div>
   </div>
 
-  <!-- 1. Minimalist Floating Glassmorphic Header -->
+  <!-- 1. Minimalist Floating Header -->
   <header class="floating-nav-wrap">
     <nav class="floating-pill" aria-label="Primary navigation">
       <a routerLink="/" class="brand-lockup">
         <img src="/logo.png" alt="SkillBridge mark" class="brand-mark" />
         <span class="brand-name">SkillBridge</span>
-        <span class="brand-tag">ENGINE</span>
+        <span class="brand-tag">MATCHING</span>
       </a>
 
       <div class="nav-anchors">
@@ -31,7 +31,7 @@
           (mousemove)="onMagneticMove($event)"
           (mouseleave)="onMagneticLeave()"
         >
-          <span>Initialize Profile</span>
+          <span>Get Started</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
             <line x1="5" y1="12" x2="19" y2="12"></line>
             <polyline points="12 5 19 12 12 19"></polyline>
@@ -58,7 +58,7 @@
         <a href="#pillars" (click)="scrollToSection('pillars', $event)" role="menuitem">For Teams</a>
         <div class="drawer-divider"></div>
         <a routerLink="/login" (click)="toggleMobileMenu()" role="menuitem">Sign In</a>
-        <a routerLink="/register" class="drawer-cta" (click)="toggleMobileMenu()" role="menuitem">Initialize Profile</a>
+        <a routerLink="/register" class="drawer-cta" (click)="toggleMobileMenu()" role="menuitem">Get Started</a>
       </div>
     }
   </header>
@@ -98,27 +98,27 @@
       <div class="hero-copy reveal-stagger">
         <p class="hero-eyebrow">
           @if (audience() === 'talent') {
-            <span class="mono-chip">SIGNAL-FIRST CAREER ENGINE</span>
+            <span class="mono-chip">SKILLS-MATCHED JOBS &amp; INTERNSHIPS</span>
           } @else {
-            <span class="mono-chip accent">VERIFIED TALENT TELEMETRY</span>
+            <span class="mono-chip accent">RANKED APPLICANT MATCHING</span>
           }
         </p>
 
         <h1 class="hero-title">
           @if (audience() === 'talent') {
-            Precision matching,<br />
-            <span class="title-gradient">zero application noise.</span>
+            Jobs matched to the<br />
+            <span class="title-gradient">skills you actually have.</span>
           } @else {
-            Verified capability,<br />
-            <span class="title-gradient">zero resume guesswork.</span>
+            Post once, review<br />
+            <span class="title-gradient">applicants ranked by fit.</span>
           }
         </h1>
 
         <p class="hero-subtitle">
           @if (audience() === 'talent') {
-            Stop feeding keyword-blind ATS black holes. Connect your verified engineering, product, and domain skills directly to high-signal teams that already want what you build.
+            Build your skills profile across any industry, inspect your exact matched and missing skills for every active opening, submit with your saved CV, and track status changes in real time.
           } @else {
-            Define exact skill graphs, proficiency floors, and team context. Receive explainable, pre-scored candidate matches ready for direct founder intros.
+            Define required and nice-to-have skills, experience level, category, and application deadlines. SkillBridge scores every applicant automatically and lets you inspect CVs in one place.
           }
         </p>
       </div>
@@ -134,8 +134,8 @@
           <div class="window-dots" aria-hidden="true">
             <span></span><span></span><span></span>
           </div>
-          <span class="canvas-label">SKILLBRIDGE // LIVE MATCH ENGINE v2.4</span>
-          <span class="canvas-hint">Click nodes to recalibrate</span>
+          <span class="canvas-label">SKILLBRIDGE // MATCH BREAKDOWN PREVIEW</span>
+          <span class="canvas-hint">Click nodes to recalculate</span>
         </div>
 
         <div class="canvas-stage">
@@ -154,7 +154,7 @@
                   <span class="node-tag">{{ node.tag }}</span>
                 </div>
                 <div class="node-title">{{ node.label }}</div>
-                <div class="node-weight">+{{ node.weight }}% signal</div>
+                <div class="node-weight">+{{ node.weight }}% weight</div>
               </button>
             }
           </div>
@@ -188,16 +188,16 @@
             </svg>
           </div>
 
-          <!-- High-Signal Opportunity / Candidate Match Card -->
+          <!-- High-Signal Opportunity / Applicant Match Card -->
           <article class="opportunity-card">
             <div class="opp-header">
               <div class="opp-badge">
                 <span class="live-indicator"></span>
-                <span>{{ audience() === 'talent' ? 'HIGH-SIGNAL ROLE' : 'VERIFIED MATCH' }}</span>
+                <span>{{ audience() === 'talent' ? 'ACTIVE OPENING' : 'APPLICANT RANKING' }}</span>
               </div>
               <div class="score-readout">
                 <span class="score-value">{{ heroCompatibility() }}%</span>
-                <span class="score-label">Compatibility Score</span>
+                <span class="score-label">Skill Match</span>
               </div>
             </div>
 
@@ -206,15 +206,21 @@
             </div>
 
             <h2 class="opp-title">
-              {{ audience() === 'talent' ? 'Principal Product Systems Engineer' : 'Dawit T. — Staff Systems Architect' }}
+              {{ audience() === 'talent' ? 'Senior Financial Analyst' : 'Abebe B. — Candidate Match' }}
             </h2>
             <p class="opp-meta">
-              {{ audience() === 'talent' ? 'Abyssinia FinTech Labs · Remote / Addis Hybrid' : '7+ yrs verified · Available for direct intro' }}
+              {{
+                audience() === 'talent'
+                  ? 'Abyssinia Capital Group · Addis Ababa · Hybrid · Full-Time'
+                  : 'Default Profile CV Attached · Experience Level: Senior'
+              }}
             </p>
 
             <div class="opp-comp-box">
-              <span class="comp-k">{{ audience() === 'talent' ? 'TRANSPARENT COMP' : 'TARGET COMP' }}</span>
-              <span class="comp-v">$115,000 – $142,000 / yr · Equity</span>
+              <span class="comp-k">{{ audience() === 'talent' ? 'DEADLINE WINDOW' : 'CATEGORY & STATUS' }}</span>
+              <span class="comp-v">
+                {{ audience() === 'talent' ? '14d remaining · Live Countdown' : 'Finance & Accounting · Received' }}
+              </span>
             </div>
 
             <div class="opp-matched-row">
@@ -229,23 +235,23 @@
               <button
                 type="button"
                 class="accept-intro-btn"
-                [class.accepted]="introAccepted()"
-                (click)="acceptIntro()"
+                [class.accepted]="previewActionDone()"
+                (click)="triggerPreviewAction()"
               >
-                @if (introAccepted()) {
+                @if (previewActionDone()) {
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  <span>Intro Accepted · Calendar Synced</span>
+                  <span>{{ audience() === 'talent' ? 'Applied with Profile CV' : 'Shortlisted · Alert Sent' }}</span>
                 } @else {
-                  <span>Accept Intro</span>
+                  <span>{{ audience() === 'talent' ? 'Apply with Profile CV' : 'Shortlist Applicant' }}</span>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
                   </svg>
                 }
               </button>
-              <a routerLink="/register" class="open-full-link">Full breakdown →</a>
+              <a routerLink="/register" class="open-full-link">Open portal →</a>
             </div>
           </article>
         </div>
@@ -255,9 +261,9 @@
     <!-- 3. Interactive Live Skill Sandbox -->
     <section id="sandbox" class="sandbox-section reveal-block" #revealEl>
       <div class="section-heading">
-        <span class="mono-chip">LIVE SKILL SANDBOX</span>
-        <h2>Test the match engine before you sign up.</h2>
-        <p>Toggle 3–4 capabilities below to preview real-time role alignment and transparent compensation bands.</p>
+        <span class="mono-chip">MULTI-INDUSTRY SKILL SANDBOX</span>
+        <h2>Preview how SkillBridge scores your skill set.</h2>
+        <p>Toggle skills across Technology, Finance, Healthcare, Education, and Business to see how openings match your profile.</p>
       </div>
 
       <div class="sandbox-pills" role="group" aria-label="Interactive capability selector">
@@ -280,7 +286,7 @@
 
       <div class="sandbox-preview-card" (mousemove)="onCardPointerMove($event)">
         <div class="preview-left">
-          <div class="preview-eyebrow">{{ sandboxMatch().teamLabel }}</div>
+          <div class="preview-eyebrow">{{ sandboxMatch().categoryMeta }}</div>
           <h3 class="preview-role">{{ sandboxMatch().roleTitle }}</h3>
           <p class="preview-synergy">{{ sandboxMatch().synergyLabel }}</p>
           <div class="preview-tags">
@@ -293,8 +299,8 @@
         <div class="preview-right">
           <div class="metric-pair">
             <div class="metric-block">
-              <span class="metric-label">EST. COMPENSATION</span>
-              <span class="metric-value comp">{{ sandboxMatch().salaryRange }}</span>
+              <span class="metric-label">SKILL FIT BREAKDOWN</span>
+              <span class="metric-value comp">{{ sandboxMatch().fitSummary }}</span>
             </div>
             <div class="metric-block">
               <span class="metric-label">LIVE MATCH SCORE</span>
@@ -303,126 +309,126 @@
           </div>
 
           <a routerLink="/register" class="sandbox-cta">
-            Lock These Skills into Profile →
+            Save Skills to Candidate Profile →
           </a>
         </div>
       </div>
     </section>
 
-    <!-- 4. Asymmetric Bento Grid: Why It's Different -->
+    <!-- 4. Asymmetric Bento Grid: Real Platform Capabilities -->
     <section id="pillars" class="bento-section reveal-block" #revealEl>
       <div class="section-heading">
-        <span class="mono-chip">ARCHITECTURE</span>
-        <h2>Built for signal, not volume.</h2>
-        <p>Every interaction is engineered to replace black-box filtering with transparent proof.</p>
+        <span class="mono-chip">PLATFORM CAPABILITIES</span>
+        <h2>Transparent hiring for both sides.</h2>
+        <p>Built on explainable skill matching, CV management, deadline countdowns, and real-time SignalR status updates.</p>
       </div>
 
       <div class="bento-grid">
-        <!-- Wide Pillar 1: Zero Resume Black Holes -->
+        <!-- Wide Pillar 1: Real-Time Application Tracking -->
         <article class="bento-card bento-wide" (mousemove)="onCardPointerMove($event)">
           <div class="bento-copy">
-            <span class="pillar-index">01 / TRANSPARENCY</span>
-            <h3>Zero Resume Black Holes</h3>
-            <p>Track every state transition in real time—from match calculation to founder review—backed by SignalR live telemetry.</p>
+            <span class="pillar-index">01 / REAL-TIME UPDATES</span>
+            <h3>Live Application Status Pipeline</h3>
+            <p>Track submitted applications with filters by status, job title, company, and date—with instant SignalR toast alerts when employers review or shortlist you.</p>
           </div>
-          <div class="timeline-widget" aria-label="Live application status timeline">
+          <div class="timeline-widget" aria-label="Application status pipeline">
             <div class="tl-step done">
               <span class="tl-node"></span>
               <div class="tl-meta">
-                <strong>Skills Verified</strong>
-                <span>98.4% alignment computed</span>
+                <strong>Application Submitted</strong>
+                <span>Profile CV or tailored PDF/DOCX attached</span>
               </div>
-              <span class="tl-time">00:01s</span>
+              <span class="tl-time">Received</span>
             </div>
             <div class="tl-step done">
               <span class="tl-node"></span>
               <div class="tl-meta">
-                <strong>Hiring Lead Alerted</strong>
-                <span>Ranked #1 in active cohort</span>
+                <strong>Match Score Ranked</strong>
+                <span>Required &amp; nice-to-have skills scored</span>
               </div>
-              <span class="tl-time">02m</span>
+              <span class="tl-time">88.5%</span>
             </div>
             <div class="tl-step active">
               <span class="tl-node"></span>
               <div class="tl-meta">
-                <strong>Direct Intro Triggered</strong>
-                <span>Calendar link unlocked</span>
+                <strong>Employer Decision Updated</strong>
+                <span>Instant SignalR notification delivered</span>
               </div>
-              <span class="tl-time">LIVE</span>
+              <span class="tl-time">Shortlisted</span>
             </div>
           </div>
         </article>
 
-        <!-- Tall Pillar 2: Verified Skill Telemetry -->
+        <!-- Tall Pillar 2: Explainable Multi-Factor Match Breakdown -->
         <article class="bento-card bento-tall" (mousemove)="onCardPointerMove($event)">
           <div class="bento-copy">
-            <span class="pillar-index">02 / TELEMETRY</span>
-            <h3>Verified Skill Telemetry</h3>
-            <p>Weighted proficiency scoring across core, preferred, and seniority dimensions—never keyword stuffing.</p>
+            <span class="pillar-index">02 / MATCH ENGINE</span>
+            <h3>Explainable Match Breakdown</h3>
+            <p>Every job card shows matched and missing skills alongside experience level, work arrangement, and job type compatibility.</p>
           </div>
-          <div class="telemetry-chart" aria-label="Capability telemetry bars">
+          <div class="telemetry-chart" aria-label="Match breakdown dimensions">
             <div class="bar-row">
-              <span class="bar-label">Architecture</span>
-              <div class="bar-track"><div class="bar-fill" style="width: 96%"></div></div>
-              <span class="bar-val">96</span>
+              <span class="bar-label">Required</span>
+              <div class="bar-track"><div class="bar-fill" style="width: 95%"></div></div>
+              <span class="bar-val">Core</span>
             </div>
             <div class="bar-row">
-              <span class="bar-label">TypeScript</span>
-              <div class="bar-track"><div class="bar-fill" style="width: 94%"></div></div>
-              <span class="bar-val">94</span>
+              <span class="bar-label">Preferred</span>
+              <div class="bar-track"><div class="bar-fill" style="width: 82%"></div></div>
+              <span class="bar-val">Bonus</span>
             </div>
             <div class="bar-row">
-              <span class="bar-label">Systems</span>
-              <div class="bar-track"><div class="bar-fill" style="width: 89%"></div></div>
-              <span class="bar-val">89</span>
+              <span class="bar-label">Experience</span>
+              <div class="bar-track"><div class="bar-fill" style="width: 90%"></div></div>
+              <span class="bar-val">Level</span>
             </div>
             <div class="bar-row">
-              <span class="bar-label">Product</span>
-              <div class="bar-track"><div class="bar-fill accent" style="width: 84%"></div></div>
-              <span class="bar-val">84</span>
+              <span class="bar-label">Arrangement</span>
+              <div class="bar-track"><div class="bar-fill accent" style="width: 100%"></div></div>
+              <span class="bar-val">Fit</span>
             </div>
           </div>
         </article>
 
-        <!-- Full-Width Asymmetric Pillar 3: Direct-to-Founder Intros -->
+        <!-- Full-Width Pillar 3: Employer Applicant Review & CV Preview -->
         <article class="bento-card bento-full" (mousemove)="onCardPointerMove($event)">
           <div class="bento-copy">
-            <span class="pillar-index">03 / DIRECT ACCESS</span>
-            <h3>Direct-to-Founder Intros</h3>
-            <p>High-compatibility matches bypass six rounds of recruiter phone screens. Confirm a 15-minute intro directly with the hiring founder or engineering lead.</p>
+            <span class="pillar-index">03 / EMPLOYER WORKFLOW</span>
+            <h3>Ranked Applicants &amp; In-App CV Review</h3>
+            <p>Employers filter applicants by name, status, minimum skill match percentage, and date—preview attached PDF/DOCX CVs, inspect full candidate profiles, and update statuses in one click.</p>
           </div>
 
           <div class="founder-snippet">
             <div class="chat-bubble">
               <div class="chat-author">
-                <span class="author-badge">SM</span>
+                <span class="author-badge">AB</span>
                 <div>
-                  <strong>Sara Mekonnen</strong>
-                  <span>CTO · Nile Cloud</span>
+                  <strong>Applicant Profile &amp; CV</strong>
+                  <span>92% Skill Match · PDF CV Ready · 4 yrs exp</span>
                 </div>
               </div>
-              <p>“Saw your 98.4% TypeScript + System Architecture match. Want to skip the form screen and talk architecture for 15 mins?”</p>
+              <p>Review matched required skills, experience history, and attached CV before updating the applicant status.</p>
             </div>
 
             <div class="slot-picker">
               <button
                 type="button"
                 class="slot-btn"
-                [class.active]="selectedSlot() === 'thu-10'"
-                (click)="selectSlot('thu-10')"
+                [class.active]="applicantStatus() === 'Received'"
+                (click)="setApplicantStatus('Received')"
               >
-                Thu · 10:00 EAT
+                Status: Received
               </button>
               <button
                 type="button"
                 class="slot-btn"
-                [class.active]="selectedSlot() === 'fri-14'"
-                (click)="selectSlot('fri-14')"
+                [class.active]="applicantStatus() === 'Shortlisted'"
+                (click)="setApplicantStatus('Shortlisted')"
               >
-                Fri · 14:30 EAT
+                Shortlist Candidate
               </button>
               <span class="slot-confirm">
-                {{ slotBooked() ? '✓ Intro slot reserved' : 'Select a slot' }}
+                Current: {{ applicantStatus() }}
               </span>
             </div>
           </div>
@@ -430,29 +436,29 @@
       </div>
     </section>
 
-    <!-- 5. Social Proof Logo Marquee -->
-    <section class="marquee-section" aria-label="Teams hiring on SkillBridge">
-      <p class="marquee-caption">TEAMS CALIBRATING HIRING ON SKILLBRIDGE</p>
+    <!-- 5. Multi-Industry Ticker -->
+    <section class="marquee-section" aria-label="Industries supported on SkillBridge">
+      <p class="marquee-caption">BUILT FOR EVERY PROFESSION &amp; INDUSTRY</p>
       <div class="marquee-viewport">
         <div class="marquee-track">
-          @for (logo of marqueeCompanies; track logo) {
-            <span class="marquee-item">{{ logo }}</span>
+          @for (industry of marqueeIndustries; track industry) {
+            <span class="marquee-item">{{ industry }}</span>
           }
-          @for (logo of marqueeCompanies; track logo + '-dup') {
-            <span class="marquee-item" aria-hidden="true">{{ logo }}</span>
+          @for (industry of marqueeIndustries; track industry + '-dup') {
+            <span class="marquee-item" aria-hidden="true">{{ industry }}</span>
           }
         </div>
       </div>
     </section>
 
-    <!-- 6. Dramatic Full-Bleed Closing CTA & Quick-Start Dropzone -->
+    <!-- 6. Full-Bleed Closing CTA -->
     <section class="closing-section reveal-block" #revealEl>
       <div class="closing-glow" aria-hidden="true"></div>
       <div class="closing-inner">
-        <span class="mono-chip">INSTANT CALIBRATION</span>
-        <h2 class="closing-title">Your next chapter isn’t a keyword search.</h2>
+        <span class="mono-chip">GET STARTED TODAY</span>
+        <h2 class="closing-title">Match on real skills, not guesswork.</h2>
         <p class="closing-subtitle">
-          Drop your GitHub URL, portfolio link, or resume PDF to initialize your skill profile in seconds.
+          Register as a candidate to build your skills profile and attach your CV, or join as an employer to post jobs and review ranked applicants.
         </p>
 
         <div
@@ -467,8 +473,8 @@
             class="dropzone-input"
             [ngModel]="quickStartInput()"
             (ngModelChange)="quickStartInput.set($event)"
-            placeholder="github.com/username, portfolio URL, or drop resume PDF..."
-            aria-label="Portfolio URL, GitHub URL, or resume file"
+            placeholder="Enter your target role, GitHub URL, or drop a PDF/DOCX CV..."
+            aria-label="Target role, portfolio URL, or resume file"
           />
 
           <label class="upload-trigger">
@@ -478,11 +484,11 @@
               <polyline points="17 8 12 3 7 8"></polyline>
               <line x1="12" y1="3" x2="12" y2="15"></line>
             </svg>
-            <span>{{ droppedFileName() ? 'PDF Ready' : 'Upload PDF' }}</span>
+            <span>{{ droppedFileName() ? 'CV Selected' : 'Attach CV' }}</span>
           </label>
 
           <button type="button" class="launch-btn" (click)="launchQuickStart()">
-            Launch Match →
+            Create Account →
           </button>
         </div>
       </div>
@@ -494,12 +500,12 @@
       <div class="footer-brand">
         <img src="/logo.png" alt="SkillBridge" class="footer-logo" />
         <span>SkillBridge</span>
-        <span class="footer-copy">© 2026 SkillBridge. Precision skill matching.</span>
+        <span class="footer-copy">© 2026 SkillBridge. Skills-matched hiring across industries.</span>
       </div>
       <div class="footer-links">
-        <a href="#engine" (click)="scrollToSection('engine', $event)">Engine</a>
+        <a href="#engine" (click)="scrollToSection('engine', $event)">Matching</a>
         <a href="#sandbox" (click)="scrollToSection('sandbox', $event)">Sandbox</a>
-        <a href="#pillars" (click)="scrollToSection('pillars', $event)">Architecture</a>
+        <a href="#pillars" (click)="scrollToSection('pillars', $event)">Capabilities</a>
         <a routerLink="/login">Sign In</a>
         <a routerLink="/register">Register</a>
       </div>

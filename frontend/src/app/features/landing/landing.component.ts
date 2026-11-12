@@ -29,37 +29,36 @@ export interface SandboxSkill {
   label: string;
   category: string;
   weight: number;
-  salaryBoost: number;
 }
 
 interface SandboxResult {
   roleTitle: string;
-  teamLabel: string;
-  salaryRange: string;
+  categoryMeta: string;
+  fitSummary: string;
   compatibility: number;
   synergyLabel: string;
   matchedHighlights: string[];
 }
 
 const TALENT_NODES: HeroSkillNode[] = [
-  { id: 'ts', label: 'TypeScript', tag: 'CORE · 5Y', weight: 34, pathD: 'M 10 48 C 90 48, 110 130, 195 130' },
-  { id: 'arch', label: 'System Architecture', tag: 'L5 · VERIFIED', weight: 36, pathD: 'M 10 130 C 85 130, 115 130, 195 130' },
-  { id: 'prod', label: 'Product Strategy', tag: 'LEAD · SIGNAL', weight: 28.4, pathD: 'M 10 212 C 90 212, 110 130, 195 130' },
+  { id: 'fin', label: 'Financial Modeling', tag: 'REQUIRED · CORE', weight: 32, pathD: 'M 10 48 C 90 48, 110 130, 195 130' },
+  { id: 'budget', label: 'Budgeting & Forecasting', tag: 'REQUIRED · CORE', weight: 34, pathD: 'M 10 130 C 85 130, 115 130, 195 130' },
+  { id: 'hybrid', label: 'Hybrid · Full-Time', tag: 'PREFERENCE FIT', weight: 22.5, pathD: 'M 10 212 C 90 212, 110 130, 195 130' },
 ];
 
 const TEAM_NODES: HeroSkillNode[] = [
-  { id: 'staff-fe', label: 'Staff Frontend', tag: 'ANGULAR / TS', weight: 35, pathD: 'M 10 48 C 90 48, 110 130, 195 130' },
-  { id: 'dotnet', label: '.NET Core APIs', tag: 'CLEAN ARCH', weight: 33, pathD: 'M 10 130 C 85 130, 115 130, 195 130' },
-  { id: 'scale', label: 'Distributed Systems', tag: 'HIGH SIGNAL', weight: 30.4, pathD: 'M 10 212 C 90 212, 110 130, 195 130' },
+  { id: 'req', label: 'Required Skills Match', tag: 'CORE WEIGHT', weight: 36, pathD: 'M 10 48 C 90 48, 110 130, 195 130' },
+  { id: 'exp', label: 'Experience Level Fit', tag: 'SENIORITY + YRS', weight: 30, pathD: 'M 10 130 C 85 130, 115 130, 195 130' },
+  { id: 'pref', label: 'Nice-to-Have & Mode', tag: 'BONUS SIGNAL', weight: 26.0, pathD: 'M 10 212 C 90 212, 110 130, 195 130' },
 ];
 
 const SANDBOX_SKILLS: SandboxSkill[] = [
-  { id: 'typescript', label: 'TypeScript', category: 'Engineering', weight: 24, salaryBoost: 14 },
-  { id: 'architecture', label: 'System Architecture', category: 'Systems', weight: 26, salaryBoost: 22 },
-  { id: 'product', label: 'Product Strategy', category: 'Product', weight: 22, salaryBoost: 16 },
-  { id: 'cloud', label: 'Cloud & Kubernetes', category: 'Infra', weight: 24, salaryBoost: 18 },
-  { id: 'ai', label: 'Applied AI / ML', category: 'Intelligence', weight: 25, salaryBoost: 24 },
-  { id: 'design', label: 'Design Systems', category: 'Craft', weight: 20, salaryBoost: 12 },
+  { id: 'typescript', label: 'TypeScript', category: 'Technology', weight: 24 },
+  { id: 'financial-modeling', label: 'Financial Modeling', category: 'Finance', weight: 25 },
+  { id: 'project-mgmt', label: 'Project Management', category: 'Business', weight: 22 },
+  { id: 'patient-care', label: 'Patient Care', category: 'Healthcare', weight: 24 },
+  { id: 'curriculum', label: 'Curriculum Design', category: 'Education', weight: 21 },
+  { id: 'sql', label: 'SQL & Reporting', category: 'Analytics', weight: 23 },
 ];
 
 @Component({
@@ -72,6 +71,7 @@ const SANDBOX_SKILLS: SandboxSkill[] = [
 export class LandingComponent implements AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   private observer: IntersectionObserver | null = null;
+  private revealFallbackTimer: ReturnType<typeof setTimeout> | null = null;
 
   @ViewChildren('revealEl') revealElements!: QueryList<ElementRef<HTMLElement>>;
 
@@ -81,8 +81,8 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
 
   // Hero Audience Switcher
   readonly audience = signal<AudienceMode>('talent');
-  readonly activeHeroNodes = signal<Set<string>>(new Set(['ts', 'arch', 'prod']));
-  readonly introAccepted = signal(false);
+  readonly activeHeroNodes = signal<Set<string>>(new Set(['fin', 'budget', 'hybrid']));
+  readonly previewActionDone = signal(false);
 
   readonly heroNodes = computed<HeroSkillNode[]>(() =>
     this.audience() === 'talent' ? TALENT_NODES : TEAM_NODES
@@ -94,95 +94,92 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     const score = nodes
       .filter((n) => active.has(n.id))
       .reduce((sum, n) => sum + n.weight, 0);
-    const clamped = Math.min(98.4, Math.max(0, score));
+    const clamped = Math.min(96, Math.max(0, score));
     return clamped.toFixed(1);
   });
 
   // Live Skill Sandbox
   readonly sandboxSkills = SANDBOX_SKILLS;
   readonly selectedSandboxIds = signal<Set<string>>(
-    new Set(['typescript', 'architecture', 'product'])
+    new Set(['typescript', 'project-mgmt', 'sql'])
   );
 
   readonly sandboxMatch = computed<SandboxResult>(() => {
     const selected = this.sandboxSkills.filter((s) => this.selectedSandboxIds().has(s.id));
     if (selected.length === 0) {
       return {
-        roleTitle: 'Select skills above to calibrate',
-        teamLabel: 'SkillBridge Live Engine · Waiting for signal',
-        salaryRange: '$—',
+        roleTitle: 'Select skills above to preview matching',
+        categoryMeta: 'SkillBridge Multi-Industry Catalog',
+        fitSummary: '—',
         compatibility: 0,
-        synergyLabel: 'Toggle 1–4 skills to preview live market fit',
+        synergyLabel: 'Toggle 1–4 skills to see how job matching scores your profile',
         matchedHighlights: [],
       };
     }
 
-    const hasArch = selected.some((s) => s.id === 'architecture');
-    const hasAi = selected.some((s) => s.id === 'ai');
-    const hasCloud = selected.some((s) => s.id === 'cloud');
-    const hasDesign = selected.some((s) => s.id === 'design');
-    const hasProduct = selected.some((s) => s.id === 'product');
+    const hasFin = selected.some((s) => s.id === 'financial-modeling');
+    const hasCare = selected.some((s) => s.id === 'patient-care');
+    const hasEdu = selected.some((s) => s.id === 'curriculum');
+    const hasTs = selected.some((s) => s.id === 'typescript');
+    const hasSql = selected.some((s) => s.id === 'sql');
 
-    let roleTitle = 'Senior Product Engineer';
-    let teamLabel = 'Series B Fintech · Remote / Hybrid';
-    if (hasAi && hasArch) {
-      roleTitle = 'Staff AI Systems Architect';
-      teamLabel = 'Applied Intelligence Lab · High Signal';
-    } else if (hasArch && hasCloud) {
-      roleTitle = 'Principal Platform Architect';
-      teamLabel = 'Distributed Cloud Infra · Series C';
-    } else if (hasDesign && !hasCloud) {
-      roleTitle = 'Staff Design Systems Engineer';
-      teamLabel = 'Developer Tooling · Remote-First';
-    } else if (hasProduct && hasArch) {
-      roleTitle = 'Founding Product Architect';
-      teamLabel = 'Seed / Series A · Direct-to-Founder';
-    } else if (selected.length === 1) {
-      roleTitle = `${selected[0].label} Specialist`;
-      teamLabel = 'Verified Growth Team · Direct Match';
+    let roleTitle = 'Operations & Project Coordinator';
+    let categoryMeta = 'Business & Administration · Full-Time · Hybrid';
+    if (hasCare) {
+      roleTitle = 'Clinical Care Coordinator';
+      categoryMeta = 'Healthcare & Medical · Full-Time · Onsite';
+    } else if (hasFin && hasSql) {
+      roleTitle = 'Senior Financial Analyst';
+      categoryMeta = 'Finance & Accounting · Full-Time · Hybrid';
+    } else if (hasFin) {
+      roleTitle = 'Financial & Budget Specialist';
+      categoryMeta = 'Finance & Accounting · Full-Time · Hybrid';
+    } else if (hasEdu) {
+      roleTitle = 'Instructional & Curriculum Lead';
+      categoryMeta = 'Education & Training · Full-Time · Hybrid';
+    } else if (hasTs && hasSql) {
+      roleTitle = 'Full-Stack Software Engineer';
+      categoryMeta = 'Technology · Full-Time · Remote / Hybrid';
+    } else if (hasTs) {
+      roleTitle = 'Frontend Web Developer';
+      categoryMeta = 'Technology · Full-Time · Remote';
     }
 
-    const baseMin = 72 + selected.reduce((acc, s) => acc + Math.round(s.salaryBoost * 0.65), 0);
-    const baseMax = baseMin + 28 + selected.length * 4;
-    const rawScore = Math.min(98.6, 54 + selected.reduce((acc, s) => acc + s.weight * 0.62, 0));
+    const rawScore = Math.min(96, 38 + selected.reduce((acc, s) => acc + s.weight * 0.72, 0));
 
     return {
       roleTitle,
-      teamLabel,
-      salaryRange: `$${baseMin}k – $${baseMax}k / yr`,
+      categoryMeta,
+      fitSummary: `${selected.length} of ${selected.length} Core Matched · 0 Missing`,
       compatibility: Number(rawScore.toFixed(1)),
-      synergyLabel:
-        selected.length >= 3
-          ? `Top ${Math.max(2, 9 - selected.length)}% rare skill intersection`
-          : 'Add 1–2 complementary skills to boost signal',
+      synergyLabel: 'Scored by required skills, experience level, work arrangement & job type',
       matchedHighlights: selected.map((s) => s.label),
     };
   });
 
-  // Bento Chat/Calendar Preview state
-  readonly selectedSlot = signal<'thu-10' | 'fri-14'>('thu-10');
-  readonly slotBooked = signal(false);
+  // Bento Employer Review Snippet state
+  readonly applicantStatus = signal<'Received' | 'Shortlisted'>('Received');
 
-  // Marquee companies
-  readonly marqueeCompanies = [
-    'ABYSSINIA LABS',
-    'NILE CLOUD',
-    'KINETIX AI',
-    'ZEMA SYSTEMS',
-    'ADDIS PAY',
-    'HORIZON OPS',
-    'ETHIOSTACK',
-    'MERIDIAN DATA',
+  // Supported Industries Marquee
+  readonly marqueeIndustries = [
+    'TECHNOLOGY',
+    'HEALTHCARE & MEDICAL',
+    'FINANCE & ACCOUNTING',
+    'EDUCATION & TRAINING',
+    'ENGINEERING',
+    'BUSINESS & ADMIN',
+    'SALES & MARKETING',
+    'SKILLED TRADES',
   ];
 
-  // Closing Interactive Dropzone
+  // Closing Quick-Start Input
   readonly quickStartInput = signal('');
   readonly droppedFileName = signal<string | null>(null);
   readonly isDragOver = signal(false);
 
   ngAfterViewInit(): void {
     if (typeof IntersectionObserver === 'undefined') {
-      this.revealElements?.forEach((el) => el.nativeElement.classList.add('is-visible'));
+      this.revealAllSections();
       return;
     }
 
@@ -195,26 +192,36 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
           }
         }
       },
-      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+      { threshold: 0.01, rootMargin: '120px 0px 120px 0px' }
     );
 
     this.revealElements?.forEach((el) => this.observer?.observe(el.nativeElement));
+
+    // Ensure sections never stay invisible on tall viewports or full-page captures
+    this.revealFallbackTimer = setTimeout(() => this.revealAllSections(), 450);
   }
 
   ngOnDestroy(): void {
     this.observer?.disconnect();
+    if (this.revealFallbackTimer) {
+      clearTimeout(this.revealFallbackTimer);
+    }
+  }
+
+  private revealAllSections(): void {
+    this.revealElements?.forEach((el) => el.nativeElement.classList.add('is-visible'));
   }
 
   setAudience(mode: AudienceMode): void {
     if (this.audience() === mode) return;
     this.audience.set(mode);
-    this.introAccepted.set(false);
+    this.previewActionDone.set(false);
     const defaultIds = (mode === 'talent' ? TALENT_NODES : TEAM_NODES).map((n) => n.id);
     this.activeHeroNodes.set(new Set(defaultIds));
   }
 
   toggleHeroNode(id: string): void {
-    this.introAccepted.set(false);
+    this.previewActionDone.set(false);
     this.activeHeroNodes.update((current) => {
       const next = new Set(current);
       if (next.has(id)) {
@@ -232,8 +239,8 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     return this.activeHeroNodes().has(id);
   }
 
-  acceptIntro(): void {
-    this.introAccepted.update((v) => !v);
+  triggerPreviewAction(): void {
+    this.previewActionDone.update((v) => !v);
   }
 
   toggleSandboxSkill(id: string): void {
@@ -252,9 +259,8 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     return this.selectedSandboxIds().has(id);
   }
 
-  selectSlot(slot: 'thu-10' | 'fri-14'): void {
-    this.selectedSlot.set(slot);
-    this.slotBooked.set(true);
+  setApplicantStatus(status: 'Received' | 'Shortlisted'): void {
+    this.applicantStatus.set(status);
   }
 
   onCardPointerMove(event: MouseEvent): void {

@@ -21,7 +21,7 @@ describe('LandingComponent', () => {
 
   it('switches audience perspective between I Have Skills and I Need Talent', () => {
     expect(component.audience()).toBe('talent');
-    expect(component.heroCompatibility()).toBe('98.4');
+    expect(component.heroCompatibility()).toBe('88.5');
 
     const tabs = fixture.nativeElement.querySelectorAll('.audience-btn') as NodeListOf<HTMLButtonElement>;
     expect(tabs.length).toBe(2);
@@ -30,11 +30,11 @@ describe('LandingComponent', () => {
     fixture.detectChanges();
 
     expect(component.audience()).toBe('teams');
-    expect(fixture.nativeElement.textContent).toContain('Verified capability');
+    expect(fixture.nativeElement.textContent).toContain('applicants ranked by fit');
   });
 
   it('recalculates compatibility score when toggling hero skill nodes', () => {
-    expect(component.heroCompatibility()).toBe('98.4');
+    expect(component.heroCompatibility()).toBe('88.5');
 
     const nodes = fixture.nativeElement.querySelectorAll('.skill-node-card') as NodeListOf<HTMLButtonElement>;
     expect(nodes.length).toBe(3);
@@ -42,31 +42,31 @@ describe('LandingComponent', () => {
     nodes[0].click();
     fixture.detectChanges();
 
-    expect(Number(component.heroCompatibility())).toBeLessThan(98.4);
+    expect(Number(component.heroCompatibility())).toBeLessThan(88.5);
   });
 
-  it('updates live skill sandbox role and compensation when toggling capability pills', () => {
+  it('updates live skill sandbox role and breakdown when toggling capability pills', () => {
     const initialRole = component.sandboxMatch().roleTitle;
     const pills = fixture.nativeElement.querySelectorAll('.sandbox-pill') as NodeListOf<HTMLButtonElement>;
     expect(pills.length).toBeGreaterThanOrEqual(4);
 
-    // Toggle Applied AI / ML (index 4)
-    pills[4].click();
+    // Toggle Patient Care (index 3)
+    pills[3].click();
     fixture.detectChanges();
 
     expect(component.sandboxMatch().roleTitle).not.toBe(initialRole);
-    expect(component.sandboxMatch().roleTitle).toContain('AI');
+    expect(component.sandboxMatch().roleTitle).toContain('Clinical');
   });
 
-  it('toggles Accept Intro state in the match engine card', () => {
+  it('toggles preview action state in the match card', () => {
     const btn = fixture.nativeElement.querySelector('.accept-intro-btn') as HTMLButtonElement;
-    expect(component.introAccepted()).toBe(false);
+    expect(component.previewActionDone()).toBe(false);
 
     btn.click();
     fixture.detectChanges();
 
-    expect(component.introAccepted()).toBe(true);
-    expect(btn.textContent).toContain('Intro Accepted');
+    expect(component.previewActionDone()).toBe(true);
+    expect(btn.textContent).toContain('Applied with Profile CV');
   });
 
   it('toggles Light / Dark mode from the floating header theme button', () => {
