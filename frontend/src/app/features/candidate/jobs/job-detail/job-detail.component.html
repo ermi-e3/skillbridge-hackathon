@@ -1,13 +1,62 @@
 <div class="job-detail-page">
   <div class="detail-container">
-    <!-- Back to Catalog Link -->
-    <a routerLink="/jobs" class="back-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="back-arrow">
-        <line x1="19" y1="12" x2="5" y2="12"></line>
-        <polyline points="12 19 5 12 12 5"></polyline>
-      </svg>
-      <span>Back to Jobs</span>
-    </a>
+    <!-- Top Bar Navigation -->
+    <header class="detail-top-bar">
+      <a routerLink="/jobs" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="back-arrow">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Back to Jobs</span>
+      </a>
+      <app-user-profile-menu />
+    </header>
+
+    <!-- Confirmation Modal for Withdraw -->
+    @if (showWithdrawModal()) {
+      <div class="modal-backdrop" (click)="cancelWithdraw()">
+        <div class="modal-card" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+          <div class="modal-header">
+            <div class="modal-warning-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <h3 id="modal-title" class="modal-title">Withdraw Application</h3>
+          </div>
+
+          <div class="modal-body">
+            <p>
+              Are you sure you want to withdraw your application for <strong>{{ job()?.title }}</strong>?
+            </p>
+            <p class="modal-subtext">
+              ⚠️ Note: Once withdrawn, you cannot reapply to this opening per platform rules.
+            </p>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="cancelWithdraw()" [disabled]="isWithdrawing()">
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn-confirm-withdraw"
+              (click)="confirmWithdraw()"
+              [disabled]="isWithdrawing()"
+            >
+              @if (isWithdrawing()) {
+                <span class="spinner" aria-hidden="true"></span>
+                <span>Withdrawing...</span>
+              } @else {
+                <span>Confirm Withdrawal</span>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
 
     <!-- Success Notification Banner -->
     @if (successMessage()) {
@@ -89,7 +138,20 @@
                   <span>{{ j.companyName }}</span>
                 </span>
 
-                @if (hasAppliedState()) {
+                <span class="status-pill" [class.closed]="j.isOpen === false">
+                  <span class="status-dot"></span>
+                  {{ j.isOpen === false ? 'Closed' : 'Active' }}
+                </span>
+
+                @if (applicationStatusState() === 'Withdrawn') {
+                  <span class="status-pill withdrawn-pill" title="Application Withdrawn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    <span>Withdrawn</span>
+                  </span>
+                } @else if (hasAppliedState()) {
                   <span class="applied-pill">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                       <polyline points="20 6 9 17 4 12"></polyline>
@@ -100,6 +162,48 @@
               </div>
 
               <h1 class="job-title">{{ j.title }}</h1>
+
+              <!-- Attributes Badges Row -->
+              <div class="job-attributes-row">
+                @if (j.category) {
+                  <span class="attr-chip category-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    {{ j.category }}
+                  </span>
+                }
+                @if (j.workArrangement) {
+                  <span class="attr-chip arrangement-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="2" y1="12" x2="22" y2="12"></line>
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    {{ j.workArrangement }}
+                  </span>
+                }
+                @if (j.jobType) {
+                  <span class="attr-chip type-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                    {{ j.jobType }}
+                  </span>
+                }
+                @if (j.experienceLevel) {
+                  <span class="attr-chip exp-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    {{ j.experienceLevel }}
+                    @if (j.minExperienceYears && j.minExperienceYears > 0) {
+                      ({{ j.minExperienceYears }}+ yrs)
+                    }
+                  </span>
+                }
+              </div>
 
               <div class="meta-row">
                 @if (j.location) {
@@ -124,7 +228,7 @@
               </div>
             </div>
 
-            <!-- Match Percentage Badge -->
+            <!-- Match Percentage Badge & Compact Deadline Counter -->
             <div class="header-match-side">
               @if (getMatchPercent(j); as matchScore) {
                 <div
@@ -136,16 +240,130 @@
                   <span class="match-score-label">Skill Match</span>
                 </div>
               } @else {
-                <div class="match-badge-box match-none" title="Complete your profile skills to view fit score">
+                <div
+                  class="match-badge-box match-none has-tooltip"
+                  tabindex="0"
+                  role="note"
+                  aria-label="Profile incomplete: complete your profile and skills to see your match score"
+                >
                   <span class="match-score-value">--</span>
                   <span class="match-score-label">Match N/A</span>
+
+                  <!-- Hover information tooltip popover -->
+                  <div class="match-na-popover">
+                    <div class="popover-header">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="popover-icon">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                      </svg>
+                      <strong>Profile Incomplete</strong>
+                    </div>
+                    <p class="popover-message">
+                      Please complete your profile setup and add your skills to activate personalized job matching.
+                    </p>
+                    <a routerLink="/candidate/profile" class="popover-action">
+                      Complete Profile &amp; Skills &rarr;
+                    </a>
+                  </div>
                 </div>
+              }
+
+              <!-- Compact Application Deadline Real-Time Countdown Widget -->
+              @if (j.deadline) {
+                @let cd = countdown();
+                <section class="deadline-countdown-card" [class.urgent]="cd?.isUrgent" [class.closed]="j.isOpen === false || cd?.isExpired">
+                  <div class="countdown-card-header">
+                    <div class="clock-label-group">
+                      <div class="clock-icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                      </div>
+                      <div class="deadline-title-meta">
+                        <h3 class="countdown-heading">Deadline</h3>
+                        <p class="deadline-target-time" [title]="j.deadline | date: 'medium'">
+                          {{ j.deadline | date: 'MMM d, y' }}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="status-indicator-tag">
+                      @if (j.isOpen === false || cd?.isExpired) {
+                        <span class="tag tag-closed">Closed</span>
+                      } @else if (cd?.isUrgent) {
+                        <span class="tag tag-urgent">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="tag-warn-icon">
+                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                          </svg>
+                          &lt;24h
+                        </span>
+                      } @else {
+                        <span class="tag tag-active">Active</span>
+                      }
+                    </div>
+                  </div>
+
+                  @if (j.isOpen !== false && !cd?.isExpired && cd) {
+                    <!-- Compact countdown displaying Days, Hours, Minutes, Seconds -->
+                    <div class="countdown-timer-board" [class.urgent]="cd.isUrgent">
+                      <div class="timer-segment">
+                        <span class="timer-digit">{{ cd.formattedDays }}</span>
+                        <span class="timer-unit-label">Days</span>
+                      </div>
+                      <span class="timer-separator">:</span>
+                      <div class="timer-segment">
+                        <span class="timer-digit">{{ cd.formattedHours }}</span>
+                        <span class="timer-unit-label">Hours</span>
+                      </div>
+                      <span class="timer-separator">:</span>
+                      <div class="timer-segment">
+                        <span class="timer-digit">{{ cd.formattedMinutes }}</span>
+                        <span class="timer-unit-label">Minutes</span>
+                      </div>
+                      <span class="timer-separator">:</span>
+                      <div class="timer-segment">
+                        <span class="timer-digit">{{ cd.formattedSeconds }}</span>
+                        <span class="timer-unit-label">Seconds</span>
+                      </div>
+                    </div>
+
+                    <!-- Compact Warning when remaining time is 24 hours or less -->
+                    @if (cd.isUrgent) {
+                      <div class="urgent-alert-banner" role="alert">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="urgent-banner-icon">
+                          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                          <line x1="12" y1="9" x2="12" y2="13"></line>
+                          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        <div class="urgent-banner-copy">
+                          <strong>Deadline Approaching: Less than 24 hours remaining to apply!</strong>
+                        </div>
+                      </div>
+                    }
+                  } @else {
+                    <div class="closed-notice-box" role="status">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                      </svg>
+                      <div>
+                        <strong>Position Closed</strong>
+                        <p>Applications closed.</p>
+                      </div>
+                    </div>
+                  }
+                </section>
               }
             </div>
           </header>
 
           <!-- Match Breakdown (Matched vs Missing Skills) if available -->
-          @if (j.match && (j.match.matchedSkills?.length || j.match.missingSkills?.length)) {
+          @if (j.match && (j.match.matchedSkills?.length || j.match.missingSkills?.length || j.match.matchedPreferredSkills?.length)) {
             <div class="match-breakdown-card">
               <div class="breakdown-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -153,12 +371,12 @@
                   <line x1="12" y1="16" x2="12" y2="12"></line>
                   <line x1="12" y1="8" x2="12.01" y2="8"></line>
                 </svg>
-                <span>Skill Match Breakdown</span>
+                <span>Candidate-Job Skill Fit Breakdown</span>
               </div>
               <div class="breakdown-content">
                 @if (j.match.matchedSkills && j.match.matchedSkills.length > 0) {
                   <div class="breakdown-row matched-row">
-                    <span class="breakdown-label">✓ Matched:</span>
+                    <span class="breakdown-label">✓ Required Matched:</span>
                     <div class="mini-chips">
                       @for (s of j.match.matchedSkills; track s.id) {
                         <span class="mini-chip matched">{{ s.name }}</span>
@@ -168,10 +386,20 @@
                 }
                 @if (j.match.missingSkills && j.match.missingSkills.length > 0) {
                   <div class="breakdown-row missing-row">
-                    <span class="breakdown-label">Missing:</span>
+                    <span class="breakdown-label">Missing Required:</span>
                     <div class="mini-chips">
                       @for (s of j.match.missingSkills; track s.id) {
                         <span class="mini-chip missing">{{ s.name }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (j.match.matchedPreferredSkills && j.match.matchedPreferredSkills.length > 0) {
+                  <div class="breakdown-row matched-pref-row">
+                    <span class="breakdown-label">✓ Preferred Matched:</span>
+                    <div class="mini-chips">
+                      @for (s of j.match.matchedPreferredSkills; track s.id) {
+                        <span class="mini-chip preferred">{{ s.name }}</span>
                       }
                     </div>
                   </div>
@@ -182,13 +410,25 @@
 
           <!-- Required Skills Section -->
           <section class="detail-section">
-            <h2 class="section-title">Required Technical Skills</h2>
+            <h2 class="section-title">Required Skills &amp; Qualifications</h2>
             <div class="skills-pill-group">
               @for (skill of j.requiredSkills; track skill.id) {
                 <span class="skill-pill">{{ skill.name }}</span>
               }
             </div>
           </section>
+
+          <!-- Preferred Skills Section if any -->
+          @if (j.preferredSkills && j.preferredSkills.length > 0) {
+            <section class="detail-section">
+              <h2 class="section-title">Preferred Skills &amp; Competencies</h2>
+              <div class="skills-pill-group">
+                @for (skill of j.preferredSkills; track skill.id) {
+                  <span class="skill-pill preferred-pill">{{ skill.name }}</span>
+                }
+              </div>
+            </section>
+          }
 
           <!-- Job Description Section -->
           <section class="detail-section">
@@ -217,8 +457,61 @@
             </div>
           </div>
 
-          <!-- If already applied: Show informational banner & disabled button -->
-          @if (hasAppliedState()) {
+          <!-- If job is closed or deadline expired: Application Restricted -->
+          @if (j.isOpen === false || (j.deadline && countdown()?.isExpired)) {
+            <div class="already-applied-banner closed-banner" role="status">
+              <div class="banner-top">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="banner-icon">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="15" y1="9" x2="9" y2="15"></line>
+                  <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+                <span class="banner-title">Job Closed</span>
+              </div>
+              <p class="banner-message">
+                This job position is closed and is no longer accepting applications.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              class="apply-submit-btn already-applied-btn closed-btn"
+              disabled
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+              </svg>
+              <span>Job Closed</span>
+            </button>
+          } @else if (applicationStatusState() === 'Withdrawn') {
+            <div class="already-applied-banner withdrawn-banner" role="status">
+              <div class="banner-top">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="banner-icon">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+                <span class="banner-title">Application Withdrawn</span>
+              </div>
+              <p class="banner-message">
+                You have withdrawn your application for this position. Per platform guidelines, withdrawn applications cannot be reopened.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              class="apply-submit-btn already-applied-btn withdrawn-btn"
+              disabled
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+              </svg>
+              <span>Withdrawn</span>
+            </button>
+          } @else if (hasAppliedState()) {
+            <!-- If applied and not withdrawn -->
             <div class="already-applied-banner" role="status">
               <div class="banner-top">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="banner-icon">
@@ -230,6 +523,35 @@
               <p class="banner-message">
                 You have already applied to this job. The hiring team at {{ j.companyName }} has received your application.
               </p>
+
+              @if (hasCvState()) {
+                <div class="applied-cv-box">
+                  <div class="cv-info">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="cv-file-icon">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="16" y1="13" x2="8" y2="13"></line>
+                      <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    <div class="cv-name-wrap">
+                      <span class="cv-label">Attached CV</span>
+                      <span class="cv-filename">{{ cvOriginalFileNameState() || 'Curriculum Vitae' }}</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn-download-my-cv btn-preview-my-cv"
+                    (click)="openMyCvPreview()"
+                    title="Preview your submitted CV"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <span>CV Preview</span>
+                  </button>
+                </div>
+              }
             </div>
 
             <button
@@ -242,9 +564,229 @@
               </svg>
               <span>Applied</span>
             </button>
+
+            @if (applicationIdState() && (!applicationStatusState() || applicationStatusState() === 'Received')) {
+              <div class="withdraw-section">
+                <button
+                  type="button"
+                  class="btn-withdraw-job"
+                  (click)="promptWithdraw()"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                  </svg>
+                  <span>Withdraw Application</span>
+                </button>
+              </div>
+            }
           } @else {
             <!-- Active Application Form -->
             <form [formGroup]="applyForm" (ngSubmit)="onApplySubmit()" class="apply-form" novalidate>
+              <!-- CV Selection Section (Mandatory: Option 1 or Option 2) -->
+              <div class="form-group cv-selection-group">
+                <div class="label-row cv-label-row">
+                  <label class="form-label">
+                    Resume / CV Attachment<span class="required-star">*</span>
+                  </label>
+                  <span class="file-hint">Required</span>
+                </div>
+
+                <!-- Two Option Radio Selectors -->
+                <div class="cv-options-switch" role="radiogroup" aria-label="Select CV source">
+                  <!-- Option 1: Use Default CV from profile -->
+                  <label
+                    class="cv-option-pill"
+                    [class.active]="cvApplyOption() === 'default'"
+                    (click)="setCvApplyOption('default')"
+                  >
+                    <input
+                      type="radio"
+                      name="cvOptionRadio"
+                      [checked]="cvApplyOption() === 'default'"
+                      (change)="setCvApplyOption('default')"
+                      class="option-radio-input"
+                    />
+                    <div class="option-content">
+                      <div class="option-title-row">
+                        <span class="option-title">Use Default Profile CV</span>
+                        @if (hasDefaultCv()) {
+                          <span class="profile-ready-badge">Available</span>
+                        } @else {
+                          <span class="profile-missing-badge">Not Set</span>
+                        }
+                      </div>
+                      <span class="option-desc">Apply instantly with the CV saved in your profile</span>
+                    </div>
+                  </label>
+
+                  <!-- Option 2: Upload different CV for this specific application -->
+                  <label
+                    class="cv-option-pill"
+                    [class.active]="cvApplyOption() === 'upload'"
+                    (click)="setCvApplyOption('upload')"
+                  >
+                    <input
+                      type="radio"
+                      name="cvOptionRadio"
+                      [checked]="cvApplyOption() === 'upload'"
+                      (change)="setCvApplyOption('upload')"
+                      class="option-radio-input"
+                    />
+                    <div class="option-content">
+                      <div class="option-title-row">
+                        <span class="option-title">Upload a Different CV</span>
+                        <span class="pdf-docx-pill">PDF / DOCX</span>
+                      </div>
+                      <span class="option-desc">Tailor your resume specifically for this job posting</span>
+                    </div>
+                  </label>
+                </div>
+
+                <!-- Option 1 Details: Default CV View -->
+                @if (cvApplyOption() === 'default') {
+                  <div class="cv-option-body default-cv-body">
+                    @if (hasDefaultCv()) {
+                      <div class="default-cv-selected-box">
+                        <div class="cv-info-left">
+                          <div class="cv-icon-badge" [class.docx]="defaultCvOriginalFileName()?.toLowerCase()?.endsWith('.docx')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                              <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            <span class="ext-label">{{ defaultCvOriginalFileName()?.toLowerCase()?.endsWith('.docx') ? 'DOCX' : 'PDF' }}</span>
+                          </div>
+                          <div class="cv-details-text">
+                            <span class="cv-name" [title]="defaultCvOriginalFileName()">{{ defaultCvOriginalFileName() }}</span>
+                            <span class="cv-size">{{ formatFileSize(defaultCvFileSizeBytes()) }} • Profile Default CV</span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          class="btn-preview-small"
+                          (click)="openProfileDefaultCvPreview()"
+                          title="Preview default CV"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                          </svg>
+                          <span>Preview</span>
+                        </button>
+                      </div>
+                    } @else {
+                      <div class="no-default-cv-box">
+                        <div class="no-cv-warning">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                          </svg>
+                          <div class="warning-text">
+                            <strong>No default CV found in your profile</strong>
+                            <p>You can upload a different CV below, or set a default CV on your profile.</p>
+                          </div>
+                        </div>
+                        <div class="no-cv-actions">
+                          <a routerLink="/candidate/profile" class="btn-goto-profile">
+                            Manage Profile CV
+                          </a>
+                          <button type="button" class="btn-switch-upload" (click)="setCvApplyOption('upload')">
+                            Upload a CV instead
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- Option 2 Details: Upload Specific CV -->
+                @if (cvApplyOption() === 'upload') {
+                  <div class="cv-option-body upload-cv-body">
+                    <input
+                      #cvFileInput
+                      id="cvFileInput"
+                      type="file"
+                      accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      (change)="onFileSelected($event)"
+                      class="hidden-file-input"
+                    />
+
+                    @if (!selectedCvFile()) {
+                      <div
+                        class="cv-dropzone"
+                        (dragover)="onDragOver($event)"
+                        (drop)="onFileDropped($event)"
+                        (click)="cvFileInput.click()"
+                        role="button"
+                        tabindex="0"
+                        (keydown.enter)="cvFileInput.click()"
+                        (keydown.space)="cvFileInput.click()"
+                      >
+                        <div class="dropzone-icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                          </svg>
+                        </div>
+                        <div class="dropzone-text">
+                          <span class="dropzone-title">Upload CV for this job</span>
+                          <span class="dropzone-sub">Drag & drop or <span class="browse-link">browse file</span></span>
+                          <span class="dropzone-hint">PDF or DOCX, up to 5 MB</span>
+                        </div>
+                      </div>
+                    } @else {
+                      <div class="selected-file-card">
+                        <div class="file-preview-left">
+                          <div class="file-badge-icon" [class.docx]="selectedCvFile()!.name.toLowerCase().endsWith('.docx')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                              <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                          </div>
+                          <div class="file-info">
+                            <span class="file-name" [title]="selectedCvFile()!.name">{{ selectedCvFile()!.name }}</span>
+                            <span class="file-size">{{ formatFileSize(selectedCvFile()!.size) }}</span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          class="btn-remove-file"
+                          (click)="removeSelectedCvFile(cvFileInput)"
+                          title="Remove file"
+                          aria-label="Remove attached CV"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
+                      </div>
+                    }
+
+                    @if (cvFileError()) {
+                      <div class="inline-error" role="alert">
+                        <span>{{ cvFileError() }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- Validation message if no valid CV attached -->
+                @if (!isCvValid()) {
+                  <div class="cv-requirement-alert">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <span>A valid CV must always be attached before an application can be submitted.</span>
+                  </div>
+                }
+              </div>
+
               <div class="form-group">
                 <div class="label-row">
                   <label for="coverNote" class="form-label">
@@ -285,7 +827,7 @@
               <button
                 type="submit"
                 class="apply-submit-btn"
-                [disabled]="isSubmitting() || applyForm.invalid"
+                [disabled]="isSubmitting() || applyForm.invalid || !isCvValid()"
               >
                 @if (isSubmitting()) {
                   <span class="spinner" aria-hidden="true"></span>
@@ -318,4 +860,119 @@
       </div>
     }
   </div>
+
+  <!-- CV Preview Modal -->
+  @if (showCvPreviewModal()) {
+    <div
+      class="modal-backdrop cv-preview-backdrop"
+      (click)="closeCvPreview()"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="candidate-cv-preview-title"
+    >
+      <div class="cv-preview-dialog" (click)="$event.stopPropagation()">
+        <header class="cv-preview-header">
+          <div class="cv-preview-title-wrap">
+            <div class="cv-file-badge" [class.docx]="isDocxPreview()">
+              {{ isDocxPreview() ? 'DOCX' : 'PDF' }}
+            </div>
+            <div>
+              <h2 id="candidate-cv-preview-title">CV Preview</h2>
+              <span class="cv-preview-subtitle">{{ previewCvFileName() || cvOriginalFileNameState() || 'Attached CV' }}</span>
+            </div>
+          </div>
+
+          <div class="cv-preview-header-actions">
+            <button
+              type="button"
+              class="btn-preview-download"
+              (click)="downloadCurrentPreviewCv()"
+              [disabled]="cvPreviewLoading() || !!cvPreviewError()"
+              title="Download CV file"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Download CV</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn-preview-close"
+              (click)="closeCvPreview()"
+              aria-label="Close CV preview"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="cv-preview-body">
+          @if (cvPreviewLoading()) {
+            <div class="cv-preview-loading" aria-live="polite">
+              <span class="spinner-large" aria-hidden="true"></span>
+              <p>Loading your CV document preview...</p>
+            </div>
+          } @else if (cvPreviewError()) {
+            <div class="cv-preview-error" role="alert">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="error-icon" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <h3>Unable to display CV</h3>
+              <p>{{ cvPreviewError() }}</p>
+              <div class="preview-error-actions">
+                <button type="button" class="btn-retry-preview" (click)="openMyCvPreview()">Try Again</button>
+                <button type="button" class="btn-preview-download fallback" (click)="downloadCurrentPreviewCv()">
+                  Download Instead
+                </button>
+              </div>
+            </div>
+          } @else if (isDocxPreview()) {
+            <div class="docx-preview-pane">
+              <div class="docx-card">
+                <div class="docx-icon-large" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                  </svg>
+                </div>
+                <h3>{{ cvOriginalFileNameState() }}</h3>
+                <span class="docx-format-pill">Word Document (.docx)</span>
+                <p class="docx-note">
+                  Your submitted CV is a Microsoft Word (.docx) document. Web browsers cannot render Word files inline. You can download your CV document to view it.
+                </p>
+                <button
+                  type="button"
+                  class="btn-preview-download-prominent"
+                  (click)="downloadCurrentPreviewCv()"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Download CV</span>
+                </button>
+              </div>
+            </div>
+          } @else if (cvPreviewSafeUrl()) {
+            <iframe
+              [src]="cvPreviewSafeUrl()"
+              class="cv-pdf-frame"
+              title="CV Document Viewer"
+            ></iframe>
+          }
+        </div>
+      </div>
+    </div>
+  }
 </div>

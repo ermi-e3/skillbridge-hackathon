@@ -8,6 +8,7 @@
         </svg>
         <span>Back to My Jobs</span>
       </a>
+      <app-user-profile-menu />
     </nav>
 
     <!-- Page Header -->
@@ -19,11 +20,43 @@
         </svg>
         Employer workspace
       </div>
-      <h1 class="page-title">Post a New Job Opening</h1>
+      <h1 class="page-title">{{ isEditMode() ? 'Edit Job Opening' : 'Post a New Job Opening' }}</h1>
       <p class="page-subtitle">
-        Define role requirements and target skills to connect with high-matching qualified candidates.
+        {{ isEditMode() ? 'Update role requirements and manage skill tags for this job opening.' : 'Define role requirements and target skills to connect with high-matching qualified candidates.' }}
       </p>
     </header>
+
+    <!-- Editing Window Banners -->
+    @if (isEditMode() && isEditingExpired()) {
+      <div class="alert alert-warning editing-expired-banner" role="alert">
+        <div class="alert-content">
+          <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <div class="alert-body">
+            <span class="alert-title">Editing Window Expired (2-Hour Limit)</span>
+            <p class="alert-text">The 2-hour editing period after job creation has ended. Job details and skill tags can no longer be modified.</p>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (isEditMode() && !isEditingExpired() && editingTimeRemaining()) {
+      <div class="alert alert-info editing-active-banner">
+        <div class="alert-content">
+          <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <div class="alert-body">
+            <span class="alert-title">Editing Window Active</span>
+            <p class="alert-text">You have <strong>{{ editingTimeRemaining() }}</strong> remaining to edit this job and modify skill tags.</p>
+          </div>
+        </div>
+      </div>
+    }
 
     <!-- Error Alert Banner -->
     @if (errorMessage()) {
@@ -83,7 +116,7 @@
               class="form-input"
               [class.input-invalid]="titleControl?.invalid && (titleControl?.touched || titleControl?.dirty)"
               formControlName="title"
-              placeholder="e.g. Senior Full-Stack .NET & Angular Engineer"
+              placeholder="e.g. Operations Manager, Registered Nurse, or Senior Analyst"
               maxlength="120"
               autocomplete="off"
             />
@@ -105,39 +138,120 @@
             }
           </div>
 
-          <!-- Location -->
+          <!-- Category & Location -->
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="category" class="form-label">Job Category</label>
+              <select id="category" class="form-input form-select" formControlName="category">
+                <option value="">Select job category</option>
+                @for (cat of jobCategories; track cat) {
+                  <option [value]="cat">{{ cat }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-group">
+              <div class="label-row">
+                <label for="location" class="form-label">Location (Optional)</label>
+                <span class="char-count" [class.near-limit]="locationLength > 85">
+                  {{ locationLength }}/100
+                </span>
+              </div>
+              <div class="input-with-icon">
+                <svg class="leading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path>
+                  <circle cx="12" cy="10" r="2.5"></circle>
+                </svg>
+                <input
+                  id="location"
+                  type="text"
+                  class="form-input with-icon"
+                  [class.input-invalid]="locationControl?.invalid && (locationControl?.touched || locationControl?.dirty)"
+                  formControlName="location"
+                  placeholder="e.g. Addis Ababa, Remote, or Hybrid"
+                  maxlength="100"
+                />
+              </div>
+              @if (locationControl?.invalid && (locationControl?.touched || locationControl?.dirty)) {
+                <div class="inline-error" role="alert">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  <span>Location cannot exceed 100 characters.</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Matching Criteria: Arrangement, Job Type, Experience Level, Min Years -->
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="workArrangement" class="form-label required">Work Arrangement</label>
+              <select id="workArrangement" class="form-input form-select" formControlName="workArrangement">
+                <option value="Remote">Remote</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="OnSite">On-site</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="jobType" class="form-label required">Job Type</label>
+              <select id="jobType" class="form-input form-select" formControlName="jobType">
+                <option value="FullTime">Full-time</option>
+                <option value="PartTime">Part-time</option>
+                <option value="Contract">Contract</option>
+                <option value="Internship">Internship</option>
+                <option value="Freelance">Freelance</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="experienceLevel" class="form-label required">Experience Level</label>
+              <select id="experienceLevel" class="form-input form-select" formControlName="experienceLevel">
+                <option value="EntryLevel">Entry Level</option>
+                <option value="Junior">Junior</option>
+                <option value="MidLevel">Mid Level</option>
+                <option value="Senior">Senior</option>
+                <option value="Lead">Lead / Architect</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="minExperienceYears" class="form-label">Min. Experience (Years)</label>
+              <input
+                id="minExperienceYears"
+                type="number"
+                min="0"
+                max="50"
+                class="form-input"
+                formControlName="minExperienceYears"
+                placeholder="e.g. 3"
+              />
+            </div>
+          </div>
+
+          <!-- Application Deadline -->
           <div class="form-group full-width">
             <div class="label-row">
-              <label for="location" class="form-label">Location (Optional)</label>
-              <span class="char-count" [class.near-limit]="locationLength > 85">
-                {{ locationLength }}/100
-              </span>
+              <label for="deadline" class="form-label">Application Deadline (Optional)</label>
+              <span class="field-hint">Job will automatically close when this deadline is reached.</span>
             </div>
             <div class="input-with-icon">
               <svg class="leading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path>
-                <circle cx="12" cy="10" r="2.5"></circle>
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
               </svg>
               <input
-                id="location"
-                type="text"
+                id="deadline"
+                type="datetime-local"
                 class="form-input with-icon"
-                [class.input-invalid]="locationControl?.invalid && (locationControl?.touched || locationControl?.dirty)"
-                formControlName="location"
-                placeholder="e.g. Addis Ababa, Remote, or Hybrid"
-                maxlength="100"
+                formControlName="deadline"
               />
             </div>
-            @if (locationControl?.invalid && (locationControl?.touched || locationControl?.dirty)) {
-              <div class="inline-error" role="alert">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-                <span>Location cannot exceed 100 characters.</span>
-              </div>
-            }
           </div>
 
           <!-- Description -->
@@ -189,27 +303,67 @@
             <div>
               <h2 class="card-title required">Required Skills</h2>
               <p class="card-desc">
-                Select the key competencies for this position. Candidates will be ranked based on skill match.
+                Select from the skills catalog or add custom skill tags. Candidates will be ranked based on skill match.
               </p>
             </div>
-            <div class="selection-badge" [class.badge-valid]="selectedSkillIds().length >= 1 && selectedSkillIds().length <= 15">
-              <span>{{ selectedSkillIds().length }}</span> / 15 selected
+            <div class="selection-badge" [class.badge-valid]="totalRequiredSkillsCount() >= 1 && totalRequiredSkillsCount() <= 20">
+              <span>{{ totalRequiredSkillsCount() }}</span> / 20 selected
             </div>
           </div>
         </div>
 
-        <!-- Selected Skills Ribbon -->
-        @if (selectedSkills().length > 0) {
-          <div class="selected-ribbon">
-            <span class="ribbon-label">Currently selected:</span>
-            <div class="selected-chips-list">
+        <!-- Custom Skill Tags Section -->
+        <div class="custom-skills-section">
+          <div class="custom-skills-header">
+            <label for="custom-skill-input" class="custom-skills-label">Add Custom Skill Tag</label>
+            <span class="custom-skills-hint">Add custom industry or domain skill tags not in the catalog.</span>
+          </div>
+          <div class="custom-skill-input-group">
+            <input
+              id="custom-skill-input"
+              type="text"
+              class="form-input custom-skill-input"
+              placeholder="Enter custom skill name (e.g. Clinical Research, Six Sigma, IFRS)..."
+              [value]="customSkillInput()"
+              (input)="onCustomSkillInput($event)"
+              (keydown.enter)="$event.preventDefault(); addCustomSkill()"
+              [disabled]="isEditingExpired()"
+              maxlength="50"
+            />
+            <button
+              type="button"
+              class="btn-add-custom-skill"
+              (click)="addCustomSkill()"
+              [disabled]="!customSkillInput().trim() || isEditingExpired() || totalRequiredSkillsCount() >= 20"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              <span>Add Tag</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Selected Skills Tray (Catalog + Custom Tags) -->
+        <div class="selected-skills-tray-container">
+          <div class="tray-header-row">
+            <span class="tray-label">Selected Required Skills ({{ totalRequiredSkillsCount() }}):</span>
+            @if (totalRequiredSkillsCount() > 0) {
+              <button type="button" class="btn-clear-tray" (click)="clearAllCoreSkills()" [disabled]="isEditingExpired()">Clear all</button>
+            }
+          </div>
+
+          @if (totalRequiredSkillsCount() > 0) {
+            <div class="selected-chips-grid">
               @for (skill of selectedSkills(); track skill.id) {
-                <span class="selected-chip">
-                  {{ skill.name }}
+                <span class="selected-chip chip-core">
+                  <span class="chip-name">{{ skill.name }}</span>
                   <button
                     type="button"
                     class="chip-remove-btn"
-                    [attr.aria-label]="'Remove skill ' + skill.name"
+                    [disabled]="isEditingExpired()"
+                    [attr.aria-label]="'Remove required skill ' + skill.name"
                     (click)="removeSkill(skill.id)"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
@@ -219,79 +373,189 @@
                   </button>
                 </span>
               }
+              @for (tag of customSkills(); track tag) {
+                <span class="selected-chip custom-tag-chip">
+                  <span class="tag-hash">#</span><span class="chip-name">{{ tag }}</span>
+                  <button
+                    type="button"
+                    class="chip-remove-btn"
+                    [disabled]="isEditingExpired()"
+                    [attr.aria-label]="'Remove custom skill ' + tag"
+                    (click)="removeCustomSkill(tag)"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </span>
+              }
             </div>
-          </div>
-        }
-
-        <!-- Skill Filter / Search Box -->
-        <div class="skills-search-wrapper">
-          <div class="search-input-box">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <input
-              type="text"
-              class="skills-search-input"
-              placeholder="Search skills catalog (e.g. C#, Angular, PostgreSQL)..."
-              [value]="skillSearchQuery()"
-              (input)="onSearchChange($event)"
-              aria-label="Filter available skills"
-            />
-            @if (skillSearchQuery()) {
-              <button
-                type="button"
-                class="search-clear-btn"
-                (click)="clearSearch()"
-                aria-label="Clear skill search"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            }
-          </div>
+          } @else {
+            <div class="empty-tray-notice">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span>No required skills selected yet. Select 1 to 20 core skills in the dropdown below or add custom tags.</span>
+            </div>
+          }
         </div>
 
-        <!-- Skills Chips Container -->
-        @if (isLoadingSkills()) {
-          <div class="skills-loading" aria-live="polite">
-            <span class="spinner" aria-hidden="true"></span>
-            <span>Loading skills catalog...</span>
+        <!-- Modern Searchable Multi-Select Dropdown Component (Teal Accent) -->
+        <div class="multi-select-dropdown-wrapper core-dropdown-wrapper" [class.is-open]="isCoreDropdownOpen()">
+          <label class="dropdown-field-label">Add Required Skills from Catalog</label>
+
+          <!-- Dropdown Trigger Button -->
+          <div
+            class="dropdown-trigger-bar"
+            [class.active]="isCoreDropdownOpen()"
+            [class.disabled]="isEditingExpired()"
+            (click)="toggleCoreDropdown($event)"
+            role="combobox"
+            [attr.aria-expanded]="isCoreDropdownOpen()"
+            aria-haspopup="listbox"
+            tabindex="0"
+            (keydown.enter)="toggleCoreDropdown($event)"
+            (keydown.space)="toggleCoreDropdown($event)"
+          >
+            <div class="trigger-left">
+              <svg class="trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <span class="trigger-text">
+                @if (selectedSkillIds().length === 0) {
+                  Click to search & select required skills...
+                } @else if (totalRequiredSkillsCount() >= 20) {
+                  Maximum 20 required skills selected (click to view/edit)
+                } @else {
+                  Search & add required skills ({{ 20 - totalRequiredSkillsCount() }} remaining)...
+                }
+              </span>
+            </div>
+
+            <div class="trigger-right">
+              <span class="trigger-badge">{{ selectedSkillIds().length }}/20</span>
+              <svg class="chevron-icon" [class.rotated]="isCoreDropdownOpen()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
           </div>
-        } @else {
-          <div class="skills-chip-grid" role="group" aria-label="Available skill tags">
-            @for (skill of filteredSkills(); track skill.id) {
-              <button
-                type="button"
-                class="skill-chip"
-                [class.chip-active]="isSkillSelected(skill.id)"
-                [attr.aria-pressed]="isSkillSelected(skill.id)"
-                (click)="toggleSkill(skill.id)"
-              >
-                <span class="chip-check" aria-hidden="true">
-                  @if (isSkillSelected(skill.id)) {
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  } @else {
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
+
+          <!-- Dropdown Panel Menu -->
+          @if (isCoreDropdownOpen() && !isEditingExpired()) {
+            <div class="dropdown-panel-menu" role="listbox" (click)="$event.stopPropagation()">
+              <!-- Live Search Bar inside Dropdown -->
+              <div class="dropdown-search-header">
+                <div class="search-input-box">
+                  <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  <input
+                    type="text"
+                    [value]="skillSearchQuery()"
+                    (input)="onSearchChange($event)"
+                    placeholder="Search skills (e.g. Financial Reporting, Patient Care, Project Management)..."
+                    class="dropdown-search-input"
+                    autofocus
+                  />
+                  @if (skillSearchQuery()) {
+                    <button type="button" class="btn-clear-search" (click)="clearSearch()" aria-label="Clear filter">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
                   }
-                </span>
-                <span class="chip-text">{{ skill.name }}</span>
-              </button>
-            } @empty {
-              <div class="skills-empty">
-                <p>No skills match "{{ skillSearchQuery() }}".</p>
-                <button type="button" class="btn-text-clear" (click)="clearSearch()">Show all skills</button>
+                </div>
               </div>
-            }
-          </div>
-        }
+
+              <!-- Category Filter Tabs inside Dropdown -->
+              <div class="dropdown-category-bar" role="tablist" aria-label="Skill Categories">
+                @for (cat of categories; track cat.id) {
+                  <button
+                    type="button"
+                    class="category-tab-btn"
+                    [class.active]="activeCategory() === cat.id"
+                    (click)="setCategory(cat.id)"
+                    role="tab"
+                    [attr.aria-selected]="activeCategory() === cat.id"
+                  >
+                    {{ cat.name }}
+                  </button>
+                }
+              </div>
+
+              <!-- Available Technologies List -->
+              <div class="dropdown-items-list" role="group">
+                @for (skill of filteredSkills(); track skill.id) {
+                  <div
+                    class="dropdown-item-row"
+                    [class.is-selected]="isSkillSelected(skill.id)"
+                    [class.is-in-other]="isPreferredSkillSelected(skill.id)"
+                    [class.is-disabled]="!isSkillSelected(skill.id) && totalRequiredSkillsCount() >= 20"
+                    (click)="toggleSkill(skill.id)"
+                    role="option"
+                    [attr.aria-selected]="isSkillSelected(skill.id)"
+                    tabindex="0"
+                    (keydown.enter)="toggleSkill(skill.id)"
+                    (keydown.space)="toggleSkill(skill.id); $event.preventDefault()"
+                  >
+                    <!-- Checkbox Box with Checkmark -->
+                    <div class="item-checkbox" [class.checked]="isSkillSelected(skill.id)">
+                      @if (isSkillSelected(skill.id)) {
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      }
+                    </div>
+
+                    <!-- Skill Name and Category -->
+                    <div class="item-details">
+                      <span class="item-name">{{ skill.name }}</span>
+                      <span class="item-category-tag">{{ getSkillCategoryName(skill.name) }}</span>
+                    </div>
+
+                    <!-- Status Badge (e.g. In Preferred, Selected) -->
+                    <div class="item-status-col">
+                      @if (isPreferredSkillSelected(skill.id)) {
+                        <span class="other-group-badge" title="Click to move from Preferred to Required">In Preferred Skills</span>
+                      } @else if (isSkillSelected(skill.id)) {
+                        <span class="selected-text-badge">Required Selected</span>
+                      }
+                    </div>
+                  </div>
+                }
+
+                @if (filteredSkills().length === 0) {
+                  <div class="dropdown-empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <p>No skills match "{{ skillSearchQuery() }}"</p>
+                    <button type="button" class="btn-reset-filters" (click)="clearSearch(); setCategory('all')">
+                      Clear search & filters
+                    </button>
+                  </div>
+                }
+              </div>
+
+              <!-- Dropdown Footer -->
+              <div class="dropdown-panel-footer">
+                <span class="footer-count-text">
+                  <strong>{{ totalRequiredSkillsCount() }}</strong> of 20 required skills selected
+                </span>
+                <button type="button" class="btn-dropdown-done" (click)="closeCoreDropdown()">
+                  Done
+                </button>
+              </div>
+            </div>
+          }
+        </div>
 
         <!-- Skills Validation Error -->
         @if (requiredSkillIdsControl?.invalid && (requiredSkillIdsControl?.touched || requiredSkillIdsControl?.dirty)) {
@@ -304,10 +568,228 @@
             @if (requiredSkillIdsControl?.errors?.['minSkills']) {
               <span>Select at least 1 required skill so candidates can be matched to this job.</span>
             } @else if (requiredSkillIdsControl?.errors?.['maxSkills']) {
-              <span>You can select a maximum of 15 skills for a single opening.</span>
+              <span>You can select a maximum of 20 skills for a single opening.</span>
             }
           </div>
         }
+      </section>
+
+      <!-- Section 3: Preferred Skills / Nice-to-Have Skills Category -->
+      <section class="form-card preferred-skills-card">
+        <div class="card-header">
+          <div class="header-icon purple">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+            </svg>
+          </div>
+          <div class="header-text-with-badge">
+            <div>
+              <div class="category-badge-inline">
+                <span class="category-pill">Preferred Skills</span>
+              </div>
+              <h2 class="card-title">Preferred Skills (Optional)</h2>
+              <p class="card-desc">
+                Select bonus competencies and secondary skills. Candidates with these skills receive up to 15% bonus match points without penalizing candidates who don't have them.
+              </p>
+            </div>
+            <div class="selection-badge badge-preferred" [class.badge-valid]="selectedPreferredSkillIds().length > 0">
+              <span>{{ selectedPreferredSkillIds().length }}</span> / 15 preferred
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Preferred Skills Tray -->
+        <div class="selected-skills-tray-container preferred-tray-container">
+          <div class="tray-header-row">
+            <span class="tray-label">Selected Preferred Skills ({{ selectedPreferredSkills().length }}):</span>
+            @if (selectedPreferredSkills().length > 0) {
+              <button type="button" class="btn-clear-tray" (click)="clearAllPreferredSkills()" [disabled]="isEditingExpired()">Clear all</button>
+            }
+          </div>
+
+          @if (selectedPreferredSkills().length > 0) {
+            <div class="selected-chips-grid">
+              @for (skill of selectedPreferredSkills(); track skill.id) {
+                <span class="selected-chip chip-preferred">
+                  <span class="chip-name">{{ skill.name }}</span>
+                  <button
+                    type="button"
+                    class="chip-remove-btn"
+                    [disabled]="isEditingExpired()"
+                    [attr.aria-label]="'Remove preferred skill ' + skill.name"
+                    (click)="removePreferredSkill(skill.id)"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </span>
+              }
+            </div>
+          } @else {
+            <div class="empty-tray-notice preferred-empty-notice">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+              <span>No preferred skills selected yet (optional, up to 15). Select secondary skills in the dropdown below.</span>
+            </div>
+          }
+        </div>
+
+        <!-- Modern Searchable Multi-Select Dropdown Component (Purple Accent) -->
+        <div class="multi-select-dropdown-wrapper preferred-dropdown-wrapper" [class.is-open]="isPreferredDropdownOpen()">
+          <label class="dropdown-field-label">Add Preferred Skills from Catalog</label>
+
+          <!-- Dropdown Trigger Button -->
+          <div
+            class="dropdown-trigger-bar trigger-preferred"
+            [class.active]="isPreferredDropdownOpen()"
+            [class.disabled]="isEditingExpired()"
+            (click)="togglePreferredDropdown($event)"
+            role="combobox"
+            [attr.aria-expanded]="isPreferredDropdownOpen()"
+            aria-haspopup="listbox"
+            tabindex="0"
+            (keydown.enter)="togglePreferredDropdown($event)"
+            (keydown.space)="togglePreferredDropdown($event)"
+          >
+            <div class="trigger-left">
+              <svg class="trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <span class="trigger-text">
+                @if (selectedPreferredSkillIds().length === 0) {
+                  Click to search & select preferred skills...
+                } @else if (selectedPreferredSkillIds().length >= 15) {
+                  Maximum 15 preferred skills selected (click to edit)
+                } @else {
+                  Search & add secondary skills ({{ 15 - selectedPreferredSkillIds().length }} remaining)...
+                }
+              </span>
+            </div>
+
+            <div class="trigger-right">
+              <span class="trigger-badge badge-preferred">{{ selectedPreferredSkillIds().length }}/15</span>
+              <svg class="chevron-icon" [class.rotated]="isPreferredDropdownOpen()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Dropdown Panel (Smooth overlay menu) -->
+          @if (isPreferredDropdownOpen() && !isEditingExpired()) {
+            <div class="dropdown-panel-menu panel-preferred" role="listbox" (click)="$event.stopPropagation()">
+              <!-- Live Search Bar inside Dropdown -->
+              <div class="dropdown-search-header">
+                <div class="search-input-box">
+                  <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  <input
+                    type="text"
+                    [value]="preferredSkillSearchQuery()"
+                    (input)="onPreferredSearchChange($event)"
+                    placeholder="Search preferred skills (e.g. Data Analysis, Customer Support, Team Leadership)..."
+                    class="dropdown-search-input"
+                    autofocus
+                  />
+                  @if (preferredSkillSearchQuery()) {
+                    <button type="button" class="btn-clear-search" (click)="clearPreferredSearch()" aria-label="Clear filter">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Category Filter Tabs inside Dropdown -->
+              <div class="dropdown-category-bar" role="tablist" aria-label="Preferred Skill Categories">
+                @for (cat of categories; track cat.id) {
+                  <button
+                    type="button"
+                    class="category-tab-btn tab-btn-preferred"
+                    [class.active]="activePreferredCategory() === cat.id"
+                    (click)="setPreferredCategory(cat.id)"
+                    role="tab"
+                    [attr.aria-selected]="activePreferredCategory() === cat.id"
+                  >
+                    {{ cat.name }}
+                  </button>
+                }
+              </div>
+
+              <!-- Available Technologies List -->
+              <div class="dropdown-items-list" role="group">
+                @for (skill of filteredPreferredSkills(); track skill.id) {
+                  <div
+                    class="dropdown-item-row row-preferred"
+                    [class.is-selected]="isPreferredSkillSelected(skill.id)"
+                    [class.is-in-other]="isSkillSelected(skill.id)"
+                    [class.is-disabled]="!isPreferredSkillSelected(skill.id) && selectedPreferredSkillIds().length >= 15"
+                    (click)="togglePreferredSkill(skill.id)"
+                    role="option"
+                    [attr.aria-selected]="isPreferredSkillSelected(skill.id)"
+                    tabindex="0"
+                    (keydown.enter)="togglePreferredSkill(skill.id)"
+                    (keydown.space)="togglePreferredSkill(skill.id); $event.preventDefault()"
+                  >
+                    <!-- Checkbox Box with Checkmark -->
+                    <div class="item-checkbox checkbox-preferred" [class.checked]="isPreferredSkillSelected(skill.id)">
+                      @if (isPreferredSkillSelected(skill.id)) {
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      }
+                    </div>
+
+                    <!-- Skill Name and Category -->
+                    <div class="item-details">
+                      <span class="item-name">{{ skill.name }}</span>
+                      <span class="item-category-tag">{{ getSkillCategoryName(skill.name) }}</span>
+                    </div>
+
+                    <!-- Status Badge (e.g. In Required, Limit) -->
+                    <div class="item-status-col">
+                      @if (isSkillSelected(skill.id)) {
+                        <span class="other-group-badge core-group-badge" title="Click to move from Required to Nice-to-Have">In Required Skills</span>
+                      } @else if (isPreferredSkillSelected(skill.id)) {
+                        <span class="selected-text-badge badge-preferred-text">Nice-to-Have Selected</span>
+                      }
+                    </div>
+                  </div>
+                }
+
+                @if (filteredPreferredSkills().length === 0) {
+                  <div class="dropdown-empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <p>No skills match "{{ preferredSkillSearchQuery() }}"</p>
+                    <button type="button" class="btn-reset-filters" (click)="clearPreferredSearch(); setPreferredCategory('all')">
+                      Clear search & filters
+                    </button>
+                  </div>
+                }
+              </div>
+
+              <!-- Dropdown Footer -->
+              <div class="dropdown-panel-footer">
+                <span class="footer-count-text">
+                  <strong>{{ selectedPreferredSkillIds().length }}</strong> of 15 nice-to-have skills selected
+                </span>
+                <button type="button" class="btn-dropdown-done btn-done-preferred" (click)="closePreferredDropdown()">
+                  Done
+                </button>
+              </div>
+            </div>
+          }
+        </div>
       </section>
 
       <!-- Form Actions Footer -->
@@ -318,11 +800,25 @@
         <button
           type="submit"
           class="btn-primary"
-          [disabled]="jobForm.invalid || isSubmitting()"
+          [disabled]="jobForm.invalid || isSubmitting() || (isEditMode() && isEditingExpired())"
         >
           @if (isSubmitting()) {
             <span class="spinner" aria-hidden="true"></span>
-            <span>Publishing Job...</span>
+            <span>{{ isEditMode() ? 'Saving Changes...' : 'Publishing Job...' }}</span>
+          } @else if (isEditMode() && isEditingExpired()) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>Editing Expired</span>
+          } @else if (isEditMode()) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            <span>Save Changes</span>
           } @else {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
               <path d="M12 5v14M5 12h14"></path>

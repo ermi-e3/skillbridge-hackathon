@@ -14,21 +14,14 @@
       </div>
 
       <div class="header-actions">
-        <button type="button" class="signout-button" (click)="signOut()" aria-label="Sign out">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
-          <span>Sign Out</span>
-        </button>
-
         <a class="primary-action" routerLink="/employer/jobs/new">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
             <path d="M12 5v14M5 12h14"></path>
           </svg>
           <span>Post New Job</span>
         </a>
+
+        <app-user-profile-menu />
       </div>
     </header>
 
@@ -83,19 +76,292 @@
       <section class="jobs-section" aria-label="Jobs posted by you">
         <div class="section-heading">
           <div>
-            <h2>Your openings</h2>
-            <p>{{ jobs().length }} {{ jobs().length === 1 ? 'job' : 'jobs' }} listed</p>
+            <h2>{{ statusFilter() === 'Closed' ? 'Closed openings' : 'Active openings' }}</h2>
+            <p>
+              @if (hasActiveFilters()) {
+                Showing {{ filteredJobs().length }} {{ statusFilter() === 'Closed' ? 'closed' : 'active' }} {{ filteredJobs().length === 1 ? 'job' : 'jobs' }}
+              } @else {
+                {{ activeJobsCount() }} active {{ activeJobsCount() === 1 ? 'job' : 'jobs' }}
+              }
+            </p>
           </div>
         </div>
 
-        <div class="jobs-grid">
-          @for (job of jobs(); track job.id) {
+        <!-- Modern Enterprise Filter Toolbar -->
+        <section class="modern-filter-card" aria-label="Filter your posted jobs">
+          <div class="modern-filter-toolbar">
+            <!-- Job Title Search -->
+            <div class="filter-search-box">
+              <svg class="filter-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input
+                type="text"
+                id="emp-job-title-search"
+                class="filter-search-input"
+                [value]="searchTitleQuery()"
+                (input)="onTitleSearchInput($event)"
+                placeholder="Search jobs by title..."
+                aria-label="Search posted jobs by title"
+              />
+              @if (searchTitleQuery()) {
+                <button
+                  type="button"
+                  class="filter-clear-btn"
+                  (click)="clearTitleSearch()"
+                  aria-label="Clear job title search"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              }
+            </div>
+
+            <!-- Compact Filter Dropdowns: Department, Job Type, Job Status -->
+            <div class="filter-quick-controls">
+              <div class="compact-select-wrap">
+                <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <select
+                  id="emp-job-dept-filter"
+                  class="compact-select"
+                  [class.has-value]="departmentFilter() !== 'all'"
+                  [value]="departmentFilter()"
+                  (change)="onDepartmentFilterChange($event)"
+                  aria-label="Filter by department"
+                >
+                  <option value="all">All Departments</option>
+                  @for (dept of departmentOptions; track dept.id) {
+                    <option [value]="dept.id">{{ dept.name }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="compact-select-wrap">
+                <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+                <select
+                  id="emp-job-type-filter"
+                  class="compact-select"
+                  [class.has-value]="jobTypeFilter() !== 'All'"
+                  [value]="jobTypeFilter()"
+                  (change)="onJobTypeFilterChange($event)"
+                  aria-label="Filter by job type"
+                >
+                  <option value="All">All Types</option>
+                  <option value="FullTime">Full-time</option>
+                  <option value="PartTime">Part-time</option>
+                  <option value="Contract">Contract</option>
+                  <option value="Internship">Internship</option>
+                  <option value="Freelance">Freelance</option>
+                </select>
+              </div>
+
+              <button
+                type="button"
+                id="emp-job-status-filter"
+                class="btn-status-closed-toggle"
+                [class.active]="statusFilter() === 'Closed'"
+                (click)="toggleClosedFilter()"
+                [attr.aria-pressed]="statusFilter() === 'Closed'"
+                aria-label="Filter by closed jobs"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span>Closed</span>
+                @if (closedJobsCount() > 0) {
+                  <span class="closed-count-pill">{{ closedJobsCount() }}</span>
+                }
+              </button>
+            </div>
+
+            <!-- Collapsible Date Drawer Toggle & Reset -->
+            <div class="filter-toolbar-actions">
+              <button
+                type="button"
+                class="btn-advanced-toggle"
+                [class.is-open]="showAdvancedFilters()"
+                [class.has-active]="datePreset() !== 'all' || postedFromDate() || postedToDate()"
+                (click)="toggleAdvancedFilters()"
+                [attr.aria-expanded]="showAdvancedFilters()"
+                aria-controls="emp-jobs-advanced-filters"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>Posting Date</span>
+                @if (datePreset() !== 'all' || postedFromDate() || postedToDate()) {
+                  <span class="active-count-badge">1</span>
+                }
+                <svg class="chevron" [class.rotated]="showAdvancedFilters()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+
+              @if (hasActiveFilters()) {
+                <button type="button" class="btn-reset-filters" (click)="clearAllFilters()" aria-label="Reset all filters">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                    <path d="M3 3v5h5"></path>
+                  </svg>
+                  <span>Reset</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Collapsible Posting Date Panel -->
+          @if (showAdvancedFilters()) {
+            <div id="emp-jobs-advanced-filters" class="advanced-filter-panel">
+              <div class="advanced-filter-grid">
+                <div class="adv-field">
+                  <label class="adv-label" for="emp-date-preset">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    Posting Date Preset
+                  </label>
+                  <select
+                    id="emp-date-preset"
+                    class="adv-control"
+                    [value]="datePreset()"
+                    (change)="onDatePresetChange($event)"
+                  >
+                    @for (opt of datePresetOptions; track opt.value) {
+                      <option [value]="opt.value">{{ opt.label }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="adv-field">
+                  <label class="adv-label" for="emp-posted-from">Posted From</label>
+                  <input
+                    id="emp-posted-from"
+                    type="date"
+                    class="adv-control"
+                    [value]="postedFromDate()"
+                    (change)="onPostedFromChange($event)"
+                  />
+                </div>
+
+                <div class="adv-field">
+                  <label class="adv-label" for="emp-posted-to">Posted To</label>
+                  <input
+                    id="emp-posted-to"
+                    type="date"
+                    class="adv-control"
+                    [value]="postedToDate()"
+                    (change)="onPostedToChange($event)"
+                  />
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Active Filters Summary -->
+          @if (hasActiveFilters()) {
+            <div class="active-filters-summary" aria-label="Active filters">
+              <span class="summary-prefix">Active:</span>
+
+              @if (searchTitleQuery().trim()) {
+                <span class="active-filter-pill">
+                  <span>Title: "{{ searchTitleQuery().trim() }}"</span>
+                  <button type="button" class="pill-remove" (click)="clearTitleSearch()" aria-label="Clear title filter">&times;</button>
+                </span>
+              }
+
+              @if (departmentFilter() !== 'all') {
+                <span class="active-filter-pill">
+                  <span>Department: {{ getDepartmentNameById(departmentFilter()) }}</span>
+                  <button type="button" class="pill-remove" (click)="departmentFilter.set('all'); currentPage.set(1)" aria-label="Clear department filter">&times;</button>
+                </span>
+              }
+
+              @if (jobTypeFilter() !== 'All') {
+                <span class="active-filter-pill">
+                  <span>Type: {{ formatJobType(jobTypeFilter()) }}</span>
+                  <button type="button" class="pill-remove" (click)="jobTypeFilter.set('All'); currentPage.set(1)" aria-label="Clear job type filter">&times;</button>
+                </span>
+              }
+
+              @if (statusFilter() === 'Closed') {
+                <span class="active-filter-pill">
+                  <span>Status: Closed</span>
+                  <button type="button" class="pill-remove" (click)="statusFilter.set('Active'); currentPage.set(1)" aria-label="Clear closed status filter">&times;</button>
+                </span>
+              }
+
+              @if (datePreset() !== 'all' || postedFromDate() || postedToDate()) {
+                <span class="active-filter-pill">
+                  <span>Posted: {{ datePreset() === 'custom' ? ((postedFromDate() || 'Any') + ' → ' + (postedToDate() || 'Any')) : datePreset() }}</span>
+                  <button type="button" class="pill-remove" (click)="clearDateFilters()" aria-label="Clear posting date filter">&times;</button>
+                </span>
+              }
+            </div>
+          }
+        </section>
+
+        @if (filteredJobs().length === 0) {
+          @if (!hasActiveFilters() && statusFilter() === 'Active' && closedJobsCount() > 0) {
+            <section class="empty-state empty-filter-state">
+              <span class="empty-eyebrow">All openings closed</span>
+              <h2>No active jobs right now</h2>
+              <p>All your posted openings are currently closed. Click Closed in the filter bar to view them.</p>
+              <button type="button" class="primary-action empty-action-btn" (click)="toggleClosedFilter()">
+                View Closed Jobs ({{ closedJobsCount() }})
+              </button>
+            </section>
+          } @else {
+            <section class="empty-state empty-filter-state">
+              <span class="empty-eyebrow">No matching openings</span>
+              <h2>No jobs match your filters</h2>
+              <p>Try adjusting your search query, department, job type, status, or posting date criteria.</p>
+              <button type="button" class="primary-action empty-action-btn" (click)="clearAllFilters()">
+                Reset All Filters
+              </button>
+            </section>
+          }
+        } @else {
+          <div class="jobs-grid">
+            @for (job of paginatedJobs(); track job.id) {
             <article class="job-card">
               <div class="card-topline">
-                <span class="status-pill" [class.closed]="!job.isOpen">
-                  <span class="status-dot"></span>
-                  {{ job.isOpen ? 'Active' : 'Closed' }}
-                </span>
+                <div class="status-group">
+                  <span class="status-pill" [class.closed]="!job.isOpen">
+                    <span class="status-dot"></span>
+                    {{ job.isOpen ? 'Active' : 'Closed' }}
+                  </span>
+
+                  @if (job.deadline && job.isOpen) {
+                    @let cd = getCountdown(job.deadline, job.isOpen);
+                    <span class="countdown-chip" [class.urgent]="cd.isUrgent" [class.expired]="cd.isExpired">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="countdown-icon" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                      </svg>
+                      @if (cd.isUrgent) {
+                        <strong>Closing soon: {{ cd.daysRemainingText }}</strong>
+                      } @else if (!cd.isExpired) {
+                        <span>{{ cd.daysRemainingText }}</span>
+                      } @else {
+                        <span>Expired</span>
+                      }
+                    </span>
+                  }
+                </div>
+
                 <span class="applicant-count">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path>
@@ -106,15 +372,64 @@
 
               <h2 class="job-title">{{ job.title }}</h2>
 
+              <!-- Key Job Requirements & Attributes -->
+              <div class="job-attributes-row">
+                @if (job.category) {
+                  <span class="attr-chip category-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    {{ job.category }}
+                  </span>
+                }
+                @if (job.workArrangement) {
+                  <span class="attr-chip arrangement-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="2" y1="12" x2="22" y2="12"></line>
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    {{ formatWorkArrangement(job.workArrangement) }}
+                  </span>
+                }
+                @if (job.jobType) {
+                  <span class="attr-chip type-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                    {{ formatJobType(job.jobType) }}
+                  </span>
+                }
+                @if (job.experienceLevel) {
+                  <span class="attr-chip exp-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    {{ formatExperienceLevel(job.experienceLevel) }}
+                  </span>
+                }
+                @if (job.minExperienceYears && job.minExperienceYears > 0) {
+                  <span class="attr-chip years-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    {{ job.minExperienceYears }}+ yrs exp
+                  </span>
+                }
+              </div>
+
+              <!-- Location & Date -->
               <div class="job-meta">
-                <span>
+                <span class="meta-location">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path>
                     <circle cx="12" cy="10" r="2.5"></circle>
                   </svg>
                   {{ job.location || 'Location not specified' }}
                 </span>
-                <span>
+                <span class="meta-date">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <circle cx="12" cy="12" r="9"></circle>
                     <path d="M12 7v5l3 2"></path>
@@ -123,6 +438,12 @@
                 </span>
               </div>
 
+              <!-- Job Description Preview -->
+              @if (job.description) {
+                <p class="job-description-excerpt">{{ job.description }}</p>
+              }
+
+              <!-- Required Skills -->
               <div class="skills-block">
                 <h3>Required skills</h3>
                 @if (job.requiredSkills.length > 0) {
@@ -136,16 +457,115 @@
                 }
               </div>
 
-              <a class="applicants-action" [routerLink]="['/employer/jobs', job.id, 'applicants']">
-                <span>View Applicants</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <path d="M5 12h14M13 6l6 6-6 6"></path>
-                </svg>
-              </a>
+              <!-- Preferred / Nice-to-Have Skills -->
+              @if (job.preferredSkills && job.preferredSkills.length > 0) {
+                <div class="skills-block preferred-skills-block">
+                  <div class="skills-title-row">
+                    <h3>Nice-to-Have / Preferred skills</h3>
+                    <span class="nice-to-have-badge">Optional</span>
+                  </div>
+                  <div class="skill-list">
+                    @for (skill of job.preferredSkills; track skill.id) {
+                      <span class="skill-tag preferred-tag">{{ skill.name }}</span>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Applicant Breakdown Status -->
+              @if (job.applicantCounts.total > 0) {
+                <div class="applicant-breakdown">
+                  <span class="breakdown-item received">{{ job.applicantCounts.received }} received</span>
+                  <span class="breakdown-divider">·</span>
+                  <span class="breakdown-item shortlisted">{{ job.applicantCounts.shortlisted }} shortlisted</span>
+                  @if (job.applicantCounts.rejected > 0) {
+                    <span class="breakdown-divider">·</span>
+                    <span class="breakdown-item rejected">{{ job.applicantCounts.rejected }} rejected</span>
+                  }
+                </div>
+              }
+
+              <div class="card-actions-row">
+                <a class="applicants-action" [routerLink]="['/employer/jobs', job.id, 'applicants']">
+                  <span>View Applicants ({{ job.applicantCounts.total }})</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6"></path>
+                  </svg>
+                </a>
+
+                <div class="card-secondary-actions">
+                  @if (isEditingAllowed(job.createdAt)) {
+                    <a class="btn-edit-job" [routerLink]="['/employer/jobs', job.id, 'edit']" [title]="'Editable for ' + getRemainingEditingTime(job.createdAt)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                      </svg>
+                      <span>Edit Job</span>
+                      <span class="edit-timer-badge">{{ getRemainingEditingTime(job.createdAt) }}</span>
+                    </a>
+                  } @else {
+                    <button type="button" class="btn-edit-job disabled" disabled title="Editing window closed (2-hour limit from posting)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                      </svg>
+                      <span>Edit Expired</span>
+                    </button>
+                  }
+
+                  @if (job.isOpen) {
+                    <button
+                      type="button"
+                      class="btn-close-job"
+                      (click)="openCloseConfirm(job)"
+                      [disabled]="closingJobId() === job.id"
+                    >
+                      @if (closingJobId() === job.id) {
+                        Closing...
+                      } @else {
+                        Close Job
+                      }
+                    </button>
+                  } @else {
+                    <span class="badge-closed-notice">Closed</span>
+                  }
+                </div>
+              </div>
             </article>
           }
         </div>
+
+        <app-pagination
+          [currentPage]="effectivePage()"
+          [totalItems]="filteredJobs().length"
+          [pageSize]="pageSize()"
+          [pageSizeOptions]="[6, 9, 12, 24]"
+          itemLabel="jobs"
+          (pageChange)="onPageChange($event)"
+          (pageSizeChange)="onPageSizeChange($event)"
+        />
+        }
       </section>
     }
   </div>
+
+  @if (jobToClose()) {
+    <div class="modal-backdrop" role="dialog" aria-modal="true">
+      <div class="modal-dialog">
+        <h3>Close Job Opening?</h3>
+        <p>
+          Are you sure you want to close <strong>{{ jobToClose()?.title }}</strong>?
+          Once closed, candidates will no longer be able to submit applications.
+        </p>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="dismissCloseConfirm()" [disabled]="closingJobId() !== null">
+            Keep Open
+          </button>
+          <button type="button" class="btn-confirm-close" (click)="confirmCloseJob()" [disabled]="closingJobId() !== null">
+            @if (closingJobId()) { Closing... } @else { Yes, Close Job }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </main>

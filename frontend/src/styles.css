@@ -1,29 +1,191 @@
-/* SkillBridge design tokens - Aligned with screenshot:
-   Primary: #0D9488 (Teal-600)
-   Neutral: #F8FAFC (Slate-50), #1E293B (Slate-800)
-   Accent: #F97316 (Orange-500) */
-:root {
+/* SkillBridge Centralized Design Tokens (Light & Dark Themes) */
+:root,
+:root[data-theme='light'] {
+  /* Page & Surface Hierarchy */
   --bg: #f8fafc;
+  --bg-subtle: #f1f5f9;
+  --bg-hover: #f1f5f9;
   --surface: #ffffff;
-  --ink: #1e293b;
-  --ink-soft: #64748b;
-  --ink-muted: #94a3b8;
+  --surface-elevated: #ffffff;
+  --surface-muted: #f8fafc;
+  --surface-hover: #f8fafc;
+  --glass-bg: rgba(255, 255, 255, 0.88);
+  --backdrop: rgba(15, 23, 42, 0.5);
+
+  /* Typography / Ink */
+  --ink: #0f172a;
+  --ink-strong: #1e293b;
+  --ink-soft: #475569;
+  --ink-muted: #64748b;
+  --ink-faint: #94a3b8;
+
+  /* Borders & Dividers */
   --line: #e2e8f0;
   --line-strong: #cbd5e1;
+  --line-subtle: #f1f5f9;
+
+  /* Brand Primary (Teal) */
   --primary: #0d9488;
   --primary-hover: #0f766e;
-  --primary-light: #ccfbf1;
-  --primary-ring: rgba(13, 148, 136, 0.2);
+  --primary-btn-bg: #0d9488;
+  --primary-btn-hover: #0f766e;
+  --primary-btn-ink: #ffffff;
+  --primary-light: #f0fdfa;
+  --primary-tint: #ccfbf1;
+  --primary-text: #0f766e;
+  --primary-border: #99f6e4;
+  --primary-ring: rgba(13, 148, 136, 0.22);
+
+  /* Brand Accent (Orange) */
   --accent: #f97316;
   --accent-hover: #ea580c;
-  --accent-light: #ffedd5;
+  --accent-light: #fff7ed;
+  --accent-tint: #ffedd5;
+  --accent-text: #c2410c;
+  --accent-border: #fed7aa;
+
+  /* Semantic Status Colors */
   --ok: #16a34a;
   --ok-soft: #dcfce7;
+  --ok-tint: #ecfdf5;
+  --ok-text: #15803d;
+  --ok-border: #bbf7d0;
+
+  --warn: #d97706;
+  --warn-soft: #fef3c7;
+  --warn-tint: #fffbeb;
+  --warn-text: #a16207;
+  --warn-border: #fde68a;
+
   --danger: #dc2626;
-  --danger-soft: #fee2e2;
+  --danger-btn-bg: #dc2626;
+  --danger-hover: #b91c1c;
+  --danger-soft: #fef2f2;
+  --danger-tint: #fee2e2;
+  --danger-text: #b91c1c;
+  --danger-border: #fecaca;
+  --danger-ring: rgba(220, 38, 38, 0.16);
+
+  --info: #2563eb;
+  --info-soft: #eff6ff;
+  --info-tint: #dbeafe;
+  --info-text: #1d4ed8;
+  --info-border: #bfdbfe;
+
+  --purple: #7c3aed;
+  --purple-soft: #f5f3ff;
+  --purple-text: #6d28d9;
+  --purple-border: #ddd6fe;
+
+  /* Ambient Page Mesh & Shadows */
+  --mesh-teal: rgba(13, 148, 136, 0.06);
+  --mesh-accent: rgba(249, 115, 22, 0.04);
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+  --shadow-md: 0 8px 20px -4px rgba(15, 23, 42, 0.08), 0 3px 8px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 20px 40px -10px rgba(15, 23, 42, 0.14), 0 6px 14px -4px rgba(15, 23, 42, 0.06);
 
   --font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  /* Page & Surface Hierarchy (GitHub / Linear inspired slate-navy layers) */
+  --bg: #0b1120;
+  --bg-subtle: #111827;
+  --bg-hover: #1e293b;
+  --surface: #131c2e;
+  --surface-elevated: #192438;
+  --surface-muted: #0f172a;
+  --surface-hover: #1c283f;
+  --glass-bg: rgba(19, 28, 46, 0.88);
+  --backdrop: rgba(2, 6, 23, 0.74);
+
+  /* Typography / Ink */
+  --ink: #f1f5f9;
+  --ink-strong: #e2e8f0;
+  --ink-soft: #94a3b8;
+  --ink-muted: #8494aa;
+  --ink-faint: #64748b;
+
+  /* Borders & Dividers */
+  --line: #233046;
+  --line-strong: #334155;
+  --line-subtle: #1b2538;
+
+  /* Brand Primary (Teal adapted for dark canvas) */
+  --primary: #2dd4bf;
+  --primary-hover: #5eead4;
+  --primary-btn-bg: #0d9488;
+  --primary-btn-hover: #14b8a6;
+  --primary-btn-ink: #ffffff;
+  --primary-light: rgba(20, 184, 166, 0.13);
+  --primary-tint: rgba(20, 184, 166, 0.22);
+  --primary-text: #5eead4;
+  --primary-border: rgba(45, 212, 191, 0.35);
+  --primary-ring: rgba(45, 212, 191, 0.28);
+
+  /* Brand Accent (Orange adapted for dark canvas) */
+  --accent: #fb923c;
+  --accent-hover: #f97316;
+  --accent-light: rgba(249, 115, 22, 0.14);
+  --accent-tint: rgba(249, 115, 22, 0.22);
+  --accent-text: #fdba74;
+  --accent-border: rgba(251, 146, 60, 0.35);
+
+  /* Semantic Status Colors (Dark) */
+  --ok: #22c55e;
+  --ok-soft: rgba(34, 197, 94, 0.15);
+  --ok-tint: rgba(16, 185, 129, 0.14);
+  --ok-text: #4ade80;
+  --ok-border: rgba(74, 222, 128, 0.34);
+
+  --warn: #f59e0b;
+  --warn-soft: rgba(245, 158, 11, 0.15);
+  --warn-tint: rgba(245, 158, 11, 0.12);
+  --warn-text: #fbbf24;
+  --warn-border: rgba(251, 191, 36, 0.34);
+
+  --danger: #f87171;
+  --danger-btn-bg: #dc2626;
+  --danger-hover: #ef4444;
+  --danger-soft: rgba(239, 68, 68, 0.14);
+  --danger-tint: rgba(239, 68, 68, 0.22);
+  --danger-text: #fca5a5;
+  --danger-border: rgba(248, 113, 113, 0.36);
+  --danger-ring: rgba(248, 113, 113, 0.24);
+
+  --info: #60a5fa;
+  --info-soft: rgba(59, 130, 246, 0.15);
+  --info-tint: rgba(59, 130, 246, 0.22);
+  --info-text: #93c5fd;
+  --info-border: rgba(96, 165, 250, 0.35);
+
+  --purple: #a78bfa;
+  --purple-soft: rgba(139, 92, 246, 0.16);
+  --purple-text: #c4b5fd;
+  --purple-border: rgba(167, 139, 250, 0.34);
+
+  /* Ambient Page Mesh & Shadows */
+  --mesh-teal: rgba(20, 184, 166, 0.09);
+  --mesh-accent: rgba(251, 146, 60, 0.06);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 10px 24px -4px rgba(0, 0, 0, 0.5), 0 4px 10px -4px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 24px 48px -10px rgba(0, 0, 0, 0.65), 0 8px 18px -4px rgba(0, 0, 0, 0.45);
+
+  color-scheme: dark;
+}
+
+/* Smooth crossfade applied briefly during user-triggered theme switches */
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition:
+    background-color 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 200ms ease,
+    border-color 240ms ease,
+    box-shadow 240ms ease !important;
 }
 
 *,
@@ -34,6 +196,7 @@
 
 html {
   font-size: 100%;
+  background: var(--bg);
 }
 
 body {
@@ -42,7 +205,8 @@ body {
   font-size: 1rem;
   line-height: 1.55;
   background: var(--bg);
-  color: var(--ink);
+  color: var(--ink-strong);
+  -webkit-font-smoothing: antialiased;
 }
 
 h1 {
@@ -50,10 +214,12 @@ h1 {
   line-height: 1.2;
   letter-spacing: -0.02em;
   margin: 0 0 0.5rem;
+  color: var(--ink);
 }
 h2 {
   font-size: 1.25rem;
   margin: 1.5rem 0 0.5rem;
+  color: var(--ink);
 }
 
 a {
@@ -61,8 +227,16 @@ a {
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
+}
+
+/* Floating top-right theme corner on Auth & standalone centered pages */
+.auth-theme-corner {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 50;
 }
 
 /* ---------- forms ---------- */
@@ -81,6 +255,7 @@ form {
 .field > legend {
   font-weight: 600;
   font-size: 0.9375rem;
+  color: var(--ink-strong);
 }
 input,
 textarea,
@@ -89,8 +264,12 @@ select {
   padding: 0.625rem 0.75rem;
   border: 1px solid var(--line-strong);
   border-radius: 6px;
-  background: var(--surface);
-  color: var(--ink);
+  background: var(--surface-muted);
+  color: var(--ink-strong);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--ink-faint);
 }
 input.ng-invalid.ng-touched,
 textarea.ng-invalid.ng-touched {
@@ -110,7 +289,7 @@ textarea.ng-invalid.ng-touched {
   align-items: center;
 }
 .error {
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 0.875rem;
 }
 .error.banner {
@@ -127,13 +306,13 @@ textarea.ng-invalid.ng-touched {
   padding: 0.6875rem 1.25rem;
   border: 0;
   border-radius: 6px;
-  background: var(--primary);
-  color: #fff;
+  background: var(--primary-btn-bg);
+  color: var(--primary-btn-ink);
   cursor: pointer;
   justify-self: start;
 }
 .btn:hover:not(:disabled) {
-  background: var(--primary-hover);
+  background: var(--primary-btn-hover);
 }
 .btn:disabled {
   opacity: 0.6;
@@ -145,7 +324,7 @@ textarea.ng-invalid.ng-touched {
   border: 1px solid var(--line-strong);
   border-radius: 6px;
   background: transparent;
-  color: var(--ink);
+  color: var(--ink-strong);
   cursor: pointer;
 }
 

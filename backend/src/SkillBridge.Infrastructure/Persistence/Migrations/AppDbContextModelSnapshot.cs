@@ -154,6 +154,52 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("SkillBridge.Domain.Entities.CandidateExperience", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CandidateId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Company")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsCurrent")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CandidateId");
+
+                    b.ToTable("CandidateExperiences", (string)null);
+                });
+
             modelBuilder.Entity("SkillBridge.Domain.Entities.CandidateProfile", b =>
                 {
                     b.Property<string>("UserId")
@@ -163,6 +209,27 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
+                    b.Property<string>("DefaultCvContentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("DefaultCvFileName")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<long?>("DefaultCvFileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("DefaultCvOriginalFileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTime?>("DefaultCvUploadedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ExperienceLevel")
+                        .HasColumnType("integer");
+
                     b.Property<string>("GitHubUrl")
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
@@ -171,8 +238,21 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
+                    b.Property<string>("Location")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int?>("PreferredJobType")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("PreferredWorkArrangement")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("YearsOfExperience")
+                        .HasColumnType("integer");
 
                     b.HasKey("UserId");
 
@@ -186,6 +266,21 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("SkillId")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("IsPreferred")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("Proficiency")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(2);
+
+                    b.Property<int>("YearsOfExperience")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
 
                     b.HasKey("CandidateId", "SkillId");
 
@@ -202,7 +297,14 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Category")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("Deadline")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
@@ -214,23 +316,51 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("ExperienceLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.Property<bool>("IsOpen")
                         .HasColumnType("boolean");
+
+                    b.Property<int>("JobType")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
 
                     b.Property<string>("Location")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<int>("MinExperienceYears")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
+                    b.Property<int>("WorkArrangement")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.HasKey("Id");
 
                     b.HasIndex("EmployerId");
 
+                    b.HasIndex("IsOpen", "Category");
+
                     b.HasIndex("IsOpen", "CreatedAt");
+
+                    b.HasIndex("IsOpen", "ExperienceLevel");
+
+                    b.HasIndex("IsOpen", "JobType");
+
+                    b.HasIndex("IsOpen", "WorkArrangement");
 
                     b.ToTable("Jobs", (string)null);
                 });
@@ -253,6 +383,24 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                     b.Property<string>("CoverNote")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("CvContentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("CvFileName")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<long?>("CvFileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CvOriginalFileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTime?>("CvUploadedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("JobId")
                         .HasColumnType("integer");
@@ -293,11 +441,77 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                     b.Property<int>("SkillId")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("IsRequired")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("MinProficiency")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(2);
+
                     b.HasKey("JobId", "SkillId");
 
                     b.HasIndex("SkillId");
 
+                    b.HasIndex("JobId", "IsRequired");
+
                     b.ToTable("JobSkills", (string)null);
+                });
+
+            modelBuilder.Entity("SkillBridge.Domain.Entities.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedByIp")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ReplacedByTokenId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RevokedByIp")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("RevokedReason")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FamilyId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("SkillBridge.Domain.Entities.Skill", b =>
@@ -566,6 +780,786 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                             Id = 40,
                             Name = "Go",
                             NormalizedName = "GO"
+                        },
+                        new
+                        {
+                            Id = 41,
+                            Name = "Patient Care",
+                            NormalizedName = "PATIENT CARE"
+                        },
+                        new
+                        {
+                            Id = 42,
+                            Name = "Clinical Assessment",
+                            NormalizedName = "CLINICAL ASSESSMENT"
+                        },
+                        new
+                        {
+                            Id = 43,
+                            Name = "Pharmacology",
+                            NormalizedName = "PHARMACOLOGY"
+                        },
+                        new
+                        {
+                            Id = 44,
+                            Name = "Medical Records (EHR)",
+                            NormalizedName = "MEDICAL RECORDS (EHR)"
+                        },
+                        new
+                        {
+                            Id = 45,
+                            Name = "First Aid & BLS",
+                            NormalizedName = "FIRST AID & BLS"
+                        },
+                        new
+                        {
+                            Id = 46,
+                            Name = "Triage",
+                            NormalizedName = "TRIAGE"
+                        },
+                        new
+                        {
+                            Id = 47,
+                            Name = "Phlebotomy",
+                            NormalizedName = "PHLEBOTOMY"
+                        },
+                        new
+                        {
+                            Id = 48,
+                            Name = "Infection Control",
+                            NormalizedName = "INFECTION CONTROL"
+                        },
+                        new
+                        {
+                            Id = 49,
+                            Name = "Nursing",
+                            NormalizedName = "NURSING"
+                        },
+                        new
+                        {
+                            Id = 50,
+                            Name = "Health Education",
+                            NormalizedName = "HEALTH EDUCATION"
+                        },
+                        new
+                        {
+                            Id = 51,
+                            Name = "Medical Laboratory",
+                            NormalizedName = "MEDICAL LABORATORY"
+                        },
+                        new
+                        {
+                            Id = 52,
+                            Name = "Patient Counseling",
+                            NormalizedName = "PATIENT COUNSELING"
+                        },
+                        new
+                        {
+                            Id = 53,
+                            Name = "Vital Signs Monitoring",
+                            NormalizedName = "VITAL SIGNS MONITORING"
+                        },
+                        new
+                        {
+                            Id = 54,
+                            Name = "Public Health",
+                            NormalizedName = "PUBLIC HEALTH"
+                        },
+                        new
+                        {
+                            Id = 55,
+                            Name = "Emergency Response",
+                            NormalizedName = "EMERGENCY RESPONSE"
+                        },
+                        new
+                        {
+                            Id = 56,
+                            Name = "Financial Analysis",
+                            NormalizedName = "FINANCIAL ANALYSIS"
+                        },
+                        new
+                        {
+                            Id = 57,
+                            Name = "Financial Modeling",
+                            NormalizedName = "FINANCIAL MODELING"
+                        },
+                        new
+                        {
+                            Id = 58,
+                            Name = "Bookkeeping",
+                            NormalizedName = "BOOKKEEPING"
+                        },
+                        new
+                        {
+                            Id = 59,
+                            Name = "QuickBooks",
+                            NormalizedName = "QUICKBOOKS"
+                        },
+                        new
+                        {
+                            Id = 60,
+                            Name = "IFRS Compliance",
+                            NormalizedName = "IFRS COMPLIANCE"
+                        },
+                        new
+                        {
+                            Id = 61,
+                            Name = "Tax Compliance",
+                            NormalizedName = "TAX COMPLIANCE"
+                        },
+                        new
+                        {
+                            Id = 62,
+                            Name = "Budgeting & Forecasting",
+                            NormalizedName = "BUDGETING & FORECASTING"
+                        },
+                        new
+                        {
+                            Id = 63,
+                            Name = "Auditing",
+                            NormalizedName = "AUDITING"
+                        },
+                        new
+                        {
+                            Id = 64,
+                            Name = "Payroll Management",
+                            NormalizedName = "PAYROLL MANAGEMENT"
+                        },
+                        new
+                        {
+                            Id = 65,
+                            Name = "Risk Management",
+                            NormalizedName = "RISK MANAGEMENT"
+                        },
+                        new
+                        {
+                            Id = 66,
+                            Name = "Corporate Finance",
+                            NormalizedName = "CORPORATE FINANCE"
+                        },
+                        new
+                        {
+                            Id = 67,
+                            Name = "Investment Analysis",
+                            NormalizedName = "INVESTMENT ANALYSIS"
+                        },
+                        new
+                        {
+                            Id = 68,
+                            Name = "Accounts Payable/Receivable",
+                            NormalizedName = "ACCOUNTS PAYABLE/RECEIVABLE"
+                        },
+                        new
+                        {
+                            Id = 69,
+                            Name = "Internal Audit",
+                            NormalizedName = "INTERNAL AUDIT"
+                        },
+                        new
+                        {
+                            Id = 70,
+                            Name = "Cost Accounting",
+                            NormalizedName = "COST ACCOUNTING"
+                        },
+                        new
+                        {
+                            Id = 71,
+                            Name = "Curriculum Development",
+                            NormalizedName = "CURRICULUM DEVELOPMENT"
+                        },
+                        new
+                        {
+                            Id = 72,
+                            Name = "Classroom Management",
+                            NormalizedName = "CLASSROOM MANAGEMENT"
+                        },
+                        new
+                        {
+                            Id = 73,
+                            Name = "Lesson Planning",
+                            NormalizedName = "LESSON PLANNING"
+                        },
+                        new
+                        {
+                            Id = 74,
+                            Name = "Educational Technology",
+                            NormalizedName = "EDUCATIONAL TECHNOLOGY"
+                        },
+                        new
+                        {
+                            Id = 75,
+                            Name = "Student Assessment",
+                            NormalizedName = "STUDENT ASSESSMENT"
+                        },
+                        new
+                        {
+                            Id = 76,
+                            Name = "Instructional Design",
+                            NormalizedName = "INSTRUCTIONAL DESIGN"
+                        },
+                        new
+                        {
+                            Id = 77,
+                            Name = "Academic Advising",
+                            NormalizedName = "ACADEMIC ADVISING"
+                        },
+                        new
+                        {
+                            Id = 78,
+                            Name = "Special Education",
+                            NormalizedName = "SPECIAL EDUCATION"
+                        },
+                        new
+                        {
+                            Id = 79,
+                            Name = "Pedagogy",
+                            NormalizedName = "PEDAGOGY"
+                        },
+                        new
+                        {
+                            Id = 80,
+                            Name = "Adult Education",
+                            NormalizedName = "ADULT EDUCATION"
+                        },
+                        new
+                        {
+                            Id = 81,
+                            Name = "E-Learning",
+                            NormalizedName = "E-LEARNING"
+                        },
+                        new
+                        {
+                            Id = 82,
+                            Name = "Workshop Facilitation",
+                            NormalizedName = "WORKSHOP FACILITATION"
+                        },
+                        new
+                        {
+                            Id = 83,
+                            Name = "Educational Leadership",
+                            NormalizedName = "EDUCATIONAL LEADERSHIP"
+                        },
+                        new
+                        {
+                            Id = 84,
+                            Name = "Tutoring",
+                            NormalizedName = "TUTORING"
+                        },
+                        new
+                        {
+                            Id = 85,
+                            Name = "Course Evaluation",
+                            NormalizedName = "COURSE EVALUATION"
+                        },
+                        new
+                        {
+                            Id = 86,
+                            Name = "AutoCAD",
+                            NormalizedName = "AUTOCAD"
+                        },
+                        new
+                        {
+                            Id = 87,
+                            Name = "Civil Engineering",
+                            NormalizedName = "CIVIL ENGINEERING"
+                        },
+                        new
+                        {
+                            Id = 88,
+                            Name = "Structural Analysis",
+                            NormalizedName = "STRUCTURAL ANALYSIS"
+                        },
+                        new
+                        {
+                            Id = 89,
+                            Name = "Electrical Systems",
+                            NormalizedName = "ELECTRICAL SYSTEMS"
+                        },
+                        new
+                        {
+                            Id = 90,
+                            Name = "Mechanical Design",
+                            NormalizedName = "MECHANICAL DESIGN"
+                        },
+                        new
+                        {
+                            Id = 91,
+                            Name = "Project Estimation",
+                            NormalizedName = "PROJECT ESTIMATION"
+                        },
+                        new
+                        {
+                            Id = 92,
+                            Name = "Quality Control",
+                            NormalizedName = "QUALITY CONTROL"
+                        },
+                        new
+                        {
+                            Id = 93,
+                            Name = "Revit",
+                            NormalizedName = "REVIT"
+                        },
+                        new
+                        {
+                            Id = 94,
+                            Name = "Site Supervision",
+                            NormalizedName = "SITE SUPERVISION"
+                        },
+                        new
+                        {
+                            Id = 95,
+                            Name = "Safety Compliance",
+                            NormalizedName = "SAFETY COMPLIANCE"
+                        },
+                        new
+                        {
+                            Id = 96,
+                            Name = "HVAC Design",
+                            NormalizedName = "HVAC DESIGN"
+                        },
+                        new
+                        {
+                            Id = 97,
+                            Name = "Construction Management",
+                            NormalizedName = "CONSTRUCTION MANAGEMENT"
+                        },
+                        new
+                        {
+                            Id = 98,
+                            Name = "Surveying",
+                            NormalizedName = "SURVEYING"
+                        },
+                        new
+                        {
+                            Id = 99,
+                            Name = "SolidWorks",
+                            NormalizedName = "SOLIDWORKS"
+                        },
+                        new
+                        {
+                            Id = 100,
+                            Name = "BIM Modeling",
+                            NormalizedName = "BIM MODELING"
+                        },
+                        new
+                        {
+                            Id = 101,
+                            Name = "Operations Management",
+                            NormalizedName = "OPERATIONS MANAGEMENT"
+                        },
+                        new
+                        {
+                            Id = 102,
+                            Name = "Strategic Planning",
+                            NormalizedName = "STRATEGIC PLANNING"
+                        },
+                        new
+                        {
+                            Id = 103,
+                            Name = "Business Analysis",
+                            NormalizedName = "BUSINESS ANALYSIS"
+                        },
+                        new
+                        {
+                            Id = 104,
+                            Name = "Human Resources (HR)",
+                            NormalizedName = "HUMAN RESOURCES (HR)"
+                        },
+                        new
+                        {
+                            Id = 105,
+                            Name = "Project Management",
+                            NormalizedName = "PROJECT MANAGEMENT"
+                        },
+                        new
+                        {
+                            Id = 106,
+                            Name = "Office Administration",
+                            NormalizedName = "OFFICE ADMINISTRATION"
+                        },
+                        new
+                        {
+                            Id = 107,
+                            Name = "Talent Acquisition",
+                            NormalizedName = "TALENT ACQUISITION"
+                        },
+                        new
+                        {
+                            Id = 108,
+                            Name = "Performance Management",
+                            NormalizedName = "PERFORMANCE MANAGEMENT"
+                        },
+                        new
+                        {
+                            Id = 109,
+                            Name = "Contract Negotiation",
+                            NormalizedName = "CONTRACT NEGOTIATION"
+                        },
+                        new
+                        {
+                            Id = 110,
+                            Name = "Agile & Scrum",
+                            NormalizedName = "AGILE & SCRUM"
+                        },
+                        new
+                        {
+                            Id = 111,
+                            Name = "Vendor Management",
+                            NormalizedName = "VENDOR MANAGEMENT"
+                        },
+                        new
+                        {
+                            Id = 112,
+                            Name = "Change Management",
+                            NormalizedName = "CHANGE MANAGEMENT"
+                        },
+                        new
+                        {
+                            Id = 113,
+                            Name = "Process Optimization",
+                            NormalizedName = "PROCESS OPTIMIZATION"
+                        },
+                        new
+                        {
+                            Id = 114,
+                            Name = "Executive Support",
+                            NormalizedName = "EXECUTIVE SUPPORT"
+                        },
+                        new
+                        {
+                            Id = 115,
+                            Name = "Event Planning",
+                            NormalizedName = "EVENT PLANNING"
+                        },
+                        new
+                        {
+                            Id = 116,
+                            Name = "Digital Marketing",
+                            NormalizedName = "DIGITAL MARKETING"
+                        },
+                        new
+                        {
+                            Id = 117,
+                            Name = "Content Strategy",
+                            NormalizedName = "CONTENT STRATEGY"
+                        },
+                        new
+                        {
+                            Id = 118,
+                            Name = "SEO",
+                            NormalizedName = "SEO"
+                        },
+                        new
+                        {
+                            Id = 119,
+                            Name = "Social Media Marketing",
+                            NormalizedName = "SOCIAL MEDIA MARKETING"
+                        },
+                        new
+                        {
+                            Id = 120,
+                            Name = "Copywriting",
+                            NormalizedName = "COPYWRITING"
+                        },
+                        new
+                        {
+                            Id = 121,
+                            Name = "Public Relations",
+                            NormalizedName = "PUBLIC RELATIONS"
+                        },
+                        new
+                        {
+                            Id = 122,
+                            Name = "Sales Management",
+                            NormalizedName = "SALES MANAGEMENT"
+                        },
+                        new
+                        {
+                            Id = 123,
+                            Name = "B2B Sales",
+                            NormalizedName = "B2B SALES"
+                        },
+                        new
+                        {
+                            Id = 124,
+                            Name = "CRM Systems",
+                            NormalizedName = "CRM SYSTEMS"
+                        },
+                        new
+                        {
+                            Id = 125,
+                            Name = "Brand Development",
+                            NormalizedName = "BRAND DEVELOPMENT"
+                        },
+                        new
+                        {
+                            Id = 126,
+                            Name = "Market Research",
+                            NormalizedName = "MARKET RESEARCH"
+                        },
+                        new
+                        {
+                            Id = 127,
+                            Name = "Email Marketing",
+                            NormalizedName = "EMAIL MARKETING"
+                        },
+                        new
+                        {
+                            Id = 128,
+                            Name = "Advertising",
+                            NormalizedName = "ADVERTISING"
+                        },
+                        new
+                        {
+                            Id = 129,
+                            Name = "Lead Generation",
+                            NormalizedName = "LEAD GENERATION"
+                        },
+                        new
+                        {
+                            Id = 130,
+                            Name = "Direct Sales",
+                            NormalizedName = "DIRECT SALES"
+                        },
+                        new
+                        {
+                            Id = 131,
+                            Name = "Customer Relationship Management",
+                            NormalizedName = "CUSTOMER RELATIONSHIP MANAGEMENT"
+                        },
+                        new
+                        {
+                            Id = 132,
+                            Name = "Conflict Resolution",
+                            NormalizedName = "CONFLICT RESOLUTION"
+                        },
+                        new
+                        {
+                            Id = 133,
+                            Name = "Front Desk Operations",
+                            NormalizedName = "FRONT DESK OPERATIONS"
+                        },
+                        new
+                        {
+                            Id = 134,
+                            Name = "Food & Beverage Service",
+                            NormalizedName = "FOOD & BEVERAGE SERVICE"
+                        },
+                        new
+                        {
+                            Id = 135,
+                            Name = "Guest Relations",
+                            NormalizedName = "GUEST RELATIONS"
+                        },
+                        new
+                        {
+                            Id = 136,
+                            Name = "Call Center Operations",
+                            NormalizedName = "CALL CENTER OPERATIONS"
+                        },
+                        new
+                        {
+                            Id = 137,
+                            Name = "Reservation Systems",
+                            NormalizedName = "RESERVATION SYSTEMS"
+                        },
+                        new
+                        {
+                            Id = 138,
+                            Name = "Hospitality Management",
+                            NormalizedName = "HOSPITALITY MANAGEMENT"
+                        },
+                        new
+                        {
+                            Id = 139,
+                            Name = "Event Coordination",
+                            NormalizedName = "EVENT COORDINATION"
+                        },
+                        new
+                        {
+                            Id = 140,
+                            Name = "Customer Retention",
+                            NormalizedName = "CUSTOMER RETENTION"
+                        },
+                        new
+                        {
+                            Id = 141,
+                            Name = "Concierge Services",
+                            NormalizedName = "CONCIERGE SERVICES"
+                        },
+                        new
+                        {
+                            Id = 142,
+                            Name = "Menu Planning",
+                            NormalizedName = "MENU PLANNING"
+                        },
+                        new
+                        {
+                            Id = 143,
+                            Name = "Housekeeping Management",
+                            NormalizedName = "HOUSEKEEPING MANAGEMENT"
+                        },
+                        new
+                        {
+                            Id = 144,
+                            Name = "Help Desk Support",
+                            NormalizedName = "HELP DESK SUPPORT"
+                        },
+                        new
+                        {
+                            Id = 145,
+                            Name = "Client Onboarding",
+                            NormalizedName = "CLIENT ONBOARDING"
+                        },
+                        new
+                        {
+                            Id = 146,
+                            Name = "Supply Chain Management",
+                            NormalizedName = "SUPPLY CHAIN MANAGEMENT"
+                        },
+                        new
+                        {
+                            Id = 147,
+                            Name = "Inventory Control",
+                            NormalizedName = "INVENTORY CONTROL"
+                        },
+                        new
+                        {
+                            Id = 148,
+                            Name = "Logistics Planning",
+                            NormalizedName = "LOGISTICS PLANNING"
+                        },
+                        new
+                        {
+                            Id = 149,
+                            Name = "Procurement",
+                            NormalizedName = "PROCUREMENT"
+                        },
+                        new
+                        {
+                            Id = 150,
+                            Name = "Electrical Installation",
+                            NormalizedName = "ELECTRICAL INSTALLATION"
+                        },
+                        new
+                        {
+                            Id = 151,
+                            Name = "Plumbing",
+                            NormalizedName = "PLUMBING"
+                        },
+                        new
+                        {
+                            Id = 152,
+                            Name = "HVAC Maintenance",
+                            NormalizedName = "HVAC MAINTENANCE"
+                        },
+                        new
+                        {
+                            Id = 153,
+                            Name = "Facilities Maintenance",
+                            NormalizedName = "FACILITIES MAINTENANCE"
+                        },
+                        new
+                        {
+                            Id = 154,
+                            Name = "Workplace Safety (OSHA)",
+                            NormalizedName = "WORKPLACE SAFETY (OSHA)"
+                        },
+                        new
+                        {
+                            Id = 155,
+                            Name = "Heavy Equipment Operation",
+                            NormalizedName = "HEAVY EQUIPMENT OPERATION"
+                        },
+                        new
+                        {
+                            Id = 156,
+                            Name = "Warehouse Operations",
+                            NormalizedName = "WAREHOUSE OPERATIONS"
+                        },
+                        new
+                        {
+                            Id = 157,
+                            Name = "Quality Assurance",
+                            NormalizedName = "QUALITY ASSURANCE"
+                        },
+                        new
+                        {
+                            Id = 158,
+                            Name = "Welding",
+                            NormalizedName = "WELDING"
+                        },
+                        new
+                        {
+                            Id = 159,
+                            Name = "Preventative Maintenance",
+                            NormalizedName = "PREVENTATIVE MAINTENANCE"
+                        },
+                        new
+                        {
+                            Id = 160,
+                            Name = "Fleet Management",
+                            NormalizedName = "FLEET MANAGEMENT"
+                        },
+                        new
+                        {
+                            Id = 161,
+                            Name = "Data Analysis",
+                            NormalizedName = "DATA ANALYSIS"
+                        },
+                        new
+                        {
+                            Id = 162,
+                            Name = "Machine Learning",
+                            NormalizedName = "MACHINE LEARNING"
+                        },
+                        new
+                        {
+                            Id = 163,
+                            Name = "Power BI",
+                            NormalizedName = "POWER BI"
+                        },
+                        new
+                        {
+                            Id = 164,
+                            Name = "Microsoft Excel",
+                            NormalizedName = "MICROSOFT EXCEL"
+                        },
+                        new
+                        {
+                            Id = 165,
+                            Name = "Cybersecurity",
+                            NormalizedName = "CYBERSECURITY"
+                        },
+                        new
+                        {
+                            Id = 166,
+                            Name = "UI/UX Design",
+                            NormalizedName = "UI/UX DESIGN"
+                        },
+                        new
+                        {
+                            Id = 167,
+                            Name = "Graphic Design",
+                            NormalizedName = "GRAPHIC DESIGN"
+                        },
+                        new
+                        {
+                            Id = 168,
+                            Name = "Technical Writing",
+                            NormalizedName = "TECHNICAL WRITING"
+                        },
+                        new
+                        {
+                            Id = 169,
+                            Name = "Tableau",
+                            NormalizedName = "TABLEAU"
+                        },
+                        new
+                        {
+                            Id = 170,
+                            Name = "Statistical Modeling",
+                            NormalizedName = "STATISTICAL MODELING"
                         });
                 });
 
@@ -694,6 +1688,17 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SkillBridge.Domain.Entities.CandidateExperience", b =>
+                {
+                    b.HasOne("SkillBridge.Domain.Entities.CandidateProfile", "Candidate")
+                        .WithMany("ExperienceHistory")
+                        .HasForeignKey("CandidateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Candidate");
+                });
+
             modelBuilder.Entity("SkillBridge.Domain.Entities.CandidateProfile", b =>
                 {
                     b.HasOne("SkillBridge.Infrastructure.Identity.AppUser", null)
@@ -767,8 +1772,19 @@ namespace SkillBridge.Infrastructure.Persistence.Migrations
                     b.Navigation("Skill");
                 });
 
+            modelBuilder.Entity("SkillBridge.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("SkillBridge.Infrastructure.Identity.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SkillBridge.Domain.Entities.CandidateProfile", b =>
                 {
+                    b.Navigation("ExperienceHistory");
+
                     b.Navigation("Skills");
                 });
 

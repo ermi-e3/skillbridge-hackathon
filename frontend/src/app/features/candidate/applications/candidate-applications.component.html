@@ -91,7 +91,7 @@
         <p class="page-subtitle">Track status updates for your submitted applications in real time.</p>
       </div>
 
-      <div class="header-actions">
+      <div class="header-actions" style="display: flex; align-items: center; gap: 0.75rem;">
         <a routerLink="/jobs" class="nav-action-btn primary-action">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -99,6 +99,7 @@
           </svg>
           <span>Browse More Jobs</span>
         </a>
+        <app-user-profile-menu />
       </div>
     </header>
 
@@ -145,7 +146,215 @@
         <span class="metric-number">{{ rejectedCount() }}</span>
         <span class="metric-label">Rejected</span>
       </div>
+      <div class="metric-card withdrawn-metric">
+        <span class="metric-number">{{ withdrawnCount() }}</span>
+        <span class="metric-label">Withdrawn</span>
+      </div>
     </div>
+
+    <!-- Modern Filter & Search Bar -->
+    @if (!isLoading() && applications().length > 0) {
+      <section class="modern-filter-card" aria-label="Filter your submitted applications">
+        <div class="modern-filter-toolbar">
+          <!-- Primary Search Input (Job Title) -->
+          <div class="filter-search-box">
+            <svg class="filter-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="text"
+              id="app-title-search"
+              class="filter-search-input"
+              [value]="searchTitleQuery()"
+              (input)="onTitleSearchInput($event)"
+              placeholder="Search by job title..."
+              aria-label="Search applications by job title"
+            />
+            @if (searchTitleQuery()) {
+              <button
+                type="button"
+                class="filter-clear-btn"
+                (click)="clearTitleSearch()"
+                aria-label="Clear job title search"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            }
+          </div>
+
+          <!-- Quick Dropdowns: Application Status & Company -->
+          <div class="filter-quick-controls">
+            <div class="compact-select-wrap">
+              <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <select
+                id="app-status-filter"
+                class="compact-select"
+                [class.has-value]="statusFilter() !== 'All'"
+                [value]="statusFilter()"
+                (change)="onStatusFilterChange($event)"
+                aria-label="Filter by application status"
+              >
+                <option value="All">All Statuses</option>
+                <option value="Received">Received</option>
+                <option value="Shortlisted">Shortlisted</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Withdrawn">Withdrawn</option>
+              </select>
+            </div>
+
+            @if (availableCompanies().length > 0) {
+              <div class="compact-select-wrap">
+                <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+                <select
+                  id="app-company-filter"
+                  class="compact-select"
+                  [class.has-value]="companyFilter() !== 'All'"
+                  [value]="companyFilter()"
+                  (change)="onCompanyFilterChange($event)"
+                  aria-label="Filter by company"
+                >
+                  <option value="All">All Companies</option>
+                  @for (company of availableCompanies(); track company) {
+                    <option [value]="company">{{ company }}</option>
+                  }
+                </select>
+              </div>
+            }
+          </div>
+
+          <!-- Right Actions: Advanced Date Drawer Toggle & Reset -->
+          <div class="filter-toolbar-actions">
+            <button
+              type="button"
+              class="btn-advanced-toggle"
+              [class.is-open]="showAdvancedFilters()"
+              [class.has-active]="datePreset() !== 'all' || appliedFromDate() || appliedToDate()"
+              (click)="toggleAdvancedFilters()"
+              [attr.aria-expanded]="showAdvancedFilters()"
+              aria-controls="apps-advanced-filters"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              <span>Date Filters</span>
+              @if (datePreset() !== 'all' || appliedFromDate() || appliedToDate()) {
+                <span class="active-count-badge">1</span>
+              }
+              <svg class="chevron" [class.rotated]="showAdvancedFilters()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+
+            @if (hasActiveFilters()) {
+              <button type="button" class="btn-reset-filters" (click)="clearAllFilters()" aria-label="Reset all filters">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                  <path d="M3 3v5h5"></path>
+                </svg>
+                <span>Reset</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Collapsible Date Range Drawer -->
+        @if (showAdvancedFilters()) {
+          <div id="apps-advanced-filters" class="advanced-filter-panel">
+            <div class="advanced-filter-grid">
+              <div class="adv-field">
+                <label class="adv-label" for="app-date-preset">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  Application Date Preset
+                </label>
+                <select
+                  id="app-date-preset"
+                  class="adv-control"
+                  [value]="datePreset()"
+                  (change)="onDatePresetChange($event)"
+                >
+                  @for (opt of datePresetOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="adv-field">
+                <label class="adv-label" for="app-from-date">Applied From</label>
+                <input
+                  id="app-from-date"
+                  type="date"
+                  class="adv-control"
+                  [value]="appliedFromDate()"
+                  (change)="onFromDateChange($event)"
+                />
+              </div>
+
+              <div class="adv-field">
+                <label class="adv-label" for="app-to-date">Applied To</label>
+                <input
+                  id="app-to-date"
+                  type="date"
+                  class="adv-control"
+                  [value]="appliedToDate()"
+                  (change)="onToDateChange($event)"
+                />
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Active Filter Summary Pills -->
+        @if (hasActiveFilters()) {
+          <div class="active-filters-summary" aria-label="Active filters">
+            <span class="summary-prefix">Filtered by:</span>
+
+            @if (searchTitleQuery().trim()) {
+              <span class="active-filter-pill">
+                <span>Title: "{{ searchTitleQuery().trim() }}"</span>
+                <button type="button" class="pill-remove" (click)="clearTitleSearch()" aria-label="Remove job title filter">&times;</button>
+              </span>
+            }
+
+            @if (statusFilter() !== 'All') {
+              <span class="active-filter-pill">
+                <span>Status: {{ statusFilter() }}</span>
+                <button type="button" class="pill-remove" (click)="statusFilter.set('All'); currentPage.set(1)" aria-label="Remove status filter">&times;</button>
+              </span>
+            }
+
+            @if (companyFilter() !== 'All') {
+              <span class="active-filter-pill">
+                <span>Company: {{ companyFilter() }}</span>
+                <button type="button" class="pill-remove" (click)="companyFilter.set('All'); currentPage.set(1)" aria-label="Remove company filter">&times;</button>
+              </span>
+            }
+
+            @if (datePreset() !== 'all' || appliedFromDate() || appliedToDate()) {
+              <span class="active-filter-pill">
+                <span>Date: {{ datePreset() === 'custom' ? ((appliedFromDate() || 'Any') + ' → ' + (appliedToDate() || 'Any')) : datePreset() }}</span>
+                <button type="button" class="pill-remove" (click)="clearDateFilters()" aria-label="Remove date filter">&times;</button>
+              </span>
+            }
+          </div>
+        }
+      </section>
+    }
 
     <!-- Table Section -->
     <div class="table-card">
@@ -162,7 +371,7 @@
             </div>
           }
         </div>
-      } @else if (sortedApplications().length > 0) {
+      } @else if (paginatedApplications().length > 0) {
         <div class="table-responsive">
           <table class="applications-table" aria-label="Candidate applications table">
             <thead>
@@ -175,7 +384,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (app of sortedApplications(); track app.id) {
+              @for (app of paginatedApplications(); track app.id) {
                 <tr class="app-row" [class.withdrawn-row]="app.status === 'Withdrawn'">
                   <!-- Job Title & Company -->
                   <td class="td-job">
@@ -196,12 +405,24 @@
                   <!-- Match % Chip & Bar -->
                   <td class="td-match">
                     <div class="match-cell-group">
-                      <span
-                        class="match-badge"
-                        [ngClass]="getMatchClass(getMatchPercent(app))"
-                      >
-                        {{ getMatchPercent(app) }}%
-                      </span>
+                      <div class="match-badge-row">
+                        <span
+                          class="match-badge"
+                          [ngClass]="getMatchClass(getMatchPercent(app))"
+                        >
+                          {{ getMatchPercent(app) }}%
+                        </span>
+                        @if (app.match?.matchedPreferredSkills; as matchedPrefs) {
+                          @if (matchedPrefs.length > 0) {
+                            <span
+                              class="nice-to-have-match-chip"
+                              [title]="'Matched ' + matchedPrefs.length + ' Nice-to-Have / Preferred skill(s)'"
+                            >
+                              +{{ matchedPrefs.length }} bonus
+                            </span>
+                          }
+                        }
+                      </div>
                       <div class="match-mini-bar-track">
                         <div
                           class="match-mini-bar-fill"
@@ -227,6 +448,18 @@
                         View
                       </a>
 
+                      @if (app.hasCv) {
+                        <button
+                          type="button"
+                          class="action-btn-cv"
+                          (click)="openCvPreview(app)"
+                          [title]="'Preview attached CV: ' + (app.cvOriginalFileName || 'resume')"
+                          aria-label="Preview attached CV"
+                        >
+                          <span>CV Preview</span>
+                        </button>
+                      }
+
                       <!-- "Withdraw" button shown ONLY when status === 'Received' -->
                       @if (app.status === 'Received') {
                         <button
@@ -245,6 +478,23 @@
             </tbody>
           </table>
         </div>
+      } @else if (applications().length > 0 && filteredApplications().length === 0) {
+        <!-- Empty Filter State -->
+        <div class="empty-state-box">
+          <div class="empty-icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+          <h3 class="empty-title">No applications match your filters</h3>
+          <p class="empty-desc">
+            Try adjusting your job title search, status, company, or application date range to see more results.
+          </p>
+          <button type="button" class="empty-action-btn" (click)="clearAllFilters()">
+            Reset Filters
+          </button>
+        </div>
       } @else {
         <!-- Empty State -->
         <div class="empty-state-box">
@@ -257,7 +507,7 @@
           </div>
           <h3 class="empty-title">You haven't applied to any jobs yet</h3>
           <p class="empty-desc">
-            Browse open developer and tech roles tailored for Ethiopian talent, and apply with your verified skills profile.
+            Browse open career opportunities tailored for Ethiopian talent across diverse industries, and apply with your verified skills profile.
           </p>
           <a routerLink="/jobs" class="empty-action-btn">
             Explore Open Jobs
@@ -265,5 +515,132 @@
         </div>
       }
     </div>
+
+    @if (!isLoading() && filteredApplications().length > 0) {
+      <app-pagination
+        [currentPage]="effectivePage()"
+        [totalItems]="filteredApplications().length"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="[5, 10, 20, 50]"
+        itemLabel="applications"
+        (pageChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)"
+      />
+    }
   </div>
+
+  <!-- CV Preview Modal -->
+  @if (showCvPreviewModal()) {
+    <div
+      class="modal-backdrop cv-preview-backdrop"
+      (click)="closeCvPreview()"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="candidate-apps-cv-preview-title"
+    >
+      <div class="cv-preview-dialog" (click)="$event.stopPropagation()">
+        <header class="cv-preview-header">
+          <div class="cv-preview-title-wrap">
+            <div class="cv-file-badge" [class.docx]="isDocxPreview()">
+              {{ isDocxPreview() ? 'DOCX' : 'PDF' }}
+            </div>
+            <div>
+              <h2 id="candidate-apps-cv-preview-title">Submitted CV Preview</h2>
+              <span class="cv-preview-subtitle">{{ cvPreviewFileName() || 'Attached CV' }}</span>
+            </div>
+          </div>
+
+          <div class="cv-preview-header-actions">
+            <button
+              type="button"
+              class="btn-preview-download"
+              (click)="downloadCurrentPreviewCv()"
+              [disabled]="cvPreviewLoading() || !!cvPreviewError()"
+              title="Download CV file"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Download CV</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn-preview-close"
+              (click)="closeCvPreview()"
+              aria-label="Close CV preview"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="cv-preview-body">
+          @if (cvPreviewLoading()) {
+            <div class="cv-preview-loading" aria-live="polite">
+              <span class="spinner-large" aria-hidden="true"></span>
+              <p>Loading CV document preview...</p>
+            </div>
+          } @else if (cvPreviewError()) {
+            <div class="cv-preview-error" role="alert">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="error-icon" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <h3>Unable to display CV</h3>
+              <p>{{ cvPreviewError() }}</p>
+              <div class="preview-error-actions">
+                <button type="button" class="btn-retry-preview" (click)="closeCvPreview()">Close</button>
+                <button type="button" class="btn-preview-download fallback" (click)="downloadCurrentPreviewCv()">
+                  Download Instead
+                </button>
+              </div>
+            </div>
+          } @else if (isDocxPreview()) {
+            <div class="docx-preview-pane">
+              <div class="docx-card">
+                <div class="docx-icon-large" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                  </svg>
+                </div>
+                <h3>{{ cvPreviewFileName() }}</h3>
+                <span class="docx-format-pill">Word Document (.docx)</span>
+                <p class="docx-note">
+                  Your submitted CV is a Microsoft Word (.docx) document. Web browsers cannot render Word files inline. You can download your CV document to view it.
+                </p>
+                <button
+                  type="button"
+                  class="btn-preview-download-prominent"
+                  (click)="downloadCurrentPreviewCv()"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Download CV</span>
+                </button>
+              </div>
+            </div>
+          } @else if (cvPreviewSafeUrl()) {
+            <iframe
+              [src]="cvPreviewSafeUrl()"
+              class="cv-pdf-frame"
+              title="CV Document Viewer"
+            ></iframe>
+          }
+        </div>
+      </div>
+    </div>
+  }
 </div>

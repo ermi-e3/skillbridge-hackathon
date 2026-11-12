@@ -13,9 +13,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Skill> Skills => Set<Skill>();
     public DbSet<CandidateProfile> CandidateProfiles => Set<CandidateProfile>();
     public DbSet<CandidateSkill> CandidateSkills => Set<CandidateSkill>();
+    public DbSet<CandidateExperience> CandidateExperiences => Set<CandidateExperience>();
     public DbSet<Job> Jobs => Set<Job>();
     public DbSet<JobSkill> JobSkills => Set<JobSkill>();
     public DbSet<JobApplication> Applications => Set<JobApplication>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

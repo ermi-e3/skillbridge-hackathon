@@ -21,19 +21,53 @@ public class JobApplication
     public DateTime AppliedAt { get; private set; }
     public DateTime? StatusChangedAt { get; private set; }
 
+    public string? CvFileName { get; private set; }
+    public string? CvOriginalFileName { get; private set; }
+    public string? CvContentType { get; private set; }
+    public long? CvFileSizeBytes { get; private set; }
+    public DateTime? CvUploadedAt { get; private set; }
+
     /// <summary>Concurrency token, mapped to PostgreSQL's xmin system column.</summary>
     public uint Version { get; private set; }
 
     public Job Job { get; private set; } = null!;
     //public AppUser Candidate { get; private set; } = null!;
 
-    public JobApplication(int jobId, string candidateId, string? coverNote, DateTime appliedAt)
+    public JobApplication(
+        int jobId,
+        string candidateId,
+        string? coverNote,
+        DateTime appliedAt,
+        string? cvFileName = null,
+        string? cvOriginalFileName = null,
+        string? cvContentType = null,
+        long? cvFileSizeBytes = null,
+        DateTime? cvUploadedAt = null)
     {
         JobId = jobId;
         CandidateId = candidateId;
         CoverNote = string.IsNullOrWhiteSpace(coverNote) ? null : coverNote.Trim();
         Status = ApplicationStatus.Received;
         AppliedAt = appliedAt;
+        CvFileName = cvFileName;
+        CvOriginalFileName = cvOriginalFileName;
+        CvContentType = cvContentType;
+        CvFileSizeBytes = cvFileSizeBytes;
+        CvUploadedAt = cvUploadedAt;
+    }
+
+    public void AttachCv(
+        string fileName,
+        string originalFileName,
+        string contentType,
+        long fileSizeBytes,
+        DateTime uploadedAt)
+    {
+        CvFileName = fileName;
+        CvOriginalFileName = originalFileName;
+        CvContentType = contentType;
+        CvFileSizeBytes = fileSizeBytes;
+        CvUploadedAt = uploadedAt;
     }
 
     public bool BelongsToCandidate(string userId) => CandidateId == userId;

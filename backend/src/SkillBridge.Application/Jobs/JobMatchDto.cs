@@ -5,4 +5,7 @@ namespace SkillBridge.Application.Jobs;
 public sealed record JobMatchDto(
     int Percent,
     IReadOnlyList<SkillDto> MatchedSkills,
-    IReadOnlyList<SkillDto> MissingSkills);
+    IReadOnlyList<SkillDto> MissingSkills,
+    IReadOnlyList<SkillDto>? MatchedPreferredSkills = null,
+    IReadOnlyList<SkillDto>? MissingPreferredSkills = null,
+    JobMatchBreakdownDto? Breakdown = null);

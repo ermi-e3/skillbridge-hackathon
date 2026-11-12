@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { environment } from '../../../../environments/environment';
 import { UserRole } from '../../../core/models/auth.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { extractErrorMessage } from '../../../core/utils/error-formatter';
+import { ThemeToggleComponent } from '../../../shared/components/theme-toggle/theme-toggle.component';
 
 /**
  * Validates that the password has at least:
@@ -45,13 +47,15 @@ export const passwordComplexityValidator: ValidatorFn = (control: AbstractContro
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ThemeToggleComponent],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })
 export class RegisterComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly isSubmitting = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
@@ -71,6 +75,72 @@ export class RegisterComponent implements OnInit {
     this.registerForm.get('role')?.valueChanges.subscribe((role: UserRole) => {
       this.selectedRole.set(role);
       this.updateCompanyValidators(role);
+    });
+
+    // Check if returning from OAuth callback (in case provider redirected to /register)
+    const code = this.route.snapshot.queryParamMap.get('code');
+    const oauthError = this.route.snapshot.queryParamMap.get('error');
+
+    if (oauthError) {
+      this.errorMessage.set('External authentication was canceled or denied.');
+      this.clearQueryParams();
+      return;
+    }
+
+    if (code) {
+      const stateParam = this.route.snapshot.queryParamMap.get('state') || '';
+      let provider = '';
+      let role: UserRole = this.selectedRole();
+
+      if (stateParam) {
+        const parts = stateParam.split(':');
+        const p = parts[0]?.toLowerCase();
+        if (p === 'github') provider = 'GitHub';
+        else if (p === 'google') provider = 'Google';
+
+        if (parts[1] === 'Employer' || parts[1] === 'Candidate') {
+          role = parts[1] as UserRole;
+        }
+      }
+
+      if (!provider) {
+        provider = sessionStorage.getItem('sb_oauth_provider') || 'GitHub';
+      }
+
+      sessionStorage.removeItem('sb_oauth_provider');
+      sessionStorage.removeItem('sb_oauth_role');
+      this.clearQueryParams();
+      this.isSubmitting.set(true);
+
+      this.authService
+        .socialLogin({
+          provider,
+          code,
+          redirectUri: environment.oauth.redirectUri,
+          role,
+        })
+        .subscribe({
+          next: (response) => {
+            this.isSubmitting.set(false);
+            if (response.role === 'Candidate') {
+              this.router.navigate(['/candidate/onboarding/skills']);
+            } else {
+              this.authService.redirectAfterAuth(response.role);
+            }
+          },
+          error: (err) => {
+            this.isSubmitting.set(false);
+            this.errorMessage.set(extractErrorMessage(err, `Failed to sign in with ${provider}.`));
+          },
+        });
+    }
+  }
+
+  private clearQueryParams(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {},
+      replaceUrl: true,
     });
   }
 
@@ -176,7 +246,11 @@ export class RegisterComponent implements OnInit {
       next: (response) => {
         this.isSubmitting.set(false);
         // AuthService saved token, role, and userId to localStorage
-        this.authService.redirectAfterAuth(response.role);
+        if (response.role === 'Candidate') {
+          this.router.navigate(['/candidate/onboarding/skills']);
+        } else {
+          this.authService.redirectAfterAuth(response.role);
+        }
       },
       error: (err) => {
         this.isSubmitting.set(false);
@@ -184,5 +258,40 @@ export class RegisterComponent implements OnInit {
         this.errorMessage.set(msg);
       },
     });
+  }
+
+  signUpWithSocial(provider: 'Google' | 'GitHub'): void {
+    if (this.isSubmitting()) return;
+    this.dismissAlert();
+
+    const role = this.selectedRole();
+    sessionStorage.setItem('sb_oauth_role', role);
+
+    const redirectUri = encodeURIComponent(environment.oauth.redirectUri);
+    let authUrl = '';
+
+    if (provider === 'Google') {
+      if (!environment.oauth.googleClientId) {
+        this.errorMessage.set('Google Client ID is not configured.');
+        return;
+      }
+      sessionStorage.setItem('sb_oauth_provider', 'Google');
+      authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
+        environment.oauth.googleClientId
+      )}&redirect_uri=${redirectUri}&response_type=code&scope=openid%20email%20profile&access_type=offline&prompt=consent&state=google:${role}:`;
+    } else if (provider === 'GitHub') {
+      if (!environment.oauth.githubClientId) {
+        this.errorMessage.set('GitHub Client ID is not configured.');
+        return;
+      }
+      sessionStorage.setItem('sb_oauth_provider', 'GitHub');
+      authUrl = `https://github.com/login/oauth/authorize?client_id=${encodeURIComponent(
+        environment.oauth.githubClientId
+      )}&redirect_uri=${redirectUri}&scope=user:email&state=github:${role}:`;
+    }
+
+    if (authUrl) {
+      window.location.href = authUrl;
+    }
   }
 }

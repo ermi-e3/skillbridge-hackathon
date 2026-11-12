@@ -10,14 +10,7 @@
       </a>
 
       <div class="top-actions">
-        <button type="button" class="signout-btn" (click)="signOut()" aria-label="Sign out">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
-          <span>Sign Out</span>
-        </button>
+        <app-user-profile-menu />
       </div>
     </header>
 
@@ -55,11 +48,35 @@
       <section class="job-header-card" aria-label="Job Overview">
         <div class="job-header-main">
           <div class="job-title-row">
-            <h1>{{ jobSummary()?.title }}</h1>
-            <span class="status-pill" [class.closed]="!jobSummary()?.isOpen">
-              <span class="status-dot"></span>
-              {{ jobSummary()?.isOpen ? 'Active Opening' : 'Closed' }}
-            </span>
+            <div class="title-with-pill">
+              <h1>{{ jobSummary()?.title }}</h1>
+              <span class="status-pill" [class.closed]="!jobSummary()?.isOpen">
+                <span class="status-dot"></span>
+                {{ jobSummary()?.isOpen ? 'Active Opening' : 'Closed' }}
+              </span>
+            </div>
+
+            <!-- 2-Hour Limit strictly for Editing Job Details -->
+            <div class="job-edit-action-wrap">
+              @if (canEditJob()) {
+                <a class="btn-edit-job-header" [routerLink]="['/employer/jobs', jobId(), 'edit']" [title]="'Job details editable for ' + remainingEditingTime()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  <span>Edit Job Details</span>
+                  <span class="edit-timer-pill">{{ remainingEditingTime() }}</span>
+                </a>
+              } @else {
+                <span class="edit-expired-badge" title="Job editing window closed (2-hour limit from posting)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  <span>Job Details Locked (2h passed)</span>
+                </span>
+              }
+            </div>
           </div>
 
           <div class="job-skills-overview">
@@ -70,6 +87,17 @@
               }
             </div>
           </div>
+
+          @if (jobSummary()?.preferredSkills && jobSummary()!.preferredSkills!.length > 0) {
+            <div class="job-skills-overview preferred-overview">
+              <span class="label preferred-label">Nice-to-Have (Preferred):</span>
+              <div class="skills-wrap">
+                @for (skill of jobSummary()?.preferredSkills; track skill.id) {
+                  <span class="job-skill-chip preferred-chip">{{ skill.name }}</span>
+                }
+              </div>
+            </div>
+          }
         </div>
 
         <!-- Quick Stats -->
@@ -112,66 +140,261 @@
       </section>
     }
 
-    <!-- Filtering Bar -->
-    <div class="filters-bar" aria-label="Filter applicants">
-      <div class="filter-tabs" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          [attr.aria-selected]="statusFilter() === 'All'"
-          class="tab-btn"
-          [class.active]="statusFilter() === 'All'"
-          (click)="setStatusFilter('All')"
-        >
-          All Applicants
-        </button>
-        <button
-          type="button"
-          role="tab"
-          [attr.aria-selected]="statusFilter() === 'Received'"
-          class="tab-btn"
-          [class.active]="statusFilter() === 'Received'"
-          (click)="setStatusFilter('Received')"
-        >
-          Received
-        </button>
-        <button
-          type="button"
-          role="tab"
-          [attr.aria-selected]="statusFilter() === 'Shortlisted'"
-          class="tab-btn"
-          [class.active]="statusFilter() === 'Shortlisted'"
-          (click)="setStatusFilter('Shortlisted')"
-        >
-          Shortlisted
-        </button>
-        <button
-          type="button"
-          role="tab"
-          [attr.aria-selected]="statusFilter() === 'Rejected'"
-          class="tab-btn"
-          [class.active]="statusFilter() === 'Rejected'"
-          (click)="setStatusFilter('Rejected')"
-        >
-          Rejected
-        </button>
+    <!-- Modern Enterprise Applicant Filters -->
+    <section class="modern-filter-card applicants-filter-card" aria-label="Filter applicants">
+      <!-- Row 1: Search Input, Match % Select, Date Filter Drawer Toggle & Reset -->
+      <div class="modern-filter-toolbar">
+        <div class="filter-search-box">
+          <svg class="filter-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="text"
+            id="applicant-name-search"
+            class="filter-search-input"
+            [value]="searchNameQuery()"
+            (input)="onNameSearchInput($event)"
+            placeholder="Search by applicant name or headline..."
+            aria-label="Search applicants by name or headline"
+          />
+          @if (searchNameQuery()) {
+            <button
+              type="button"
+              class="filter-clear-btn"
+              (click)="clearNameSearch()"
+              aria-label="Clear applicant search"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          }
+        </div>
+
+        <div class="filter-quick-controls">
+          <div class="compact-select-wrap">
+            <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            <select
+              id="applicant-match-filter"
+              class="compact-select"
+              [class.has-value]="matchRangeFilter() !== 'all'"
+              [value]="matchRangeFilter()"
+              (change)="onMatchRangeChange($event)"
+              aria-label="Filter by skills match percentage"
+            >
+              <option value="all">Any Match %</option>
+              <option value="100">100% Match</option>
+              <option value="90">90%+ Match</option>
+              <option value="75">75%+ High Match</option>
+              <option value="50">50%+ Moderate</option>
+              <option value="under50">Under 50%</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-toolbar-actions">
+          <button
+            type="button"
+            class="btn-advanced-toggle"
+            [class.is-open]="showAdvancedFilters()"
+            [class.has-active]="datePreset() !== 'all' || appliedFromDate() || appliedToDate()"
+            (click)="toggleAdvancedFilters()"
+            [attr.aria-expanded]="showAdvancedFilters()"
+            aria-controls="applicants-advanced-filters"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>Application Date</span>
+            @if (datePreset() !== 'all' || appliedFromDate() || appliedToDate()) {
+              <span class="active-count-badge">1</span>
+            }
+            <svg class="chevron" [class.rotated]="showAdvancedFilters()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+
+          @if (hasActiveFilters()) {
+            <button type="button" class="btn-reset-filters" (click)="clearAllFilters()" aria-label="Reset all filters">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+              </svg>
+              <span>Reset</span>
+            </button>
+          }
+        </div>
       </div>
 
-      <div class="filter-toggles">
-        <button
-          type="button"
-          class="toggle-btn"
-          [class.active]="fullMatchOnly()"
-          (click)="toggleFullMatch()"
-          [attr.aria-pressed]="fullMatchOnly()"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-          <span>100% Match Only</span>
-        </button>
+      <!-- Row 2: Status Tabs & 100% Match Quick Toggle -->
+      <div class="filters-bar applicants-sub-toolbar">
+        <div class="filter-tabs" role="tablist" aria-label="Application status filter">
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="statusFilter() === 'All'"
+            class="tab-btn"
+            [class.active]="statusFilter() === 'All'"
+            (click)="setStatusFilter('All')"
+          >
+            All Applicants
+          </button>
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="statusFilter() === 'Received'"
+            class="tab-btn"
+            [class.active]="statusFilter() === 'Received'"
+            (click)="setStatusFilter('Received')"
+          >
+            Received
+          </button>
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="statusFilter() === 'Shortlisted'"
+            class="tab-btn"
+            [class.active]="statusFilter() === 'Shortlisted'"
+            (click)="setStatusFilter('Shortlisted')"
+          >
+            Shortlisted
+          </button>
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="statusFilter() === 'Rejected'"
+            class="tab-btn"
+            [class.active]="statusFilter() === 'Rejected'"
+            (click)="setStatusFilter('Rejected')"
+          >
+            Rejected
+          </button>
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="statusFilter() === 'Withdrawn'"
+            class="tab-btn"
+            [class.active]="statusFilter() === 'Withdrawn'"
+            (click)="setStatusFilter('Withdrawn')"
+          >
+            Withdrawn
+          </button>
+        </div>
+
+        <div class="filter-toggles">
+          <button
+            type="button"
+            class="toggle-btn"
+            [class.active]="fullMatchOnly()"
+            (click)="toggleFullMatch()"
+            [attr.aria-pressed]="fullMatchOnly()"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>100% Match Only</span>
+          </button>
+        </div>
       </div>
-    </div>
+
+      <!-- Collapsible Application Date Drawer -->
+      @if (showAdvancedFilters()) {
+        <div id="applicants-advanced-filters" class="advanced-filter-panel">
+          <div class="advanced-filter-grid">
+            <div class="adv-field">
+              <label class="adv-label" for="applicant-date-preset">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                Application Date Preset
+              </label>
+              <select
+                id="applicant-date-preset"
+                class="adv-control"
+                [value]="datePreset()"
+                (change)="onDatePresetChange($event)"
+              >
+                @for (opt of datePresetOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="adv-field">
+              <label class="adv-label" for="applicant-from-date">Applied From</label>
+              <input
+                id="applicant-from-date"
+                type="date"
+                class="adv-control"
+                [value]="appliedFromDate()"
+                (change)="onFromDateChange($event)"
+              />
+            </div>
+
+            <div class="adv-field">
+              <label class="adv-label" for="applicant-to-date">Applied To</label>
+              <input
+                id="applicant-to-date"
+                type="date"
+                class="adv-control"
+                [value]="appliedToDate()"
+                (change)="onToDateChange($event)"
+              />
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Active Filter Pills -->
+      @if (hasActiveFilters()) {
+        <div class="active-filters-summary" aria-label="Active applicant filters">
+          <span class="summary-prefix">Filtered by:</span>
+
+          @if (searchNameQuery().trim()) {
+            <span class="active-filter-pill">
+              <span>Name: "{{ searchNameQuery().trim() }}"</span>
+              <button type="button" class="pill-remove" (click)="clearNameSearch()" aria-label="Clear applicant name filter">&times;</button>
+            </span>
+          }
+
+          @if (statusFilter() !== 'All') {
+            <span class="active-filter-pill">
+              <span>Status: {{ statusFilter() }}</span>
+              <button type="button" class="pill-remove" (click)="setStatusFilter('All')" aria-label="Clear status filter">&times;</button>
+            </span>
+          }
+
+          @if (fullMatchOnly()) {
+            <span class="active-filter-pill">
+              <span>100% Match Only</span>
+              <button type="button" class="pill-remove" (click)="toggleFullMatch()" aria-label="Clear 100% match filter">&times;</button>
+            </span>
+          }
+
+          @if (matchRangeFilter() !== 'all') {
+            <span class="active-filter-pill">
+              <span>Skills Match: {{ getMatchBandLabel(matchRangeFilter()) }}</span>
+              <button type="button" class="pill-remove" (click)="matchRangeFilter.set('all'); currentPage.set(1)" aria-label="Clear match range filter">&times;</button>
+            </span>
+          }
+
+          @if (datePreset() !== 'all' || appliedFromDate() || appliedToDate()) {
+            <span class="active-filter-pill">
+              <span>Date: {{ datePreset() === 'custom' ? ((appliedFromDate() || 'Any') + ' → ' + (appliedToDate() || 'Any')) : datePreset() }}</span>
+              <button type="button" class="pill-remove" (click)="clearDateFilters()" aria-label="Clear application date filter">&times;</button>
+            </span>
+          }
+        </div>
+      }
+    </section>
 
     <!-- Loading Skeleton -->
     @if (isLoading()) {
@@ -190,7 +413,7 @@
           </article>
         }
       </div>
-    } @else if (!errorMessage() && applicants().length === 0) {
+    } @else if (!errorMessage() && filteredApplicants().length === 0) {
       <!-- Empty State -->
       <section class="empty-state">
         <div class="empty-icon" aria-hidden="true">
@@ -202,9 +425,9 @@
           </svg>
         </div>
         <h2>No applicants found</h2>
-        @if (statusFilter() !== 'All' || fullMatchOnly()) {
-          <p>No candidates match the current filter criteria. Try resetting your filters to view all applicants.</p>
-          <button type="button" class="reset-filter-btn" (click)="statusFilter.set('All'); fullMatchOnly.set(false); loadApplicants()">
+        @if (hasActiveFilters()) {
+          <p>No candidates match the current filter criteria. Try adjusting or resetting your filters to view all applicants.</p>
+          <button type="button" class="reset-filter-btn" (click)="clearAllFilters()">
             Clear Filters
           </button>
         } @else {
@@ -214,7 +437,7 @@
     } @else if (!errorMessage()) {
       <!-- Applicants List -->
       <section class="applicants-list" aria-label="Applicants for this job">
-        @for (applicant of applicants(); track applicant.applicationId) {
+        @for (applicant of paginatedApplicants(); track applicant.applicationId) {
           <article class="applicant-card">
             <!-- Card Header: Candidate Info & Badges -->
             <div class="applicant-header">
@@ -267,7 +490,7 @@
 
             <!-- Skills Breakdown Section -->
             <div class="skills-breakdown">
-              @if (applicant.match.matchedSkills.length > 0) {
+              @if (applicant.match.matchedSkills && applicant.match.matchedSkills.length > 0) {
                 <div class="skill-group matched-group">
                   <span class="group-title">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -283,7 +506,7 @@
                 </div>
               }
 
-              @if (applicant.match.missingSkills.length > 0) {
+              @if (applicant.match.missingSkills && applicant.match.missingSkills.length > 0) {
                 <div class="skill-group missing-group">
                   <span class="group-title">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -297,6 +520,34 @@
                       <span class="skill-chip missing">{{ skill.name }}</span>
                     }
                   </div>
+                </div>
+              }
+
+              @if (applicant.match.matchedPreferredSkills && applicant.match.matchedPreferredSkills.length > 0) {
+                <div class="skill-group preferred-group">
+                  <span class="group-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    Matched preferred ({{ applicant.match.matchedPreferredSkills.length }}):
+                  </span>
+                  <div class="chips-row">
+                    @for (skill of applicant.match.matchedPreferredSkills; track skill.id) {
+                      <span class="skill-chip preferred">{{ skill.name }}</span>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (applicant.match.breakdown; as b) {
+                <div class="applicant-breakdown-summary">
+                  <span class="breakdown-tag">Required Skills: {{ b.requiredSkillsScore }}/{{ b.maxRequiredSkillsScore }} pts</span>
+                  @if (b.maxPreferredSkillsScore > 0) {
+                    <span class="breakdown-tag">Preferred: {{ b.preferredSkillsScore }}/{{ b.maxPreferredSkillsScore }} pts</span>
+                  }
+                  <span class="breakdown-tag">Experience: {{ b.experienceScore }}/{{ b.maxExperienceScore }} pts</span>
+                  <span class="breakdown-tag">Arrangement: {{ b.workArrangementScore }}/{{ b.maxWorkArrangementScore }} pts</span>
+                  <span class="breakdown-tag">Location: {{ b.locationScore }}/{{ b.maxLocationScore }} pts</span>
                 </div>
               }
             </div>
@@ -320,12 +571,45 @@
 
               <!-- Action Buttons -->
               <div class="action-buttons">
+                <!-- View Profile Button -->
+                <button
+                  type="button"
+                  class="secondary-action-btn view-profile-btn"
+                  (click)="openApplicantProfile(applicant)"
+                  title="View complete candidate profile"
+                  aria-label="View candidate profile"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  <span>View Profile</span>
+                </button>
+
+                <!-- CV Preview Button if attached -->
+                @if (applicant.hasCv) {
+                  <button
+                    type="button"
+                    class="secondary-action-btn download-cv-btn preview-cv-btn"
+                    (click)="openCvPreview(applicant.applicationId, applicant.cvOriginalFileName, applicant.candidate.fullName)"
+                    [title]="'Preview CV: ' + (applicant.cvOriginalFileName || 'resume')"
+                    aria-label="Preview candidate CV"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <span>CV Preview</span>
+                  </button>
+                }
+
                 @if (applicant.status === 'Received') {
                   <button
                     type="button"
                     class="action-btn shortlist-btn"
                     [disabled]="updatingApplicationId() === applicant.applicationId"
                     (click)="updateStatus(applicant, 'Shortlisted')"
+                    title="Shortlist applicant"
                     aria-label="Shortlist applicant"
                   >
                     @if (updatingApplicationId() === applicant.applicationId) {
@@ -344,6 +628,7 @@
                     class="action-btn reject-btn"
                     [disabled]="updatingApplicationId() === applicant.applicationId"
                     (click)="updateStatus(applicant, 'Rejected')"
+                    title="Reject applicant"
                     aria-label="Reject applicant"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
@@ -362,6 +647,383 @@
           </article>
         }
       </section>
+
+      <app-pagination
+        [currentPage]="effectivePage()"
+        [totalItems]="filteredApplicants().length"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="[5, 10, 20, 50]"
+        itemLabel="applicants"
+        (pageChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)"
+      />
     }
   </div>
+
+  <!-- Candidate Full Profile Modal -->
+  @if (showProfileModal()) {
+    <div
+      class="modal-backdrop"
+      (click)="closeProfileModal()"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalCandidateName"
+    >
+      <div class="modal-card profile-modal" (click)="$event.stopPropagation()">
+        <!-- Modal Header -->
+        <header class="modal-header">
+          <div class="modal-header-info">
+            <div class="modal-avatar">
+              {{ (selectedApplicantProfile()?.fullName || 'A').charAt(0).toUpperCase() }}
+            </div>
+            <div>
+              <h2 id="modalCandidateName" class="modal-candidate-name">
+                {{ selectedApplicantProfile()?.fullName || 'Candidate Profile' }}
+              </h2>
+              @if (selectedApplicantProfile()?.headline) {
+                <p class="modal-candidate-headline">{{ selectedApplicantProfile()?.headline }}</p>
+              }
+            </div>
+          </div>
+          <button
+            type="button"
+            class="modal-close-btn"
+            (click)="closeProfileModal()"
+            aria-label="Close applicant profile modal"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </header>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          @if (isLoadingProfile()) {
+            <div class="modal-loading-state">
+              <div class="spinner-large" aria-hidden="true"></div>
+              <p>Loading candidate profile...</p>
+            </div>
+          } @else if (profileError()) {
+            <div class="modal-error-state" role="alert">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span>{{ profileError() }}</span>
+            </div>
+          } @else if (selectedApplicantProfile(); as prof) {
+            <!-- Candidate Contact & Meta Tags -->
+            <div class="profile-section-card profile-meta-card">
+              <div class="meta-tags-grid">
+                <div class="meta-tag-item">
+                  <span class="meta-label">Email:</span>
+                  <a [href]="'mailto:' + prof.email" class="meta-value link">{{ prof.email }}</a>
+                </div>
+
+                @if (prof.gitHubUrl) {
+                  <div class="meta-tag-item">
+                    <span class="meta-label">GitHub:</span>
+                    <a [href]="prof.gitHubUrl" target="_blank" rel="noopener noreferrer" class="meta-value link">
+                      {{ prof.gitHubUrl }}
+                    </a>
+                  </div>
+                }
+
+                @if (prof.location) {
+                  <div class="meta-tag-item">
+                    <span class="meta-label">Location:</span>
+                    <span class="meta-value">{{ prof.location }}</span>
+                  </div>
+                }
+
+                @if (prof.experienceLevel) {
+                  <div class="meta-tag-item">
+                    <span class="meta-label">Experience Level:</span>
+                    <span class="meta-value">{{ prof.experienceLevel }}</span>
+                  </div>
+                }
+
+                @if (prof.yearsOfExperience !== null && prof.yearsOfExperience !== undefined) {
+                  <div class="meta-tag-item">
+                    <span class="meta-label">Total Experience:</span>
+                    <span class="meta-value">{{ prof.yearsOfExperience }} yr{{ prof.yearsOfExperience === 1 ? '' : 's' }}</span>
+                  </div>
+                }
+
+                @if (prof.preferredWorkArrangement) {
+                  <div class="meta-tag-item">
+                    <span class="meta-label">Preferred Arrangement:</span>
+                    <span class="meta-value">{{ prof.preferredWorkArrangement }}</span>
+                  </div>
+                }
+
+                @if (prof.preferredJobType) {
+                  <div class="meta-tag-item">
+                    <span class="meta-label">Preferred Job Type:</span>
+                    <span class="meta-value">{{ prof.preferredJobType }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- CV Attachment Section -->
+            <div class="profile-section-card cv-section-card">
+              <h3 class="section-heading">Submitted Resume / CV</h3>
+              @if (prof.hasCv) {
+                <div class="modal-cv-download-box">
+                  <div class="cv-file-details">
+                    <div class="cv-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                      </svg>
+                    </div>
+                    <div>
+                      <span class="cv-filename">{{ prof.cvOriginalFileName || 'Attached CV' }}</span>
+                      @if (prof.cvFileSizeBytes) {
+                        <span class="cv-size">{{ formatCvSize(prof.cvFileSizeBytes) }}</span>
+                      }
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn-modal-download-cv btn-modal-preview-cv"
+                    (click)="openCvPreview(prof.applicationId, prof.cvOriginalFileName, prof.fullName)"
+                    title="Preview submitted CV document"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <span>CV Preview</span>
+                  </button>
+                </div>
+              } @else {
+                <p class="no-cv-text">No CV document was attached to this application.</p>
+              }
+            </div>
+
+            <!-- Bio Section -->
+            @if (prof.bio) {
+              <div class="profile-section-card">
+                <h3 class="section-heading">About</h3>
+                <p class="profile-bio-text">{{ prof.bio }}</p>
+              </div>
+            }
+
+            <!-- Skills with Proficiency Section -->
+            @if (prof.skills && prof.skills.length > 0) {
+              <div class="profile-section-card">
+                <h3 class="section-heading">Skills & Proficiency ({{ prof.skills.length }})</h3>
+                <div class="skills-grid-detailed">
+                  @for (s of prof.skills; track s.id) {
+                    <div class="skill-detail-card" [class.is-preferred]="s.isPreferred">
+                      <div class="skill-top">
+                        <span class="skill-name">{{ s.name }}</span>
+                        @if (s.isPreferred) {
+                          <span class="badge-preferred">Preferred</span>
+                        }
+                      </div>
+                      <div class="skill-bottom">
+                        <span class="skill-proficiency">{{ s.proficiency }}</span>
+                        <span class="skill-years">{{ s.yearsOfExperience }} yr{{ s.yearsOfExperience === 1 ? '' : 's' }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Work Experience History Section -->
+            @if (prof.experienceHistory && prof.experienceHistory.length > 0) {
+              <div class="profile-section-card">
+                <h3 class="section-heading">Work Experience ({{ prof.experienceHistory.length }})</h3>
+                <div class="experience-timeline">
+                  @for (exp of prof.experienceHistory; track exp.id || exp.title) {
+                    <div class="experience-item">
+                      <div class="exp-dot"></div>
+                      <div class="exp-content">
+                        <h4 class="exp-title">{{ exp.title }}</h4>
+                        <div class="exp-company-row">
+                          <span class="exp-company">{{ exp.company }}</span>
+                          @if (exp.location) {
+                            <span class="exp-location">• {{ exp.location }}</span>
+                          }
+                          <span class="exp-dates">• {{ formatDateRange(exp.startDate, exp.endDate, exp.isCurrent) }}</span>
+                        </div>
+                        @if (exp.description) {
+                          <p class="exp-desc">{{ exp.description }}</p>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Application Cover Note & Match Score Section -->
+            <div class="profile-section-card">
+              <h3 class="section-heading">Application Details</h3>
+              <div class="app-info-grid">
+                <div>
+                  <span class="meta-label">Status:</span>
+                  <span class="status-badge" [ngClass]="getStatusBadgeClass(prof.applicationStatus)">
+                    {{ prof.applicationStatus }}
+                  </span>
+                </div>
+                <div>
+                  <span class="meta-label">Applied Date:</span>
+                  <span class="meta-value">{{ prof.appliedAt | date: 'medium' }}</span>
+                </div>
+                @if (prof.match) {
+                  <div>
+                    <span class="meta-label">Job Match:</span>
+                    <span class="match-pill" [ngClass]="getMatchBadgeClass(prof.match.percent)">
+                      {{ prof.match.percent }}% Fit
+                    </span>
+                  </div>
+                }
+              </div>
+
+              @if (prof.coverNote) {
+                <div class="modal-cover-note">
+                  <span class="note-label">Candidate Cover Note:</span>
+                  <p class="note-body">"{{ prof.coverNote }}"</p>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Modal Footer -->
+        <footer class="modal-footer">
+          <button type="button" class="btn-close-modal" (click)="closeProfileModal()">
+            Close
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
+
+  <!-- CV Preview Modal -->
+  @if (showCvPreviewModal()) {
+    <div
+      class="modal-backdrop cv-preview-backdrop"
+      (click)="closeCvPreview()"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cv-preview-dialog-title"
+    >
+      <div class="cv-preview-dialog" (click)="$event.stopPropagation()">
+        <header class="cv-preview-header">
+          <div class="cv-preview-title-wrap">
+            <div class="cv-file-badge" [class.docx]="isDocxPreview()">
+              {{ isDocxPreview() ? 'DOCX' : 'PDF' }}
+            </div>
+            <div>
+              <h2 id="cv-preview-dialog-title">
+                {{ cvPreviewCandidateName() ? cvPreviewCandidateName() + ' — CV Preview' : 'CV Document Preview' }}
+              </h2>
+              <span class="cv-preview-subtitle">{{ cvPreviewFileName() || 'Attached CV' }}</span>
+            </div>
+          </div>
+
+          <div class="cv-preview-header-actions">
+            <button
+              type="button"
+              class="btn-preview-download"
+              (click)="downloadCurrentPreviewCv()"
+              [disabled]="cvPreviewLoading() || !!cvPreviewError()"
+              title="Download CV file"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Download CV</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn-preview-close"
+              (click)="closeCvPreview()"
+              aria-label="Close CV preview"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="cv-preview-body">
+          @if (cvPreviewLoading()) {
+            <div class="cv-preview-loading" aria-live="polite">
+              <span class="spinner-large" aria-hidden="true"></span>
+              <p>Loading CV document preview...</p>
+            </div>
+          } @else if (cvPreviewError()) {
+            <div class="cv-preview-error" role="alert">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="error-icon" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <h3>Unable to display CV</h3>
+              <p>{{ cvPreviewError() }}</p>
+              <div class="preview-error-actions">
+                <button type="button" class="btn-retry-preview" (click)="retryCvPreview()">Try Again</button>
+                <button type="button" class="btn-preview-download fallback" (click)="downloadCurrentPreviewCv()">
+                  Download Instead
+                </button>
+              </div>
+            </div>
+          } @else if (isDocxPreview()) {
+            <div class="docx-preview-pane">
+              <div class="docx-card">
+                <div class="docx-icon-large" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                  </svg>
+                </div>
+                <h3>{{ cvPreviewFileName() }}</h3>
+                <span class="docx-format-pill">Word Document (.docx)</span>
+                <p class="docx-note">
+                  This candidate submitted a Microsoft Word document (.docx). Web browsers cannot directly render DOCX files inline. You can download the CV document below to open and review it.
+                </p>
+                <button
+                  type="button"
+                  class="btn-preview-download-prominent"
+                  (click)="downloadCurrentPreviewCv()"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Download CV</span>
+                </button>
+              </div>
+            </div>
+          } @else if (cvPreviewSafeUrl()) {
+            <iframe
+              [src]="cvPreviewSafeUrl()"
+              class="cv-pdf-frame"
+              title="CV Document Viewer"
+            ></iframe>
+          }
+        </div>
+      </div>
+    </div>
+  }
 </main>

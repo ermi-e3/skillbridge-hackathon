@@ -161,7 +161,21 @@ describe('CandidateApplicationsComponent', () => {
     const updated = component.applications().find((a) => a.id === 1);
     expect(updated?.status).toBe('Withdrawn');
 
+    expect(component.withdrawnCount()).toBe(2);
+    expect(component.receivedCount()).toBe(0);
+
     expect(component.successToast()).toContain('withdrawn');
+  });
+
+  it('should compute metrics correctly including withdrawnCount', () => {
+    expect(component.totalCount()).toBe(4);
+    expect(component.receivedCount()).toBe(1);
+    expect(component.shortlistedCount()).toBe(1);
+    expect(component.rejectedCount()).toBe(1);
+    expect(component.withdrawnCount()).toBe(1);
+
+    const withdrawnMetric = fixture.nativeElement.querySelector('.withdrawn-metric .metric-number');
+    expect(withdrawnMetric.textContent.trim()).toBe('1');
   });
 
   it('should display empty state when applications list is empty', () => {
@@ -196,5 +210,54 @@ describe('CandidateApplicationsComponent', () => {
     component.dismissAlert();
     fixture.detectChanges();
     expect(component.errorMessage()).toBeNull();
+  });
+
+  it('should filter applications by job title, status, company, and application date', () => {
+    // Filter by job title
+    component.searchTitleQuery.set('Frontend');
+    fixture.detectChanges();
+    expect(component.filteredApplications().length).toBe(1);
+    expect(component.filteredApplications()[0].jobTitle).toBe('Frontend Angular Specialist');
+
+    // Clear title and filter by status
+    component.clearTitleSearch();
+    component.statusFilter.set('Rejected');
+    fixture.detectChanges();
+    expect(component.filteredApplications().length).toBe(1);
+    expect(component.filteredApplications()[0].id).toBe(3);
+
+    // Filter by company
+    component.statusFilter.set('All');
+    component.companyFilter.set('Alpha Tech');
+    fixture.detectChanges();
+    expect(component.filteredApplications().length).toBe(1);
+    expect(component.filteredApplications()[0].companyName).toBe('Alpha Tech');
+
+    // Filter by custom date range
+    component.companyFilter.set('All');
+    component.appliedFromDate.set('2026-10-09');
+    component.appliedToDate.set('2026-10-10');
+    component.datePreset.set('custom');
+    fixture.detectChanges();
+    expect(component.filteredApplications().length).toBe(2); // id 1 and 2
+  });
+
+  it('should paginate applications and reset to page 1 when filters change', () => {
+    component.pageSize.set(2);
+    fixture.detectChanges();
+
+    expect(component.paginatedApplications().length).toBe(2);
+    expect(component.paginatedApplications()[0].id).toBe(2); // newest first
+
+    component.onPageChange(2);
+    fixture.detectChanges();
+    expect(component.effectivePage()).toBe(2);
+    expect(component.paginatedApplications().length).toBe(2);
+
+    // Filtering resets to page 1
+    component.statusFilter.set('Shortlisted');
+    component.currentPage.set(1);
+    fixture.detectChanges();
+    expect(component.paginatedApplications().length).toBe(1);
   });
 });

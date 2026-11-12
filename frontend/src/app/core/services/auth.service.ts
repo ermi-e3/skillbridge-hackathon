@@ -1,18 +1,28 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { catchError, Observable, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthResponse, AuthUser, LoginRequest, RegisterRequest, UserRole } from '../models/auth.models';
-
-const STORAGE_KEYS = {
-  TOKEN: 'accessToken',
-  ROLE: 'role',
-  USER_ID: 'userId',
-  FULL_NAME: 'fullName',
-  EMAIL: 'email',
-  EXPIRES_AT: 'expiresAt',
-} as const;
+import {
+  AccountSecurityStatus,
+  AuthResponse,
+  AuthUser,
+  ChangeEmailRequest,
+  ChangePasswordRequest,
+  ConfirmChangeEmailRequest,
+  ConfirmEmailRequest,
+  DeleteAccountRequest,
+  ForgotPasswordRequest,
+  LinkedAccount,
+  LoginRequest,
+  RegisterRequest,
+  ResendConfirmationRequest,
+  ResetPasswordRequest,
+  SetPasswordRequest,
+  SocialLoginRequest,
+  UpdateProfileRequest,
+  UserRole,
+} from '../models/auth.models';
 
 @Injectable({
   providedIn: 'root',
@@ -21,10 +31,11 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly baseUrl = `${environment.apiUrl}/auth`;
+  private readonly accountUrl = `${environment.apiUrl}/account`;
 
-  // Signals for reactive state
-  readonly token = signal<string | null>(this.getStoredToken());
-  readonly currentUser = signal<AuthUser | null>(this.getStoredUser());
+  // Stored strictly in Angular memory (no localStorage or sessionStorage)
+  readonly token = signal<string | null>(null);
+  readonly currentUser = signal<AuthUser | null>(null);
   readonly role = computed<UserRole | null>(() => this.currentUser()?.role ?? null);
   readonly isAuthenticated = computed<boolean>(() => !!this.token());
 
@@ -32,48 +43,190 @@ export class AuthService {
    * Log in with email and password
    */
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.baseUrl}/login`, credentials).pipe(
-      tap((response) => this.handleAuthSuccess(response))
-    );
+    return this.http
+      .post<AuthResponse>(`${this.baseUrl}/login`, credentials, { withCredentials: true })
+      .pipe(tap((response) => this.handleAuthSuccess(response)));
   }
 
   /**
    * Register a new Candidate or Employer
    */
   register(payload: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.baseUrl}/register`, payload).pipe(
-      tap((response) => this.handleAuthSuccess(response))
+    return this.http
+      .post<AuthResponse>(`${this.baseUrl}/register`, payload, { withCredentials: true })
+      .pipe(tap((response) => this.handleAuthSuccess(response)));
+  }
+
+  /**
+   * Social login or registration via Google or GitHub
+   */
+  socialLogin(payload: SocialLoginRequest): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.baseUrl}/social-login`, payload, { withCredentials: true })
+      .pipe(tap((response) => this.handleAuthSuccess(response)));
+  }
+
+  /**
+   * Confirm email address with token from verification email
+   */
+  confirmEmail(payload: ConfirmEmailRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/confirm-email`, payload);
+  }
+
+  /**
+   * Resend email confirmation link
+   */
+  resendConfirmation(payload: ResendConfirmationRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/resend-confirmation`, payload);
+  }
+
+  /**
+   * Request password reset link
+   */
+  forgotPassword(payload: ForgotPasswordRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/forgot-password`, payload);
+  }
+
+  /**
+   * Reset password with token from email
+   */
+  resetPassword(payload: ResetPasswordRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/reset-password`, payload);
+  }
+
+  /**
+   * Get account security status (email confirmation, password, linked accounts)
+   */
+  getSecurityStatus(): Observable<AccountSecurityStatus> {
+    return this.http.get<AccountSecurityStatus>(`${this.accountUrl}/security-status`, { withCredentials: true });
+  }
+
+  /**
+   * Update user profile information
+   */
+  updateProfile(payload: UpdateProfileRequest): Observable<AuthUser> {
+    return this.http.put<AuthUser>(`${this.accountUrl}/profile`, payload, { withCredentials: true }).pipe(
+      tap((updated) => {
+        const cur = this.currentUser();
+        if (cur) {
+          this.currentUser.set({
+            ...cur,
+            fullName: updated.fullName,
+            companyName: updated.companyName,
+          });
+        }
+      })
     );
   }
 
   /**
-   * Process and store authentication state in localStorage and signals
+   * Change current password
    */
-  handleAuthSuccess(response: AuthResponse): void {
-    this.saveSession(response);
+  changePassword(payload: ChangePasswordRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.accountUrl}/change-password`, payload, { withCredentials: true });
   }
 
   /**
-   * Store received JWT token, role, and userId via AuthService into localStorage
+   * Set password for accounts created via social login without a password
    */
-  saveSession(response: AuthResponse): void {
-    try {
-      localStorage.setItem(STORAGE_KEYS.TOKEN, response.accessToken);
-      localStorage.setItem(STORAGE_KEYS.ROLE, response.role);
-      localStorage.setItem(STORAGE_KEYS.USER_ID, response.userId);
-      localStorage.setItem(STORAGE_KEYS.EMAIL, response.email);
-      localStorage.setItem(STORAGE_KEYS.FULL_NAME, response.fullName);
-      localStorage.setItem(STORAGE_KEYS.EXPIRES_AT, response.expiresAt);
-    } catch (e) {
-      console.error('Failed to save auth session to localStorage', e);
-    }
+  setPassword(payload: SetPasswordRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.accountUrl}/set-password`, payload, { withCredentials: true });
+  }
 
+  /**
+   * Request email address change
+   */
+  requestEmailChange(payload: ChangeEmailRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.accountUrl}/change-email-request`, payload, { withCredentials: true });
+  }
+
+  /**
+   * Confirm email address change
+   */
+  confirmChangeEmail(payload: ConfirmChangeEmailRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.accountUrl}/confirm-change-email`, payload, { withCredentials: true });
+  }
+
+  /**
+   * Get linked social accounts
+   */
+  getLinkedAccounts(): Observable<LinkedAccount[]> {
+    return this.http.get<LinkedAccount[]>(`${this.accountUrl}/social-accounts`, { withCredentials: true });
+  }
+
+  /**
+   * Link a new social account
+   */
+  linkSocialAccount(payload: SocialLoginRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.accountUrl}/social-accounts/link`, payload, { withCredentials: true });
+  }
+
+  /**
+   * Unlink a social account
+   */
+  unlinkSocialAccount(provider: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.accountUrl}/social-accounts/unlink`, { provider }, { withCredentials: true });
+  }
+
+  /**
+   * Log out from all active devices and sessions
+   */
+  logoutAll(): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.accountUrl}/logout-all`, {}, { withCredentials: true }).pipe(
+      tap(() => {
+        this.token.set(null);
+        this.currentUser.set(null);
+        this.router.navigate(['/login']);
+      })
+    );
+  }
+
+  /**
+   * Delete account permanently
+   */
+  deleteAccount(payload: DeleteAccountRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.accountUrl}/delete`, payload, { withCredentials: true }).pipe(
+      tap(() => {
+        this.token.set(null);
+        this.currentUser.set(null);
+        this.router.navigate(['/login']);
+      })
+    );
+  }
+
+  /**
+   * Exchange the HttpOnly refresh token cookie for a new access token and rotated refresh token
+   */
+  refreshToken(): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.baseUrl}/refresh`, {}, { withCredentials: true })
+      .pipe(tap((response) => this.handleAuthSuccess(response)));
+  }
+
+  /**
+   * Perform silent refresh on app startup to rehydrate in-memory session if a valid refresh cookie exists
+   */
+  initAuth(): Observable<AuthResponse | null> {
+    return this.refreshToken().pipe(
+      catchError(() => {
+        this.token.set(null);
+        this.currentUser.set(null);
+        return of(null);
+      })
+    );
+  }
+
+  /**
+   * Process and store authentication state strictly in memory
+   */
+  handleAuthSuccess(response: AuthResponse): void {
     const user: AuthUser = {
       userId: response.userId,
       email: response.email,
       fullName: response.fullName,
       role: response.role,
       companyName: response.companyName,
+      isEmailConfirmed: response.isEmailConfirmed,
     };
 
     this.token.set(response.accessToken);
@@ -93,19 +246,13 @@ export class AuthService {
   }
 
   /**
-   * Logout user, clear localStorage and redirect to /login
+   * Logout user: revoke token on backend, clear HttpOnly cookie, clear in-memory state and redirect to /login
    */
   logout(): void {
-    try {
-      localStorage.removeItem(STORAGE_KEYS.TOKEN);
-      localStorage.removeItem(STORAGE_KEYS.ROLE);
-      localStorage.removeItem(STORAGE_KEYS.USER_ID);
-      localStorage.removeItem(STORAGE_KEYS.EMAIL);
-      localStorage.removeItem(STORAGE_KEYS.FULL_NAME);
-      localStorage.removeItem(STORAGE_KEYS.EXPIRES_AT);
-    } catch (e) {
-      console.error('Failed to clear auth session from localStorage', e);
-    }
+    this.http
+      .post(`${this.baseUrl}/logout`, {}, { withCredentials: true })
+      .pipe(catchError(() => of(null)))
+      .subscribe();
 
     this.token.set(null);
     this.currentUser.set(null);
@@ -121,44 +268,6 @@ export class AuthService {
   }
 
   getUserId(): string | null {
-    return this.currentUser()?.userId ?? this.getStoredUserId();
-  }
-
-  private getStoredToken(): string | null {
-    try {
-      return localStorage.getItem(STORAGE_KEYS.TOKEN);
-    } catch {
-      return null;
-    }
-  }
-
-  private getStoredUserId(): string | null {
-    try {
-      return localStorage.getItem(STORAGE_KEYS.USER_ID);
-    } catch {
-      return null;
-    }
-  }
-
-  private getStoredUser(): AuthUser | null {
-    try {
-      const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
-      const userId = localStorage.getItem(STORAGE_KEYS.USER_ID);
-      const email = localStorage.getItem(STORAGE_KEYS.EMAIL);
-      const fullName = localStorage.getItem(STORAGE_KEYS.FULL_NAME);
-      const role = localStorage.getItem(STORAGE_KEYS.ROLE) as UserRole | null;
-
-      if (token && userId && email && fullName && (role === 'Candidate' || role === 'Employer')) {
-        return {
-          userId,
-          email,
-          fullName,
-          role,
-        };
-      }
-      return null;
-    } catch {
-      return null;
-    }
+    return this.currentUser()?.userId ?? null;
   }
 }

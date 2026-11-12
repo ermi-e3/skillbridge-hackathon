@@ -12,4 +12,9 @@ public sealed record ApplicationDto(
     DateTime? StatusChangedAt,
     string? CoverNote,
     int MatchPercent,
-    JobMatchDto? Match);
+    JobMatchDto? Match,
+    bool HasCv = false,
+    string? CvOriginalFileName = null,
+    long? CvFileSizeBytes = null,
+    DateTime? CvUploadedAt = null,
+    string? CvDownloadUrl = null);

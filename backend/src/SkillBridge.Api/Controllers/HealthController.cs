@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SkillBridge.Infrastructure.Persistence;
 
@@ -5,6 +6,7 @@ namespace SkillBridge.Api.Controllers;
 
 /// <summary>Smoke test for the whole chain: Angular → API → PostgreSQL in Docker.</summary>
 [ApiController]
+[AllowAnonymous]
 [Route("api/health")]
 public sealed class HealthController(AppDbContext db) : ControllerBase
 {

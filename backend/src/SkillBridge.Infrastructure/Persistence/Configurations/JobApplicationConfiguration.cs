@@ -22,6 +22,11 @@ public class JobApplicationConfiguration : IEntityTypeConfiguration<JobApplicati
         builder.Property(a => a.Status).IsRequired().HasConversion<string>().HasMaxLength(20);
         builder.Property(a => a.CoverNote).HasMaxLength(JobApplication.CoverNoteMaxLength);
         builder.Property(a => a.AppliedAt).IsRequired();
+        builder.Property(a => a.CvFileName).HasMaxLength(500);
+        builder.Property(a => a.CvOriginalFileName).HasMaxLength(255);
+        builder.Property(a => a.CvContentType).HasMaxLength(100);
+        builder.Property(a => a.CvFileSizeBytes);
+        builder.Property(a => a.CvUploadedAt);
         builder.Property(a => a.Version).IsRowVersion(); // PostgreSQL xmin
 
         // CandidateId → AspNetUsers.Id. A user with applications cannot be deleted.

@@ -5,8 +5,26 @@
   <title>SkillBridge — Skills-Matched Jobs & Internships</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="SkillBridge matches candidates to internships and entry-level jobs based on their real skills. Employers find talent that fits. Start bridging the gap today.">
-  <meta name="theme-color" content="#0d9488">
+  <meta name="description" content="SkillBridge matches candidates to jobs and internships based on their real verified skills across diverse industries. Employers find talent that fits.">
+  <meta name="theme-color" content="#f8fafc">
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('skillbridge_theme');
+        var pref = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var resolved = pref === 'dark' || (pref === 'system' && prefersDark) ? 'dark' : 'light';
+        var root = document.documentElement;
+        root.setAttribute('data-theme', resolved);
+        root.setAttribute('data-theme-preference', pref);
+        root.style.colorScheme = resolved;
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) {
+          meta.setAttribute('content', resolved === 'dark' ? '#0b1120' : '#f8fafc');
+        }
+      } catch (e) {}
+    })();
+  </script>
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="logo.png">

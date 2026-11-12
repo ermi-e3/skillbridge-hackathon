@@ -39,20 +39,16 @@
           <span>Back to Jobs</span>
         </a>
         <h1 class="page-title">Candidate Profile</h1>
-        <p class="page-subtitle">Curate your professional headline and technical skills to match with Ethiopian tech employers</p>
+        <p class="page-subtitle">Curate your professional headline and skills to match with Ethiopian employers across industries</p>
       </div>
 
-      @if (candidateUser(); as user) {
-        <div class="candidate-pill">
-          <div class="candidate-avatar">
-            {{ user.fullName ? user.fullName[0].toUpperCase() : 'C' }}
-          </div>
-          <div class="candidate-meta">
-            <span class="candidate-name">{{ user.fullName }}</span>
-            <span class="candidate-email">{{ user.email }}</span>
-          </div>
-        </div>
-      }
+      <div class="header-right">
+        <app-user-profile-menu
+          [fallbackName]="candidateUser()?.fullName ?? null"
+          [fallbackEmail]="candidateUser()?.email ?? null"
+          fallbackRole="Candidate"
+        />
+      </div>
     </header>
 
     <!-- Error Alert Banner -->
@@ -135,7 +131,7 @@
                   id="headline"
                   type="text"
                   formControlName="headline"
-                  placeholder="e.g. Junior .NET Developer | ASP.NET Core & PostgreSQL"
+                  placeholder="e.g. Senior Operations Manager | Strategic Planning & Team Leadership"
                   class="form-input"
                   [attr.aria-invalid]="headlineControl?.invalid && headlineControl?.touched"
                   aria-describedby="headline-error"
@@ -229,8 +225,304 @@
           </div>
         </section>
 
-        <!-- Card 2: Multi-select Skill Picker (1 to 30 skills) -->
-        <section class="card section-card">
+        <!-- Default Resume / CV Section Card -->
+        <section class="card section-card default-cv-card">
+          <div class="card-header">
+            <div class="card-icon-box cv-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+            </div>
+            <div>
+              <h2 class="card-title">Default Resume / CV</h2>
+              <p class="card-desc">Attach a master CV to your profile to quickly reuse it across job applications without re-uploading.</p>
+            </div>
+          </div>
+
+          <div class="card-body">
+            @if (cvUploadError()) {
+              <div class="inline-error cv-alert-error" role="alert">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span>{{ cvUploadError() }}</span>
+              </div>
+            }
+
+            <input
+              #defaultCvFileInput
+              type="file"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              (change)="onDefaultCvSelected($event, defaultCvFileInput)"
+              class="hidden-file-input"
+            />
+
+            @if (hasDefaultCv()) {
+              <div class="default-cv-active-card">
+                <div class="cv-file-details">
+                  <div class="cv-file-icon-wrap" [class.docx]="defaultCvOriginalFileName()?.toLowerCase()?.endsWith('.docx')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    <span class="file-ext-pill">{{ defaultCvOriginalFileName()?.toLowerCase()?.endsWith('.docx') ? 'DOCX' : 'PDF' }}</span>
+                  </div>
+                  <div class="cv-file-text">
+                    <div class="cv-filename" [title]="defaultCvOriginalFileName()">{{ defaultCvOriginalFileName() }}</div>
+                    <div class="cv-meta-line">
+                      <span>{{ formatFileSize(defaultCvFileSizeBytes()) }}</span>
+                      @if (defaultCvUploadedAt()) {
+                        <span class="dot-sep">•</span>
+                        <span>Updated {{ defaultCvUploadedAt() | date: 'mediumDate' }}</span>
+                      }
+                      <span class="active-badge">Profile Default CV</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="cv-actions-group">
+                  <button
+                    type="button"
+                    class="btn-cv-action btn-cv-preview"
+                    (click)="openDefaultCvPreview()"
+                    title="Preview your default CV"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <span>CV Preview</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn-cv-action btn-cv-replace"
+                    (click)="defaultCvFileInput.click()"
+                    [disabled]="isUploadingCv()"
+                    title="Replace with another file"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="17 8 12 3 7 8"></polyline>
+                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span>Replace CV</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn-cv-action btn-cv-delete"
+                    (click)="removeDefaultCv()"
+                    [disabled]="isDeletingCv() || isUploadingCv()"
+                    title="Remove default CV"
+                  >
+                    @if (isDeletingCv()) {
+                      <span class="spinner-small" aria-hidden="true"></span>
+                      <span>Removing...</span>
+                    } @else {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
+                      <span>Remove</span>
+                    }
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <!-- Empty state: Upload dropzone -->
+              <div
+                class="default-cv-dropzone"
+                (dragover)="onDragOver($event)"
+                (drop)="onDefaultCvDropped($event, defaultCvFileInput)"
+                (click)="defaultCvFileInput.click()"
+                role="button"
+                tabindex="0"
+                (keydown.enter)="defaultCvFileInput.click()"
+                (keydown.space)="defaultCvFileInput.click()"
+              >
+                @if (isUploadingCv()) {
+                  <div class="dropzone-loading">
+                    <span class="spinner-large" aria-hidden="true"></span>
+                    <span class="dropzone-title">Uploading default CV...</span>
+                  </div>
+                } @else {
+                  <div class="dropzone-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="17 8 12 3 7 8"></polyline>
+                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                  </div>
+                  <div class="dropzone-text">
+                    <span class="dropzone-title">Upload Default Resume / CV</span>
+                    <span class="dropzone-sub">Drag & drop or <span class="browse-link">browse file</span></span>
+                    <span class="dropzone-hint">Supported formats: PDF or DOCX (max 5 MB)</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- Card 2: Career Preferences & Matching Criteria -->
+        <section class="card section-card matching-criteria-card">
+          <div class="card-header">
+            <div class="card-icon-box matching-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+            </div>
+            <div>
+              <div class="category-badge-inline">
+                <span class="category-pill criteria-pill">Career Preferences</span>
+              </div>
+              <h2 class="card-title">Career Preferences & Matching Criteria</h2>
+              <p class="card-desc">
+                Set your work preferences and seniority level to get matched with the most relevant positions.
+              </p>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <!-- Row 1: Location & Work Arrangement -->
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label for="location" class="form-label">
+                  Your Location (City / Region)
+                </label>
+                <div class="input-wrapper" [class.has-error]="locationControl?.invalid && (locationControl?.touched || locationControl?.dirty)">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                  <input
+                    id="location"
+                    type="text"
+                    formControlName="location"
+                    placeholder="e.g. Addis Ababa, Ethiopia"
+                    class="form-input"
+                    maxlength="100"
+                  />
+                </div>
+                <span class="field-hint">Used for location compatibility. Remote openings automatically match.</span>
+              </div>
+
+              <div class="form-group">
+                <label for="preferredWorkArrangement" class="form-label">
+                  Work Arrangement Preference
+                </label>
+                <div class="input-wrapper select-wrapper">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                  </svg>
+                  <select
+                    id="preferredWorkArrangement"
+                    formControlName="preferredWorkArrangement"
+                    class="form-input form-select"
+                  >
+                    <option value="" disabled selected>Select work arrangement</option>
+                    <option value="Remote">Remote</option>
+                    <option value="Hybrid">Hybrid</option>
+                    <option value="OnSite">On-site</option>
+                  </select>
+                </div>
+                <span class="field-hint">Matches your preference against employer job arrangement requirements.</span>
+              </div>
+            </div>
+
+            <!-- Row 2: Job Type & Experience Level -->
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label for="preferredJobType" class="form-label">
+                  Job Type Preference
+                </label>
+                <div class="input-wrapper select-wrapper">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                  </svg>
+                  <select
+                    id="preferredJobType"
+                    formControlName="preferredJobType"
+                    class="form-input form-select"
+                  >
+                    <option value="" disabled selected>Select job type</option>
+                    <option value="FullTime">Full-time</option>
+                    <option value="PartTime">Part-time</option>
+                    <option value="Contract">Contract</option>
+                    <option value="Internship">Internship</option>
+                    <option value="Freelance">Freelance</option>
+                  </select>
+                </div>
+                <span class="field-hint">Target employment type for recommendations.</span>
+              </div>
+
+              <div class="form-group">
+                <label for="experienceLevel" class="form-label">
+                  Experience Level
+                </label>
+                <div class="input-wrapper select-wrapper">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <polyline points="17 11 19 13 23 9"></polyline>
+                  </svg>
+                  <select
+                    id="experienceLevel"
+                    formControlName="experienceLevel"
+                    class="form-input form-select"
+                  >
+                    <option value="" disabled selected>Select experience level</option>
+                    <option value="EntryLevel">Entry Level</option>
+                    <option value="Junior">Junior</option>
+                    <option value="MidLevel">Mid Level</option>
+                    <option value="Senior">Senior</option>
+                    <option value="Lead">Lead / Architect</option>
+                  </select>
+                </div>
+                <span class="field-hint">Assessed against the position's required seniority tier.</span>
+              </div>
+            </div>
+
+            <!-- Row 3: Years of Professional Experience -->
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label for="yearsOfExperience" class="form-label">
+                  Total Professional Experience (Years)
+                </label>
+                <div class="input-wrapper" [class.has-error]="yearsOfExperienceControl?.invalid && (yearsOfExperienceControl?.touched || yearsOfExperienceControl?.dirty)">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <input
+                    id="yearsOfExperience"
+                    type="number"
+                    min="0"
+                    max="50"
+                    formControlName="yearsOfExperience"
+                    placeholder="e.g. 3"
+                    class="form-input"
+                  />
+                </div>
+                <span class="field-hint">Validated against minimum experience year thresholds set by employers.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Card 3: Primary Core Skills -->
+        <section class="card section-card core-skills-section">
           <div class="card-header skills-header-row">
             <div class="header-title-group">
               <div class="card-icon-box skill-icon-box">
@@ -239,9 +531,12 @@
                 </svg>
               </div>
               <div>
-                <h2 class="card-title">Technical Skills Catalog</h2>
+                <div class="category-badge-inline">
+                  <span class="category-pill primary-pill">Core Skills</span>
+                </div>
+                <h2 class="card-title">Primary Core Skills</h2>
                 <p class="card-desc">
-                  Select between <strong>1 and 30 skills</strong>. The server uses these exact tags to compute your match score against job openings.
+                  Select between <strong>1 and 20 core skills</strong>. These represent your primary qualifications and competencies for personalized job matching.
                 </p>
               </div>
             </div>
@@ -249,41 +544,56 @@
             <!-- Skills Counter Pill -->
             <div
               class="skills-counter-pill"
-              [class.counter-valid]="selectedSkillIds().length >= 1 && selectedSkillIds().length <= 30"
+              [class.counter-valid]="selectedSkillIds().length >= 1 && selectedSkillIds().length <= 20"
               [class.counter-empty]="selectedSkillIds().length === 0"
-              [class.counter-overflow]="selectedSkillIds().length > 30"
+              [class.counter-overflow]="selectedSkillIds().length > 20"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="counter-icon">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
-              <span>Selected: <strong>{{ selectedSkillIds().length }}</strong> / 30</span>
+              <span>Selected: <strong>{{ selectedSkillIds().length }}</strong> / 20</span>
             </div>
           </div>
 
           <div class="card-body">
-            <!-- Search & Filter Bar -->
-            <div class="skills-search-bar">
-              <div class="search-input-wrapper">
-                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                <input
-                  type="text"
-                  [value]="skillSearchQuery()"
-                  (input)="onSearchChange($event)"
-                  placeholder="Filter skills (e.g. C#, ASP.NET, Angular, Docker)..."
-                  class="search-input"
-                />
-                @if (skillSearchQuery()) {
-                  <button type="button" class="clear-search-btn" (click)="clearSearch()" aria-label="Clear filter">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
+            <!-- Selected Core Skills Chips Tray (Removable compact chips above the dropdown) -->
+            <div class="selected-skills-tray-container">
+              <div class="tray-header-row">
+                <span class="tray-label">Selected Core Skills ({{ selectedCoreSkills().length }}):</span>
+                @if (selectedCoreSkills().length > 0) {
+                  <button type="button" class="btn-clear-tray" (click)="clearAllCoreSkills()">Clear all</button>
                 }
               </div>
+
+              @if (selectedCoreSkills().length > 0) {
+                <div class="selected-chips-grid">
+                  @for (skill of selectedCoreSkills(); track skill.id) {
+                    <span class="selected-chip chip-core">
+                      <span class="chip-name">{{ skill.name }}</span>
+                      <button
+                        type="button"
+                        class="chip-remove-btn"
+                        [attr.aria-label]="'Remove ' + skill.name"
+                        (click)="removeCoreSkill(skill.id)"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </span>
+                  }
+                </div>
+              } @else {
+                <div class="empty-tray-notice">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  <span>No core skills selected yet. Open the dropdown below to select between 1 and 20 skills.</span>
+                </div>
+              }
             </div>
 
             <!-- Validation Feedback for Skills -->
@@ -293,41 +603,389 @@
                   <circle cx="12" cy="12" r="10"></circle>
                 </svg>
                 @if (skillIdsControl?.errors?.['minSkills']) {
-                  <span>Please select at least 1 technical skill to qualify for job matching.</span>
+                  <span>Please select at least 1 core skill to qualify for job matching.</span>
                 } @else if (skillIdsControl?.errors?.['maxSkills']) {
-                  <span>You can select a maximum of 30 skills.</span>
+                  <span>You can select a maximum of 20 core skills.</span>
                 }
               </div>
             }
 
-            <!-- Clickable Chips Grid -->
-            <div class="chips-container" role="group" aria-label="Available technical skills">
-              @for (skill of filteredSkills(); track skill.id) {
-                <button
-                  type="button"
-                  class="skill-chip"
-                  [class.selected]="isSkillSelected(skill.id)"
-                  (click)="toggleSkill(skill.id)"
-                  [attr.aria-pressed]="isSkillSelected(skill.id)"
-                >
-                  @if (isSkillSelected(skill.id)) {
-                    <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  } @else {
-                    <svg class="chip-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                  }
-                  <span class="chip-label">{{ skill.name }}</span>
-                </button>
-              }
+            <!-- Modern Searchable Multi-Select Dropdown Component -->
+            <div class="multi-select-dropdown-wrapper core-dropdown-wrapper" [class.is-open]="isCoreDropdownOpen()">
+              <label class="dropdown-field-label">Add Core Skills</label>
 
-              @if (filteredSkills().length === 0) {
-                <div class="empty-skills-search">
-                  <p>No skills match "{{ skillSearchQuery() }}".</p>
-                  <button type="button" class="reset-filter-btn" (click)="clearSearch()">Clear filter</button>
+              <!-- Dropdown Trigger Button -->
+              <div
+                class="dropdown-trigger-bar"
+                [class.active]="isCoreDropdownOpen()"
+                (click)="toggleCoreDropdown($event)"
+                role="combobox"
+                [attr.aria-expanded]="isCoreDropdownOpen()"
+                aria-haspopup="listbox"
+                tabindex="0"
+                (keydown.enter)="toggleCoreDropdown($event)"
+                (keydown.space)="toggleCoreDropdown($event)"
+              >
+                <div class="trigger-left">
+                  <svg class="trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  <span class="trigger-text">
+                    @if (selectedSkillIds().length === 0) {
+                      Click to search & select core skills...
+                    } @else if (selectedSkillIds().length >= 20) {
+                      Maximum 20 core skills selected (click to edit)
+                    } @else {
+                      Search & add more skills ({{ 20 - selectedSkillIds().length }} remaining)...
+                    }
+                  </span>
+                </div>
+
+                <div class="trigger-right">
+                  <span class="trigger-badge">{{ selectedSkillIds().length }}/20</span>
+                  <svg class="chevron-icon" [class.rotated]="isCoreDropdownOpen()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Dropdown Panel (Smooth overlay menu) -->
+              @if (isCoreDropdownOpen()) {
+                <div class="dropdown-panel-menu" role="listbox" (click)="$event.stopPropagation()">
+                  <!-- Live Search Bar inside Dropdown -->
+                  <div class="dropdown-search-header">
+                    <div class="search-input-box">
+                      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                      <input
+                        type="text"
+                        [value]="skillSearchQuery()"
+                        (input)="onSearchChange($event)"
+                        placeholder="Search skills (e.g. Project Management, Financial Analysis, Patient Care, Python)..."
+                        class="dropdown-search-input"
+                        autofocus
+                      />
+                      @if (skillSearchQuery()) {
+                        <button type="button" class="btn-clear-search" (click)="clearSearch()" aria-label="Clear filter">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Category Filter Tabs inside Dropdown -->
+                  <div class="dropdown-category-bar" role="tablist" aria-label="Skill Categories">
+                    @for (cat of categories; track cat.id) {
+                      <button
+                        type="button"
+                        class="category-tab-btn"
+                        [class.active]="activeCategory() === cat.id"
+                        (click)="setCategory(cat.id)"
+                        role="tab"
+                        [attr.aria-selected]="activeCategory() === cat.id"
+                      >
+                        {{ cat.name }}
+                      </button>
+                    }
+                  </div>
+
+                  <!-- Available Skills List -->
+                  <div class="dropdown-items-list" role="group">
+                    @for (skill of filteredSkills(); track skill.id) {
+                      <div
+                        class="dropdown-item-row"
+                        [class.is-selected]="isSkillSelected(skill.id)"
+                        [class.is-in-other]="isPreferredSkillSelected(skill.id)"
+                        [class.is-disabled]="!isSkillSelected(skill.id) && selectedSkillIds().length >= 20"
+                        (click)="toggleSkill(skill.id)"
+                        role="option"
+                        [attr.aria-selected]="isSkillSelected(skill.id)"
+                        tabindex="0"
+                        (keydown.enter)="toggleSkill(skill.id)"
+                        (keydown.space)="toggleSkill(skill.id); $event.preventDefault()"
+                      >
+                        <!-- Checkbox Box with Checkmark -->
+                        <div class="item-checkbox" [class.checked]="isSkillSelected(skill.id)">
+                          @if (isSkillSelected(skill.id)) {
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          }
+                        </div>
+
+                        <!-- Skill Name and Category -->
+                        <div class="item-details">
+                          <span class="item-name">{{ skill.name }}</span>
+                          <span class="item-category-tag">{{ getSkillCategoryName(skill.name) }}</span>
+                        </div>
+
+                        <!-- Status Badge (e.g. In Nice-to-Have, Limit) -->
+                        <div class="item-status-col">
+                          @if (isPreferredSkillSelected(skill.id)) {
+                            <span class="other-group-badge" title="Click to move from Nice-to-Have to Core">In Nice-to-Have</span>
+                          } @else if (isSkillSelected(skill.id)) {
+                            <span class="selected-text-badge">Core Selected</span>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    @if (filteredSkills().length === 0) {
+                      <div class="dropdown-empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <p>No skills match "{{ skillSearchQuery() }}"</p>
+                        <button type="button" class="btn-reset-filters" (click)="clearSearch(); setCategory('all')">
+                          Clear search & filters
+                        </button>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Dropdown Footer -->
+                  <div class="dropdown-panel-footer">
+                    <span class="footer-count-text">
+                      <strong>{{ selectedSkillIds().length }}</strong> of 20 core skills selected
+                    </span>
+                    <button type="button" class="btn-dropdown-done" (click)="closeCoreDropdown()">
+                      Done
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- Card 4: Nice-to-Have Skills (Preferred Competencies) Section -->
+        <section class="card section-card preferred-skills-card">
+          <div class="card-header skills-header-row preferred-header-row">
+            <div class="header-title-group">
+              <div class="card-icon-box preferred-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+              </div>
+              <div>
+                <div class="category-badge-inline">
+                  <span class="category-pill preferred-pill">Nice-to-Have Skills</span>
+                  <span class="bonus-badge">Bonus Match Points</span>
+                </div>
+                <h2 class="card-title">Nice-to-Have Skills (Preferred Competencies)</h2>
+                <p class="card-desc">
+                  Highlight secondary tools, methodologies, or competencies you know (up to 15). When employers mark these as nice-to-have, you will earn <strong>bonus matching points</strong> without being penalized if an opening doesn't need them!
+                </p>
+              </div>
+            </div>
+
+            <!-- Preferred Counter Pill -->
+            <div
+              class="skills-counter-pill preferred-counter-pill"
+              [class.counter-valid]="selectedPreferredSkillIds().length > 0"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="counter-icon">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+              <span>Selected: <strong>{{ selectedPreferredSkillIds().length }}</strong> / 15</span>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <!-- Selected Preferred Skills Chips Tray -->
+            <div class="selected-skills-tray-container preferred-tray-container">
+              <div class="tray-header-row">
+                <span class="tray-label">Selected Nice-to-Have Skills ({{ selectedPreferredSkills().length }}):</span>
+                @if (selectedPreferredSkills().length > 0) {
+                  <button type="button" class="btn-clear-tray" (click)="clearAllPreferredSkills()">Clear all</button>
+                }
+              </div>
+
+              @if (selectedPreferredSkills().length > 0) {
+                <div class="selected-chips-grid">
+                  @for (skill of selectedPreferredSkills(); track skill.id) {
+                    <span class="selected-chip chip-preferred">
+                      <span class="chip-name">{{ skill.name }}</span>
+                      <button
+                        type="button"
+                        class="chip-remove-btn"
+                        [attr.aria-label]="'Remove preferred skill ' + skill.name"
+                        (click)="removePreferredSkill(skill.id)"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </span>
+                  }
+                </div>
+              } @else {
+                <div class="empty-tray-notice preferred-empty-notice">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                  <span>No nice-to-have skills selected yet (optional, up to 15). Select secondary skills in the dropdown below.</span>
+                </div>
+              }
+            </div>
+
+            <!-- Modern Searchable Multi-Select Dropdown Component (Purple Accent) -->
+            <div class="multi-select-dropdown-wrapper preferred-dropdown-wrapper" [class.is-open]="isPreferredDropdownOpen()">
+              <label class="dropdown-field-label">Add Nice-to-Have Skills</label>
+
+              <!-- Dropdown Trigger Button -->
+              <div
+                class="dropdown-trigger-bar trigger-preferred"
+                [class.active]="isPreferredDropdownOpen()"
+                (click)="togglePreferredDropdown($event)"
+                role="combobox"
+                [attr.aria-expanded]="isPreferredDropdownOpen()"
+                aria-haspopup="listbox"
+                tabindex="0"
+                (keydown.enter)="togglePreferredDropdown($event)"
+                (keydown.space)="togglePreferredDropdown($event)"
+              >
+                <div class="trigger-left">
+                  <svg class="trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  <span class="trigger-text">
+                    @if (selectedPreferredSkillIds().length === 0) {
+                      Click to search & select nice-to-have skills...
+                    } @else if (selectedPreferredSkillIds().length >= 15) {
+                      Maximum 15 nice-to-have skills selected (click to edit)
+                    } @else {
+                      Search & add secondary skills ({{ 15 - selectedPreferredSkillIds().length }} remaining)...
+                    }
+                  </span>
+                </div>
+
+                <div class="trigger-right">
+                  <span class="trigger-badge badge-preferred">{{ selectedPreferredSkillIds().length }}/15</span>
+                  <svg class="chevron-icon" [class.rotated]="isPreferredDropdownOpen()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Dropdown Panel (Smooth overlay menu) -->
+              @if (isPreferredDropdownOpen()) {
+                <div class="dropdown-panel-menu panel-preferred" role="listbox" (click)="$event.stopPropagation()">
+                  <!-- Live Search Bar inside Dropdown -->
+                  <div class="dropdown-search-header">
+                    <div class="search-input-box">
+                      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                      <input
+                        type="text"
+                        [value]="preferredSkillSearchQuery()"
+                        (input)="onPreferredSearchChange($event)"
+                        placeholder="Search nice-to-have skills (e.g. Redis, GraphQL, Flutter, AWS)..."
+                        class="dropdown-search-input"
+                        autofocus
+                      />
+                      @if (preferredSkillSearchQuery()) {
+                        <button type="button" class="btn-clear-search" (click)="clearPreferredSearch()" aria-label="Clear filter">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Category Filter Tabs inside Dropdown -->
+                  <div class="dropdown-category-bar" role="tablist" aria-label="Preferred Skill Categories">
+                    @for (cat of categories; track cat.id) {
+                      <button
+                        type="button"
+                        class="category-tab-btn tab-btn-preferred"
+                        [class.active]="activePreferredCategory() === cat.id"
+                        (click)="setPreferredCategory(cat.id)"
+                        role="tab"
+                        [attr.aria-selected]="activePreferredCategory() === cat.id"
+                      >
+                        {{ cat.name }}
+                      </button>
+                    }
+                  </div>
+
+                  <!-- Available Skills List -->
+                  <div class="dropdown-items-list" role="group">
+                    @for (skill of filteredPreferredSkills(); track skill.id) {
+                      <div
+                        class="dropdown-item-row row-preferred"
+                        [class.is-selected]="isPreferredSkillSelected(skill.id)"
+                        [class.is-in-other]="isSkillSelected(skill.id)"
+                        [class.is-disabled]="!isPreferredSkillSelected(skill.id) && selectedPreferredSkillIds().length >= 15"
+                        (click)="togglePreferredSkill(skill.id)"
+                        role="option"
+                        [attr.aria-selected]="isPreferredSkillSelected(skill.id)"
+                        tabindex="0"
+                        (keydown.enter)="togglePreferredSkill(skill.id)"
+                        (keydown.space)="togglePreferredSkill(skill.id); $event.preventDefault()"
+                      >
+                        <!-- Checkbox Box with Checkmark -->
+                        <div class="item-checkbox checkbox-preferred" [class.checked]="isPreferredSkillSelected(skill.id)">
+                          @if (isPreferredSkillSelected(skill.id)) {
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          }
+                        </div>
+
+                        <!-- Skill Name and Category -->
+                        <div class="item-details">
+                          <span class="item-name">{{ skill.name }}</span>
+                          <span class="item-category-tag">{{ getSkillCategoryName(skill.name) }}</span>
+                        </div>
+
+                        <!-- Status Badge (e.g. In Core, Limit) -->
+                        <div class="item-status-col">
+                          @if (isSkillSelected(skill.id)) {
+                            <span class="other-group-badge core-group-badge" title="Click to move from Core to Nice-to-Have">In Core Skills</span>
+                          } @else if (isPreferredSkillSelected(skill.id)) {
+                            <span class="selected-text-badge badge-preferred-text">Nice-to-Have Selected</span>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    @if (filteredPreferredSkills().length === 0) {
+                      <div class="dropdown-empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <p>No skills match "{{ preferredSkillSearchQuery() }}"</p>
+                        <button type="button" class="btn-reset-filters" (click)="clearPreferredSearch(); setPreferredCategory('all')">
+                          Clear search & filters
+                        </button>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Dropdown Footer -->
+                  <div class="dropdown-panel-footer">
+                    <span class="footer-count-text">
+                      <strong>{{ selectedPreferredSkillIds().length }}</strong> of 15 nice-to-have skills selected
+                    </span>
+                    <button type="button" class="btn-dropdown-done btn-done-preferred" (click)="closePreferredDropdown()">
+                      Done
+                    </button>
+                  </div>
                 </div>
               }
             </div>
@@ -377,4 +1035,106 @@
       </form>
     }
   </div>
+
+  <!-- CV Preview Modal -->
+  @if (showCvPreviewModal()) {
+    <div
+      class="modal-backdrop cv-preview-backdrop"
+      (click)="closeCvPreview()"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="profile-cv-preview-title"
+    >
+      <div class="cv-preview-dialog" (click)="$event.stopPropagation()">
+        <header class="cv-preview-header">
+          <div class="cv-preview-title-wrap">
+            <div class="cv-file-badge" [class.docx]="isDocxPreview()">
+              {{ isDocxPreview() ? 'DOCX' : 'PDF' }}
+            </div>
+            <div>
+              <h2 id="profile-cv-preview-title">Default Profile CV Preview</h2>
+              <span class="cv-preview-subtitle">{{ defaultCvOriginalFileName() || 'Resume / CV' }}</span>
+            </div>
+          </div>
+
+          <div class="cv-preview-header-actions">
+            <button
+              type="button"
+              class="btn-preview-download"
+              (click)="downloadCurrentPreviewCv()"
+              title="Download CV"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Download CV</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn-preview-close"
+              (click)="closeCvPreview()"
+              aria-label="Close CV Preview"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="cv-preview-body">
+          @if (cvPreviewLoading()) {
+            <div class="cv-preview-loading">
+              <span class="spinner-large" aria-hidden="true"></span>
+              <span>Loading CV preview...</span>
+            </div>
+          } @else if (cvPreviewError()) {
+            <div class="cv-preview-error">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <p>{{ cvPreviewError() }}</p>
+              <button type="button" class="btn-preview-download" (click)="downloadDefaultCv()">
+                Download file instead
+              </button>
+            </div>
+          } @else if (isDocxPreview()) {
+            <div class="cv-docx-placeholder">
+              <div class="docx-doc-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+              </div>
+              <h3>Word Document (.docx)</h3>
+              <p>In-browser preview is optimized for PDF documents. You can download the file to view your full CV.</p>
+              <button type="button" class="btn-preview-download" (click)="downloadCurrentPreviewCv()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Download {{ defaultCvOriginalFileName() || 'CV.docx' }}</span>
+              </button>
+            </div>
+          } @else if (cvPreviewSafeUrl()) {
+            <iframe
+              [src]="cvPreviewSafeUrl()"
+              class="cv-pdf-frame"
+              title="Candidate Default CV PDF Viewer"
+            ></iframe>
+          }
+        </div>
+      </div>
+    </div>
+  }
 </div>

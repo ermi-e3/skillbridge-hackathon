@@ -1,23 +1,22 @@
-// Palette tokens from specification & screenshot
-$primary: #0d9488; // Teal-600
-$primary-hover: #0f766e; // Teal-700
-$primary-light: #ccfbf1; // Teal-100
-$primary-focus: rgba(13, 148, 136, 0.25);
+$primary: var(--primary);
+$primary-hover: var(--primary-hover);
+$primary-light: var(--primary-light);
+$primary-focus: var(--primary-ring);
 
-$neutral-bg: #f8fafc; // Slate-50
-$neutral-card: #ffffff;
-$neutral-text: #1e293b; // Slate-800
-$neutral-muted: #64748b; // Slate-500
-$neutral-border: #e2e8f0; // Slate-200
-$neutral-border-focus: #cbd5e1; // Slate-300
+$neutral-bg: var(--bg);
+$neutral-card: var(--surface);
+$neutral-text: var(--ink);
+$neutral-muted: var(--ink-muted);
+$neutral-border: var(--line);
+$neutral-border-focus: var(--line-strong);
 
-$accent: #f97316; // Orange-500
-$accent-hover: #ea580c; // Orange-600
-$accent-light: #ffedd5; // Orange-100
+$accent: var(--accent);
+$accent-hover: var(--accent-hover);
+$accent-light: var(--accent-light);
 
-$danger: #dc2626; // Red-600
-$danger-bg: #fef2f2; // Red-50
-$danger-border: #fecaca; // Red-200
+$danger: var(--danger);
+$danger-bg: var(--danger-soft);
+$danger-border: var(--danger-border);
 
 .auth-page {
   min-height: 100vh;
@@ -25,8 +24,8 @@ $danger-border: #fecaca; // Red-200
   align-items: center;
   justify-content: center;
   background-color: $neutral-bg;
-  background-image: radial-gradient(at 0% 0%, rgba(13, 148, 136, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(249, 115, 22, 0.06) 0px, transparent 50%);
+  background-image: radial-gradient(at 0% 0%, var(--mesh-teal) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, var(--mesh-accent) 0px, transparent 50%);
   padding: 1.5rem;
   box-sizing: border-box;
 }
@@ -37,7 +36,7 @@ $danger-border: #fecaca; // Red-200
   background: $neutral-card;
   border: 1px solid $neutral-border;
   border-radius: 16px;
-  box-shadow: 0 10px 25px -5px rgba(30, 41, 59, 0.06), 0 8px 10px -6px rgba(30, 41, 59, 0.04);
+  box-shadow: var(--shadow-lg);
   padding: 2.25rem;
   box-sizing: border-box;
   animation: fadeIn 0.25s ease-out;
@@ -54,7 +53,6 @@ $danger-border: #fecaca; // Red-200
   }
 }
 
-// Brand Header
 .auth-header {
   text-align: center;
   margin-bottom: 1.75rem;
@@ -64,7 +62,7 @@ $danger-border: #fecaca; // Red-200
     align-items: center;
     gap: 0.5rem;
     padding: 0.375rem 0.875rem;
-    background: $primary-light;
+    background: var(--primary-tint);
     border-radius: 9999px;
     margin-bottom: 1rem;
 
@@ -73,14 +71,14 @@ $danger-border: #fecaca; // Red-200
       width: 1.25rem;
       height: 1.25rem;
       object-fit: contain;
-      color: $primary;
+      color: var(--primary-text);
     }
 
     .brand-title {
       font-size: 0.875rem;
       font-weight: 700;
       letter-spacing: -0.01em;
-      color: $primary;
+      color: var(--primary-text);
     }
   }
 
@@ -100,7 +98,6 @@ $danger-border: #fecaca; // Red-200
   }
 }
 
-// Dismissible Alert Banner
 .alert-banner {
   display: flex;
   align-items: flex-start;
@@ -117,7 +114,7 @@ $danger-border: #fecaca; // Red-200
     display: flex;
     align-items: flex-start;
     gap: 0.625rem;
-    color: $danger;
+    color: var(--danger-text);
 
     .alert-icon {
       width: 1.25rem;
@@ -137,8 +134,8 @@ $danger-border: #fecaca; // Red-200
     background: transparent;
     border: none;
     cursor: pointer;
-    color: $danger;
-    opacity: 0.7;
+    color: var(--danger-text);
+    opacity: 0.75;
     padding: 0.125rem;
     display: flex;
     align-items: center;
@@ -167,7 +164,6 @@ $danger-border: #fecaca; // Red-200
   }
 }
 
-// Form Elements
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -182,7 +178,7 @@ $danger-border: #fecaca; // Red-200
   .form-label {
     font-size: 0.875rem;
     font-weight: 600;
-    color: $neutral-text;
+    color: var(--ink-strong);
   }
 
   .password-label-row {
@@ -196,13 +192,14 @@ $danger-border: #fecaca; // Red-200
   position: relative;
   display: flex;
   align-items: center;
-  border: 1px solid $neutral-border;
+  border: 1px solid $neutral-border-focus;
   border-radius: 8px;
-  background: $neutral-card;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  background: var(--surface-muted);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 
   &:focus-within {
     border-color: $primary;
+    background: var(--surface);
     box-shadow: 0 0 0 3px $primary-focus;
   }
 
@@ -210,7 +207,7 @@ $danger-border: #fecaca; // Red-200
     border-color: $danger;
 
     &:focus-within {
-      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+      box-shadow: 0 0 0 3px var(--danger-ring);
     }
 
     .input-icon {
@@ -239,7 +236,7 @@ $danger-border: #fecaca; // Red-200
     box-sizing: border-box;
 
     &::placeholder {
-      color: #94a3b8;
+      color: var(--ink-faint);
     }
 
     &:focus {
@@ -271,12 +268,11 @@ $danger-border: #fecaca; // Red-200
   }
 }
 
-// Inline Reactive Error
 .inline-error {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  color: $danger;
+  color: var(--danger-text);
   font-size: 0.8125rem;
   font-weight: 500;
   margin-top: 0.125rem;
@@ -289,7 +285,6 @@ $danger-border: #fecaca; // Red-200
   }
 }
 
-// Submit Button
 .submit-btn {
   display: inline-flex;
   align-items: center;
@@ -298,8 +293,8 @@ $danger-border: #fecaca; // Red-200
   width: 100%;
   padding: 0.75rem 1.25rem;
   margin-top: 0.5rem;
-  background-color: $primary;
-  color: #ffffff;
+  background-color: var(--primary-btn-bg);
+  color: var(--primary-btn-ink);
   font-size: 0.9375rem;
   font-weight: 600;
   border: none;
@@ -308,7 +303,7 @@ $danger-border: #fecaca; // Red-200
   transition: background-color 0.15s ease, transform 0.05s ease, opacity 0.15s ease;
 
   &:hover:not(:disabled) {
-    background-color: $primary-hover;
+    background-color: var(--primary-btn-hover);
   }
 
   &:active:not(:disabled) {
@@ -346,7 +341,6 @@ $danger-border: #fecaca; // Red-200
   }
 }
 
-// Quick Demo Fill Chips
 .demo-helpers {
   margin-top: 1.5rem;
   padding-top: 1.25rem;
@@ -376,17 +370,17 @@ $danger-border: #fecaca; // Red-200
     padding: 0.35rem 0.75rem;
     font-size: 0.75rem;
     font-weight: 600;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
+    background: var(--bg-subtle);
+    border: 1px solid var(--line);
     border-radius: 6px;
-    color: $neutral-text;
+    color: var(--ink-strong);
     cursor: pointer;
     transition: all 0.15s ease;
 
     &:hover {
       background: $primary-light;
       border-color: $primary;
-      color: $primary;
+      color: var(--primary-text);
     }
 
     .chip-dot {
@@ -405,7 +399,82 @@ $danger-border: #fecaca; // Red-200
   }
 }
 
-// Footer
+.forgot-link {
+  font-size: 0.8rem;
+  color: $primary;
+  text-decoration: none;
+  font-weight: 500;
+
+  &:hover {
+    color: $primary-hover;
+    text-decoration: underline;
+  }
+}
+
+.password-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.social-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0 1rem;
+  color: $neutral-muted;
+  font-size: 0.8rem;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid $neutral-border;
+  }
+
+  span {
+    padding: 0 0.75rem;
+  }
+}
+
+.social-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem;
+}
+
+.social-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.5rem;
+  background: var(--surface-muted);
+  border: 1px solid $neutral-border;
+  border-radius: 8px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--ink-strong);
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--bg-subtle);
+    border-color: $neutral-border-focus;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .social-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+}
+
 .auth-footer {
   margin-top: 1.5rem;
   text-align: center;

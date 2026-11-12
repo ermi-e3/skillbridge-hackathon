@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { CreateJobRequest, EmployerJobDto, JobDto, PagedJobsResponse } from '../models/job.models';
+import { CreateJobRequest, EmployerJobDto, JobDto, PagedJobsResponse, UpdateJobRequest } from '../models/job.models';
 
 @Injectable({
   providedIn: 'root',
@@ -12,20 +12,23 @@ export class JobsService {
   private readonly baseUrl = `${environment.apiUrl}/jobs`;
 
   /**
-   * Fetch open jobs with optional multi-skill filtering and title search.
+   * Fetch open jobs with optional multi-skill filtering, search, work arrangement, job type, and experience level.
    * Seamlessly handles both JobDto[] and PagedJobsResponse shapes from the server.
    */
-  getJobs(skillIds?: number[], search?: string): Observable<JobDto[]> {
-    let params = new HttpParams();
-
-    if (skillIds && skillIds.length > 0) {
-      // Pass comma-separated skillIds (e.g. ?skillIds=1,2) as per endpoint specification
-      params = params.set('skillIds', skillIds.join(','));
-    }
-
-    if (search && search.trim().length > 0) {
-      params = params.set('search', search.trim());
-    }
+  getJobs(
+    skillIds?: number[],
+    search?: string,
+    sort?: string,
+    page?: number,
+    pageSize?: number,
+    jobType?: string,
+    workArrangement?: string,
+    experienceLevel?: string,
+    location?: string
+  ): Observable<JobDto[]> {
+    const params = this.buildJobQueryParams(
+      skillIds, search, sort, page, pageSize, jobType, workArrangement, experienceLevel, location
+    );
 
     return this.http.get<JobDto[] | PagedJobsResponse>(this.baseUrl, { params }).pipe(
       map((response) => {
@@ -38,6 +41,102 @@ export class JobsService {
         return [];
       })
     );
+  }
+
+  /**
+   * Fetch open jobs with full server-side pagination metadata.
+   */
+  getJobsPaged(
+    skillIds?: number[],
+    search?: string,
+    sort?: string,
+    page = 1,
+    pageSize = 9,
+    jobType?: string,
+    workArrangement?: string,
+    experienceLevel?: string,
+    location?: string
+  ): Observable<PagedJobsResponse> {
+    const params = this.buildJobQueryParams(
+      skillIds, search, sort, page, pageSize, jobType, workArrangement, experienceLevel, location
+    );
+
+    return this.http.get<JobDto[] | PagedJobsResponse>(this.baseUrl, { params }).pipe(
+      map((response) => {
+        if (Array.isArray(response)) {
+          return {
+            items: response,
+            page,
+            pageSize,
+            totalCount: response.length,
+            totalPages: Math.max(1, Math.ceil(response.length / pageSize)),
+          };
+        }
+        const items = response?.items ?? [];
+        const totalCount = response?.totalCount ?? items.length;
+        const resolvedSize = response?.pageSize ?? pageSize;
+        const totalPages = response?.totalPages ?? Math.max(1, Math.ceil(totalCount / resolvedSize));
+        return {
+          items,
+          page: response?.page ?? page,
+          pageSize: resolvedSize,
+          totalCount,
+          totalPages,
+        };
+      })
+    );
+  }
+
+  private buildJobQueryParams(
+    skillIds?: number[],
+    search?: string,
+    sort?: string,
+    page?: number,
+    pageSize?: number,
+    jobType?: string,
+    workArrangement?: string,
+    experienceLevel?: string,
+    location?: string
+  ): HttpParams {
+    let params = new HttpParams();
+
+    if (skillIds && skillIds.length > 0) {
+      params = params.set('skillIds', skillIds.join(','));
+    }
+
+    if (search && search.trim().length > 0) {
+      params = params.set('search', search.trim());
+    }
+
+    if (sort) {
+      params = params.set('sort', sort);
+    }
+
+    if (page) {
+      params = params.set('page', page.toString());
+    }
+
+    if (pageSize) {
+      params = params.set('pageSize', pageSize.toString());
+    }
+
+    if (jobType) {
+      params = params.set('jobType', jobType);
+    }
+
+    if (workArrangement) {
+      params = params.set('workArrangement', workArrangement);
+    }
+
+    if (experienceLevel) {
+      params = params.set('experienceLevel', experienceLevel);
+    }
+
+    if (location && location.trim().length > 0) {
+      params = params.set('location', location.trim());
+    }
+
+    return params;
   }
 
   /**
@@ -61,5 +160,21 @@ export class JobsService {
 
   createJob(payload: CreateJobRequest): Observable<JobDto> {
     return this.postJob(payload);
+  }
+
+  /**
+   * Update an existing job opening
+   * PUT /api/jobs/:id
+   */
+  updateJob(id: number, payload: UpdateJobRequest): Observable<JobDto> {
+    return this.http.put<JobDto>(`${this.baseUrl}/${id}`, payload);
+  }
+
+  /**
+   * Manually close a job opening before deadline
+   * PATCH /api/jobs/:id/close
+   */
+  closeJob(id: number): Observable<JobDto> {
+    return this.http.patch<JobDto>(`${this.baseUrl}/${id}/close`, {});
   }
 }

@@ -38,4 +38,24 @@ public sealed class ApplicationsController(ApplicationsService applicationsServi
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApplicationDto>> Withdraw(int id, CancellationToken ct) =>
         Ok(await applicationsService.WithdrawAsync(id, ct));
+
+    [HttpGet("{id:int}/cv")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DownloadCv(int id, CancellationToken ct)
+    {
+        var result = await applicationsService.GetCvFileAsync(id, ct);
+        return File(result.Stream, result.ContentType, result.FileName);
+    }
+
+    [HttpGet("{id:int}/candidate-profile")]
+    [Authorize(Roles = Roles.Employer)]
+    [ProducesResponseType<ApplicantProfileDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApplicantProfileDto>> GetApplicantProfile(int id, CancellationToken ct) =>
+        Ok(await applicationsService.GetApplicantProfileByApplicationIdAsync(id, ct));
 }

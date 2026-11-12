@@ -12,6 +12,12 @@ public class Skill
         NormalizedName = Normalize(name);
     }
 
+    public Skill(string name)
+    {
+        Name = name.Trim();
+        NormalizedName = Normalize(name);
+    }
+
     public int Id { get; private set; }
     public string Name { get; private set; } = null!;
     public string NormalizedName { get; private set; } = null!;

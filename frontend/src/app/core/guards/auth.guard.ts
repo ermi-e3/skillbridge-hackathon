@@ -26,11 +26,7 @@ export const roleGuard = (requiredRole: 'Candidate' | 'Employer'): CanActivateFn
       return true;
     }
 
-    // Role mismatch: redirect to their respective home
-    const role = authService.getRole();
-    if (role === 'Employer') {
-      return router.createUrlTree(['/employer/jobs']);
-    }
-    return router.createUrlTree(['/jobs']);
+    // Role mismatch: redirect unauthorized users to /unauthorized
+    return router.createUrlTree(['/unauthorized']);
   };
 };

@@ -19,6 +19,42 @@ export const routes: Routes = [
       import('./features/auth/register/register.component').then((m) => m.RegisterComponent),
   },
   {
+    path: 'confirm-email',
+    loadComponent: () =>
+      import('./features/auth/confirm-email/confirm-email.component').then(
+        (m) => m.ConfirmEmailComponent
+      ),
+  },
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./features/auth/forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent
+      ),
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password.component').then(
+        (m) => m.ResetPasswordComponent
+      ),
+  },
+  {
+    path: 'account/security',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/account/account-security.component').then(
+        (m) => m.AccountSecurityComponent
+      ),
+  },
+  {
+    path: 'unauthorized',
+    loadComponent: () =>
+      import('./features/auth/unauthorized/unauthorized.component').then(
+        (m) => m.UnauthorizedComponent
+      ),
+  },
+  {
     path: 'jobs',
     canActivate: [authGuard, roleGuard('Candidate')],
     loadComponent: () =>
@@ -33,6 +69,19 @@ export const routes: Routes = [
       import('./features/candidate/jobs/job-detail/job-detail.component').then(
         (m) => m.JobDetailComponent
       ),
+  },
+  {
+    path: 'candidate/onboarding/skills',
+    canActivate: [authGuard, roleGuard('Candidate')],
+    loadComponent: () =>
+      import('./features/candidate/onboarding/candidate-skill-onboarding.component').then(
+        (m) => m.CandidateSkillOnboardingComponent
+      ),
+  },
+  {
+    path: 'candidate/skill-registration',
+    redirectTo: 'candidate/onboarding/skills',
+    pathMatch: 'full',
   },
   {
     path: 'candidate/profile',
@@ -69,12 +118,28 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'employer/jobs/:id/edit',
+    canActivate: [authGuard, roleGuard('Employer')],
+    loadComponent: () =>
+      import('./features/employer/jobs/employer-post-job/employer-post-job.component').then(
+        (m) => m.EmployerPostJobComponent
+      ),
+  },
+  {
     path: 'employer/jobs/:id/applicants',
     canActivate: [authGuard, roleGuard('Employer')],
     loadComponent: () =>
       import(
         './features/employer/jobs/employer-job-applicants/employer-job-applicants.component'
       ).then((m) => m.EmployerJobApplicantsComponent),
+  },
+  {
+    path: 'employer/applications',
+    canActivate: [authGuard, roleGuard('Employer')],
+    loadComponent: () =>
+      import('./features/employer/applications/employer-applications.component').then(
+        (m) => m.EmployerApplicationsComponent
+      ),
   },
   {
     path: 'employer/jobs',

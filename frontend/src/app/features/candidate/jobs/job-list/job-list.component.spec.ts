@@ -6,6 +6,7 @@ import { SkillDto } from '../../../../core/models/profile.models';
 import { AuthService } from '../../../../core/services/auth.service';
 import { JobsService } from '../../../../core/services/jobs.service';
 import { SkillsService } from '../../../../core/services/skills.service';
+import { ProfileService } from '../../../../core/services/profile.service';
 import { JobListComponent } from './job-list.component';
 
 describe('JobListComponent', () => {
@@ -20,6 +21,10 @@ describe('JobListComponent', () => {
   };
   let authServiceSpy: {
     logout: ReturnType<typeof vi.fn>;
+    getRole: ReturnType<typeof vi.fn>;
+  };
+  let profileServiceSpy: {
+    getMyProfile: ReturnType<typeof vi.fn>;
   };
 
   const mockSkills: SkillDto[] = [
@@ -68,6 +73,18 @@ describe('JobListComponent', () => {
       myMatchPercent: 33, // Red < 50%
       hasApplied: false,
     },
+    {
+      id: 104,
+      title: 'DevOps Engineer',
+      description: 'Manage cloud infrastructure.',
+      companyName: 'Cloud Ethio',
+      location: 'Remote',
+      createdAt: '2026-10-07T12:00:00Z',
+      requiredSkills: [{ id: 1, name: 'ASP.NET Core' }],
+      myMatchPercent: 70,
+      hasApplied: true,
+      applicationStatus: 'Withdrawn',
+    },
   ];
 
   beforeEach(async () => {
@@ -79,6 +96,10 @@ describe('JobListComponent', () => {
     };
     authServiceSpy = {
       logout: vi.fn(),
+      getRole: vi.fn().mockReturnValue('Candidate'),
+    };
+    profileServiceSpy = {
+      getMyProfile: vi.fn().mockReturnValue(of({ skills: [{ id: 1, name: 'ASP.NET Core' }] })),
     };
 
     await TestBed.configureTestingModule({
@@ -88,6 +109,7 @@ describe('JobListComponent', () => {
         { provide: JobsService, useValue: jobsServiceSpy },
         { provide: SkillsService, useValue: skillsServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
+        { provide: ProfileService, useValue: profileServiceSpy },
       ],
     }).compileComponents();
 
@@ -136,7 +158,7 @@ describe('JobListComponent', () => {
 
   it('should display color-coded match % badges (Green >= 75%, Yellow 50-74%, Red < 50%)', () => {
     const cards = fixture.nativeElement.querySelectorAll('.job-card');
-    expect(cards.length).toBe(3);
+    expect(cards.length).toBe(4);
 
     // Job 1: 85% -> match-high (Green)
     const matchBadge1 = cards[0].querySelector('.match-badge');
@@ -166,6 +188,16 @@ describe('JobListComponent', () => {
     expect(appliedBadge).toBeTruthy();
     expect(appliedBadge.textContent).toContain('Applied');
     expect(cards[1].classList).toContain('has-applied-card');
+  });
+
+  it('should display withdrawn badge and styling when application is withdrawn', () => {
+    const cards = fixture.nativeElement.querySelectorAll('.job-card');
+    const withdrawnCard = cards[3];
+
+    expect(withdrawnCard.querySelector('.badge-withdrawn')).toBeTruthy();
+    expect(withdrawnCard.querySelector('.badge-withdrawn').textContent).toContain('Withdrawn');
+    expect(withdrawnCard.querySelector('.applied-badge')).toBeNull();
+    expect(withdrawnCard.classList).toContain('withdrawn-card');
   });
 
   it('should render View Job link with correct routerLink', () => {
@@ -198,5 +230,138 @@ describe('JobListComponent', () => {
     component.dismissAlert();
     fixture.detectChanges();
     expect(component.errorMessage()).toBeNull();
+  });
+
+  it('should display days remaining countdown on job cards with deadline', () => {
+    const futureDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 60000).toISOString();
+    jobsServiceSpy.getJobs.mockReturnValue(of([{ ...mockJobs[0], deadline: futureDate, isOpen: true }]));
+    component.loadJobs();
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.job-card');
+    const chip = card.querySelector('.countdown-chip');
+    expect(chip).toBeTruthy();
+    expect(chip.textContent).toContain('3 days left');
+  });
+
+  it('should display red urgent chip with warning icon when deadline is within 24 hours on job card', () => {
+    const nearDate = new Date(Date.now() + 12 * 60 * 60 * 1000 + 60000).toISOString();
+    jobsServiceSpy.getJobs.mockReturnValue(of([{ ...mockJobs[0], deadline: nearDate, isOpen: true }]));
+    component.loadJobs();
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.job-card');
+    const chip = card.querySelector('.countdown-chip.urgent');
+    expect(chip).toBeTruthy();
+    expect(chip.textContent).toContain('Closing soon: 12h left');
+  });
+
+  it('should display Closed badge when job.isOpen is false', () => {
+    jobsServiceSpy.getJobs.mockReturnValue(of([{ ...mockJobs[0], isOpen: false }]));
+    component.loadJobs();
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.job-card');
+    const closedBadge = card.querySelector('.badge-closed');
+    expect(closedBadge).toBeTruthy();
+    expect(closedBadge.textContent).toContain('Closed');
+  });
+
+  it('should toggle and filter skills in the searchable multi-select dropdown', () => {
+    // Open skills dropdown
+    component.toggleDropdown('skills');
+    expect(component.activeDropdown()).toBe('skills');
+
+    // Type query in skill search
+    component.skillFilterSearch.set('Angular');
+    expect(component.visibleSkills().length).toBe(1);
+    expect(component.visibleSkills()[0].name).toBe('Angular');
+
+    // Clear skill search
+    component.clearSkillSearch();
+    expect(component.visibleSkills().length).toBe(3);
+
+    // Escape closes dropdown
+    component.onEscape();
+    expect(component.activeDropdown()).toBeNull();
+  });
+
+  it('should render compact tags in the active filters tray and remove tags on click', () => {
+    // Select two skills
+    component.toggleSkillFilter(1); // ASP.NET Core
+    component.toggleSkillFilter(2); // Angular
+    fixture.detectChanges();
+
+    expect(component.hasActiveFilters()).toBe(true);
+    const tray = fixture.nativeElement.querySelector('.active-filters-tray');
+    expect(tray).toBeTruthy();
+
+    const skillTags = tray.querySelectorAll('.active-filter-tag.skill-tag');
+    expect(skillTags.length).toBe(2);
+    expect(skillTags[0].textContent).toContain('ASP.NET Core');
+
+    // Click remove button on the first tag
+    const removeBtn = skillTags[0].querySelector('.remove-tag-btn');
+    removeBtn.click();
+    fixture.detectChanges();
+
+    expect(component.selectedSkillIds()).toEqual([2]);
+    expect(jobsServiceSpy.getJobs).toHaveBeenCalledWith([2]);
+  });
+
+  it('should filter by primary search keyword, work arrangement, job type, and experience level', () => {
+    // Search keyword
+    component.searchKeyword.set('Full Stack');
+    component.setWorkArrangement('Remote');
+    component.setJobType('FullTime');
+    component.setExperienceLevel('Senior');
+    fixture.detectChanges();
+
+    expect(jobsServiceSpy.getJobs).toHaveBeenCalledWith(
+      [],
+      'Full Stack',
+      'newest',
+      1,
+      50,
+      'FullTime',
+      'Remote',
+      'Senior'
+    );
+
+    // Active tags show all selected filters
+    const tray = fixture.nativeElement.querySelector('.active-filters-tray');
+    expect(tray).toBeTruthy();
+    expect(tray.textContent).toContain('"Full Stack"');
+    expect(tray.textContent).toContain('Remote');
+    expect(tray.textContent).toContain('Full-time');
+    expect(tray.textContent).toContain('Senior');
+
+    // Reset all filters
+    component.clearAllFilters();
+    fixture.detectChanges();
+
+    expect(component.selectedSkillIds()).toEqual([]);
+    expect(component.selectedWorkArrangement()).toBe('All');
+    expect(component.selectedJobType()).toBe('All');
+    expect(component.selectedExperienceLevel()).toBe('All');
+    expect(component.searchKeyword()).toBe('');
+    expect(component.hasActiveFilters()).toBe(false);
+  });
+
+  it('should paginate jobs cleanly across pages', () => {
+    component.pageSize.set(2);
+    fixture.detectChanges();
+
+    expect(component.paginatedJobs().length).toBe(2);
+    expect(component.paginatedJobs()[0].id).toBe(101);
+    expect(component.paginatedJobs()[1].id).toBe(102);
+
+    component.onPageChange(2);
+    fixture.detectChanges();
+
+    expect(component.currentPage()).toBe(2);
+    expect(component.paginatedJobs().length).toBe(2);
+    expect(component.paginatedJobs()[0].id).toBe(103);
+    expect(component.paginatedJobs()[1].id).toBe(104);
   });
 });

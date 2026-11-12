@@ -1,0 +1,232 @@
+<div class="user-profile-menu" [class.is-open]="isOpen()">
+  <div class="user-nav-controls">
+    <app-theme-toggle variant="icon" />
+
+    <!-- Circular Profile Avatar Trigger -->
+    <button
+      type="button"
+      class="user-avatar-trigger"
+      (click)="toggleMenu($event)"
+      aria-haspopup="menu"
+      [attr.aria-expanded]="isOpen()"
+      [attr.aria-label]="'Account menu for ' + displayName()"
+      [title]="displayName() + (displayEmail() ? ' (' + displayEmail() + ')' : '')"
+    >
+      <span class="avatar-circle" aria-hidden="true">{{ initials() }}</span>
+      <svg
+        class="trigger-chevron"
+        [class.rotated]="isOpen()"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        aria-hidden="true"
+      >
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Modern Enterprise User Dropdown Panel -->
+  @if (isOpen()) {
+    <div class="profile-dropdown-panel" role="menu" aria-label="User navigation menu">
+      <!-- Dynamic User Identity Header -->
+      <div class="dropdown-user-header">
+        <div class="header-avatar-badge" aria-hidden="true">
+          {{ initials() }}
+        </div>
+        <div class="header-user-meta">
+          <span class="user-full-name" [title]="displayName()">{{ displayName() }}</span>
+          @if (displayEmail()) {
+            <span class="user-email" [title]="displayEmail()">{{ displayEmail() }}</span>
+          }
+          <div class="user-role-row">
+            <span class="role-pill" [class.employer]="displayRole() === 'Employer'">
+              {{ displayRole() }}
+            </span>
+            @if (displayRole() === 'Employer' && companyName()) {
+              <span class="company-meta" [title]="companyName()!">{{ companyName() }}</span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="dropdown-divider" role="separator"></div>
+
+      <!-- Role-Specific Navigation Items -->
+      <div class="dropdown-nav-group">
+        @if (displayRole() === 'Employer') {
+          <a
+            routerLink="/account/security"
+            fragment="profile"
+            routerLinkActive="active-item"
+            class="dropdown-item"
+            role="menuitem"
+            (click)="closeMenu()"
+          >
+            <span class="item-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </span>
+            <span class="item-copy">
+              <span class="item-title">Profile</span>
+              <span class="item-subtitle">Personal &amp; company info</span>
+            </span>
+          </a>
+
+          <a
+            routerLink="/employer/jobs"
+            routerLinkActive="active-item"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="dropdown-item"
+            role="menuitem"
+            (click)="closeMenu()"
+          >
+            <span class="item-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+              </svg>
+            </span>
+            <span class="item-copy">
+              <span class="item-title">Jobs</span>
+              <span class="item-subtitle">Manage posted openings</span>
+            </span>
+          </a>
+
+          <a
+            routerLink="/employer/applications"
+            routerLinkActive="active-item"
+            class="dropdown-item"
+            role="menuitem"
+            (click)="closeMenu()"
+          >
+            <span class="item-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </span>
+            <span class="item-copy">
+              <span class="item-title">Applications</span>
+              <span class="item-subtitle">Review job applicants</span>
+            </span>
+          </a>
+
+          <a
+            routerLink="/account/security"
+            fragment="security"
+            routerLinkActive="active-item"
+            class="dropdown-item"
+            role="menuitem"
+            (click)="closeMenu()"
+          >
+            <span class="item-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+            </span>
+            <span class="item-copy">
+              <span class="item-title">Settings</span>
+              <span class="item-subtitle">Account &amp; security</span>
+            </span>
+          </a>
+        } @else {
+          <a
+            routerLink="/candidate/profile"
+            routerLinkActive="active-item"
+            class="dropdown-item"
+            role="menuitem"
+            (click)="closeMenu()"
+          >
+            <span class="item-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </span>
+            <span class="item-copy">
+              <span class="item-title">Profile</span>
+              <span class="item-subtitle">Profile &amp; skills management</span>
+            </span>
+          </a>
+
+          <a
+            routerLink="/my-applications"
+            routerLinkActive="active-item"
+            class="dropdown-item"
+            role="menuitem"
+            (click)="closeMenu()"
+          >
+            <span class="item-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+            </span>
+            <span class="item-copy">
+              <span class="item-title">Applications</span>
+              <span class="item-subtitle">My Applications</span>
+            </span>
+          </a>
+
+          <a
+            routerLink="/account/security"
+            routerLinkActive="active-item"
+            class="dropdown-item"
+            role="menuitem"
+            (click)="closeMenu()"
+          >
+            <span class="item-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+            </span>
+            <span class="item-copy">
+              <span class="item-title">Settings</span>
+              <span class="item-subtitle">Account &amp; security</span>
+            </span>
+          </a>
+        }
+      </div>
+
+      <div class="dropdown-divider" role="separator"></div>
+
+      <!-- Theme Switcher -->
+      <div class="dropdown-theme-section">
+        <span class="theme-section-label">Appearance</span>
+        <app-theme-toggle variant="segmented" />
+      </div>
+
+      <div class="dropdown-divider" role="separator"></div>
+
+      <!-- Sign Out Action -->
+      <div class="dropdown-footer-group">
+        <button
+          type="button"
+          class="dropdown-item dropdown-signout-btn"
+          role="menuitem"
+          (click)="onSignOut()"
+        >
+          <span class="item-icon signout-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </span>
+          <span class="item-copy">
+            <span class="item-title">Sign Out</span>
+          </span>
+        </button>
+      </div>
+    </div>
+  }
+</div>
+

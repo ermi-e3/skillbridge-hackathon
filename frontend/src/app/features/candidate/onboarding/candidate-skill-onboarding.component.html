@@ -1,0 +1,737 @@
+<main class="onboarding-page">
+  <div class="onboarding-container">
+    <!-- Brand / Progress Header -->
+    <header class="onboarding-header">
+      <div class="header-topline">
+        <div class="brand-badge">
+          <img src="/logo.png" alt="SkillBridge Logo" class="brand-logo-img" />
+          <span class="brand-title">SkillBridge</span>
+        </div>
+        <div class="topline-actions">
+          <app-theme-toggle variant="icon" />
+          <div class="step-pill">
+            <span class="step-number">Step 1 of 2</span>
+            <span class="step-label">Skill Registration v1</span>
+          </div>
+        </div>
+      </div>
+
+      <h1 class="onboarding-title">Welcome, {{ candidateName() }}!</h1>
+      <p class="onboarding-subtitle">
+        Register your professional skills and career focus. SkillBridge matches you with career openings and opportunities across diverse industries based on your verified skills.
+      </p>
+
+      <div class="progress-bar-container" aria-hidden="true">
+        <div class="progress-bar-fill"></div>
+      </div>
+    </header>
+
+    <!-- Dismissible Error Alert Banner -->
+    @if (errorMessage()) {
+      <div class="alert-banner" role="alert" aria-live="assertive">
+        <div class="alert-content">
+          <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span class="alert-text">{{ errorMessage() }}</span>
+        </div>
+        <button
+          type="button"
+          class="alert-close-btn"
+          aria-label="Dismiss error"
+          (click)="dismissAlert()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    }
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="loading-state" aria-busy="true" aria-label="Loading skills catalog">
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-input"></div>
+        <div class="skeleton-categories">
+          <div class="skeleton-pill"></div>
+          <div class="skeleton-pill"></div>
+          <div class="skeleton-pill"></div>
+          <div class="skeleton-pill"></div>
+        </div>
+        <div class="skeleton-grid">
+          @for (item of [1, 2, 3, 4, 5, 6, 7, 8]; track item) {
+            <div class="skeleton-card"></div>
+          }
+        </div>
+      </div>
+    } @else {
+      <!-- Onboarding Form -->
+      <form [formGroup]="onboardingForm" (ngSubmit)="onSubmit()" novalidate class="onboarding-form">
+        <!-- 1. Headline Section -->
+        <section class="form-section">
+          <div class="section-heading">
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+            </div>
+            <div>
+              <h2 class="section-title">Professional Headline <span class="required-star">*</span></h2>
+              <p class="section-desc">A concise summary of your professional role and expertise.</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="input-wrapper" [class.has-error]="headlineControl?.invalid && (headlineControl?.touched || headlineControl?.dirty)">
+              <input
+                id="headline"
+                type="text"
+                formControlName="headline"
+                placeholder="e.g. Operations Coordinator | Project Management & Business Analysis"
+                class="form-input"
+                [attr.aria-invalid]="headlineControl?.invalid && headlineControl?.touched"
+              />
+              <span class="char-count" [class.warn]="(headlineControl?.value?.length || 0) > 110">
+                {{ headlineControl?.value?.length || 0 }} / 120
+              </span>
+            </div>
+
+            @if (headlineControl?.invalid && (headlineControl?.touched || headlineControl?.dirty)) {
+              <div class="inline-error" role="alert">
+                <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+                @if (headlineControl?.errors?.['required']) {
+                  <span>A professional headline is required.</span>
+                } @else if (headlineControl?.errors?.['minlength']) {
+                  <span>Headline must be at least 3 characters.</span>
+                } @else if (headlineControl?.errors?.['maxlength']) {
+                  <span>Headline cannot exceed 120 characters.</span>
+                }
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- 2. Core Skills Section -->
+        <section class="form-section skills-catalog-section">
+          <div class="section-heading-row">
+            <div class="section-heading">
+              <div class="section-icon skills-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                </svg>
+              </div>
+              <div>
+                <h2 class="section-title">Core Skills Catalog</h2>
+                <p class="section-desc">Select between <strong>1 and 10 core skills</strong>. Job recommendations will be prioritized by your skills.</p>
+              </div>
+            </div>
+
+            <!-- Real-time Selected Counter Pill -->
+            <div
+              class="skills-counter"
+              [class.counter-valid]="selectedSkillIds().length >= 1 && selectedSkillIds().length <= 10"
+              [class.counter-empty]="selectedSkillIds().length === 0"
+              [class.counter-max]="selectedSkillIds().length >= 10"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="counter-check">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>Selected: <strong>{{ selectedSkillIds().length }}</strong> / 10</span>
+            </div>
+          </div>
+
+          <!-- Selected Skills Tray (Chips) -->
+          <div class="selected-skills-tray">
+            <div class="tray-header-row">
+              <span class="tray-label">Your Registered Skills ({{ selectedSkillsList().length }}):</span>
+              @if (selectedSkillsList().length > 0) {
+                <button type="button" class="btn-clear-tray" (click)="clearAllSkills()">Clear all</button>
+              }
+            </div>
+
+            @if (selectedSkillsList().length > 0) {
+              <div class="tray-chips">
+                @for (skill of selectedSkillsList(); track skill.id) {
+                  <span class="selected-chip">
+                    <span class="chip-name">{{ skill.name }}</span>
+                    <button
+                      type="button"
+                      class="remove-chip-btn"
+                      (click)="removeSkill(skill.id)"
+                      [attr.aria-label]="'Remove ' + skill.name"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  </span>
+                }
+              </div>
+            } @else {
+              <div class="empty-tray-notice">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span>No core skills selected yet. Use the searchable dropdown below to select 1 to 10 skills.</span>
+              </div>
+            }
+          </div>
+
+          <!-- Validation Warning for Skill Count -->
+          @if (skillIdsControl?.invalid && (skillIdsControl?.touched || skillIdsControl?.dirty)) {
+            <div class="inline-error" role="alert">
+              <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="10"></circle>
+              </svg>
+              @if (skillIdsControl?.errors?.['minSkills']) {
+                <span>Please select at least 1 core skill to continue.</span>
+              } @else if (skillIdsControl?.errors?.['maxSkills']) {
+                <span>You can select a maximum of 10 skills.</span>
+              }
+            </div>
+          }
+
+          <!-- Modern Searchable Multi-Select Dropdown Component -->
+          <div class="multi-select-dropdown-wrapper technical-dropdown-wrapper" [class.is-open]="isTechnicalDropdownOpen()">
+            <label class="dropdown-field-label">Add Core Skills</label>
+
+            <!-- Dropdown Trigger Bar -->
+            <div
+              class="dropdown-trigger-bar"
+              [class.active]="isTechnicalDropdownOpen()"
+              (click)="toggleTechnicalDropdown($event)"
+              role="combobox"
+              [attr.aria-expanded]="isTechnicalDropdownOpen()"
+              aria-haspopup="listbox"
+              tabindex="0"
+              (keydown.enter)="toggleTechnicalDropdown($event)"
+              (keydown.space)="toggleTechnicalDropdown($event)"
+            >
+              <div class="trigger-left">
+                <svg class="trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <span class="trigger-text">
+                  @if (selectedSkillIds().length === 0) {
+                    Click to search & select core skills...
+                  } @else if (selectedSkillIds().length >= 10) {
+                    Maximum 10 core skills selected (click to edit)
+                  } @else {
+                    Search & add more skills ({{ 10 - selectedSkillIds().length }} remaining)...
+                  }
+                </span>
+              </div>
+
+              <div class="trigger-right">
+                <span class="trigger-badge">{{ selectedSkillIds().length }}/10</span>
+                <svg class="chevron-icon" [class.rotated]="isTechnicalDropdownOpen()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Dropdown Panel (Overlay menu) -->
+            @if (isTechnicalDropdownOpen()) {
+              <div class="dropdown-panel-menu" role="listbox" (click)="$event.stopPropagation()">
+                <!-- Live Search Header inside Dropdown -->
+                <div class="dropdown-search-header">
+                  <div class="search-input-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input
+                      type="text"
+                      [value]="searchQuery()"
+                      (input)="onSearchChange($event)"
+                      placeholder="Search skills (e.g. Project Management, Financial Analysis, Patient Care, Python)..."
+                      class="dropdown-search-input"
+                      autofocus
+                    />
+                    @if (searchQuery()) {
+                      <button type="button" class="btn-clear-search" (click)="clearSearch()" aria-label="Clear filter">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <!-- Category Filter Tabs inside Dropdown -->
+                <div class="dropdown-category-bar" role="tablist" aria-label="Skill Categories">
+                  @for (cat of categories; track cat.id) {
+                    <button
+                      type="button"
+                      class="category-tab-btn"
+                      [class.active]="activeCategory() === cat.id"
+                      (click)="setCategory(cat.id)"
+                      role="tab"
+                      [attr.aria-selected]="activeCategory() === cat.id"
+                    >
+                      {{ cat.name }}
+                    </button>
+                  }
+                </div>
+
+                <!-- Available Skills List -->
+                <div class="dropdown-items-list" role="group">
+                  @for (skill of filteredSkills(); track skill.id) {
+                    <div
+                      class="dropdown-item-row"
+                      [class.is-selected]="isSkillSelected(skill.id)"
+                      [class.is-in-other]="isPreferredSkillSelected(skill.id)"
+                      [class.is-disabled]="!isSkillSelected(skill.id) && selectedSkillIds().length >= 10"
+                      (click)="toggleSkill(skill.id)"
+                      role="option"
+                      [attr.aria-selected]="isSkillSelected(skill.id)"
+                      tabindex="0"
+                      (keydown.enter)="toggleSkill(skill.id)"
+                      (keydown.space)="toggleSkill(skill.id); $event.preventDefault()"
+                    >
+                      <div class="item-checkbox" [class.checked]="isSkillSelected(skill.id)">
+                        @if (isSkillSelected(skill.id)) {
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                        }
+                      </div>
+
+                      <div class="item-details">
+                        <span class="item-name">{{ skill.name }}</span>
+                        <span class="item-category-tag">{{ getSkillCategoryName(skill.name) }}</span>
+                      </div>
+
+                      <div class="item-status-col">
+                        @if (isPreferredSkillSelected(skill.id)) {
+                          <span class="other-group-badge" title="Click to move from Nice-to-Have to Core">In Nice-to-Have</span>
+                        } @else if (isSkillSelected(skill.id)) {
+                          <span class="selected-text-badge">Selected</span>
+                        }
+                      </div>
+                    </div>
+                  } @empty {
+                    <div class="dropdown-empty-state">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                      <p>No skills match "{{ searchQuery() }}"</p>
+                      <button type="button" class="btn-reset-filters" (click)="clearSearch(); setCategory('all')">
+                        Clear search & filters
+                      </button>
+                    </div>
+                  }
+                </div>
+
+                <!-- Dropdown Footer -->
+                <div class="dropdown-panel-footer">
+                  <span class="footer-count-text">
+                    <strong>{{ selectedSkillIds().length }}</strong> of 10 skills selected
+                  </span>
+                  <button type="button" class="btn-dropdown-done" (click)="closeTechnicalDropdown()">
+                    Done
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- 2b. Nice-to-Have Skills (Preferred Competencies) -->
+        <section class="form-section skills-section preferred-onboarding-section">
+          <div class="section-heading-row">
+            <div class="section-heading">
+              <div class="section-icon preferred-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+              </div>
+              <div>
+                <div class="category-badge-inline">
+                  <span class="category-pill preferred-pill">Nice-to-Have Skills</span>
+                  <span class="bonus-badge">Bonus Match Points</span>
+                </div>
+                <h2 class="section-title">Nice-to-Have Skills (Preferred Competencies)</h2>
+                <p class="section-desc">Select secondary tools or skills you are learning (up to 5). Employers mark these as nice-to-have to give you extra match score boost!</p>
+              </div>
+            </div>
+
+            <div
+              class="skills-counter preferred-counter"
+              [class.counter-valid]="selectedPreferredSkillIds().length > 0"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="counter-check">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+              <span>Selected: <strong>{{ selectedPreferredSkillIds().length }}</strong> / 5</span>
+            </div>
+          </div>
+
+          <!-- Selected Preferred Skills Tray (Chips) -->
+          <div class="selected-skills-tray preferred-tray">
+            <div class="tray-header-row">
+              <span class="tray-label">Your Nice-to-Have Skills ({{ selectedPreferredSkillsList().length }}):</span>
+              @if (selectedPreferredSkillsList().length > 0) {
+                <button type="button" class="btn-clear-tray" (click)="clearAllPreferredSkills()">Clear all</button>
+              }
+            </div>
+
+            @if (selectedPreferredSkillsList().length > 0) {
+              <div class="tray-chips">
+                @for (skill of selectedPreferredSkillsList(); track skill.id) {
+                  <span class="selected-chip chip-pref">
+                    <span class="chip-name">{{ skill.name }}</span>
+                    <button
+                      type="button"
+                      class="remove-chip-btn"
+                      (click)="removePreferredSkill(skill.id)"
+                      [attr.aria-label]="'Remove ' + skill.name"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  </span>
+                }
+              </div>
+            } @else {
+              <div class="empty-tray-notice preferred-empty-notice">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                <span>No nice-to-have skills selected yet (optional, up to 5). Use the searchable dropdown below to select secondary tools.</span>
+              </div>
+            }
+          </div>
+
+          <!-- Modern Searchable Multi-Select Dropdown Component (Preferred / Purple Accent) -->
+          <div class="multi-select-dropdown-wrapper preferred-dropdown-wrapper" [class.is-open]="isPreferredDropdownOpen()">
+            <label class="dropdown-field-label">Add Nice-to-Have Skills</label>
+
+            <!-- Dropdown Trigger Bar -->
+            <div
+              class="dropdown-trigger-bar trigger-preferred"
+              [class.active]="isPreferredDropdownOpen()"
+              (click)="togglePreferredDropdown($event)"
+              role="combobox"
+              [attr.aria-expanded]="isPreferredDropdownOpen()"
+              aria-haspopup="listbox"
+              tabindex="0"
+              (keydown.enter)="togglePreferredDropdown($event)"
+              (keydown.space)="togglePreferredDropdown($event)"
+            >
+              <div class="trigger-left">
+                <svg class="trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                <span class="trigger-text">
+                  @if (selectedPreferredSkillIds().length === 0) {
+                    Click to search & select nice-to-have skills...
+                  } @else if (selectedPreferredSkillIds().length >= 5) {
+                    Maximum 5 nice-to-have skills selected (click to edit)
+                  } @else {
+                    Search & add more skills ({{ 5 - selectedPreferredSkillIds().length }} remaining)...
+                  }
+                </span>
+              </div>
+
+              <div class="trigger-right">
+                <span class="trigger-badge badge-preferred">{{ selectedPreferredSkillIds().length }}/5</span>
+                <svg class="chevron-icon" [class.rotated]="isPreferredDropdownOpen()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Dropdown Panel (Overlay menu) -->
+            @if (isPreferredDropdownOpen()) {
+              <div class="dropdown-panel-menu panel-preferred" role="listbox" (click)="$event.stopPropagation()">
+                <!-- Live Search Header inside Dropdown -->
+                <div class="dropdown-search-header">
+                  <div class="search-input-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input
+                      type="text"
+                      [value]="preferredSearchQuery()"
+                      (input)="onPreferredSearchChange($event)"
+                      placeholder="Search nice-to-have skills..."
+                      class="dropdown-search-input"
+                      autofocus
+                    />
+                    @if (preferredSearchQuery()) {
+                      <button type="button" class="btn-clear-search" (click)="clearPreferredSearch()" aria-label="Clear filter">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <!-- Category Filter Tabs inside Dropdown -->
+                <div class="dropdown-category-bar" role="tablist" aria-label="Preferred Skill Categories">
+                  @for (cat of categories; track cat.id) {
+                    <button
+                      type="button"
+                      class="category-tab-btn tab-btn-preferred"
+                      [class.active]="activePreferredCategory() === cat.id"
+                      (click)="setPreferredCategory(cat.id)"
+                      role="tab"
+                      [attr.aria-selected]="activePreferredCategory() === cat.id"
+                    >
+                      {{ cat.name }}
+                    </button>
+                  }
+                </div>
+
+                <!-- Available Skills List -->
+                <div class="dropdown-items-list" role="group">
+                  @for (skill of filteredPreferredSkills(); track skill.id) {
+                    <div
+                      class="dropdown-item-row row-preferred"
+                      [class.is-selected]="isPreferredSkillSelected(skill.id)"
+                      [class.is-in-other]="isSkillSelected(skill.id)"
+                      [class.is-disabled]="!isPreferredSkillSelected(skill.id) && selectedPreferredSkillIds().length >= 5"
+                      (click)="togglePreferredSkill(skill.id)"
+                      role="option"
+                      [attr.aria-selected]="isPreferredSkillSelected(skill.id)"
+                      tabindex="0"
+                      (keydown.enter)="togglePreferredSkill(skill.id)"
+                      (keydown.space)="togglePreferredSkill(skill.id); $event.preventDefault()"
+                    >
+                      <div class="item-checkbox checkbox-preferred" [class.checked]="isPreferredSkillSelected(skill.id)">
+                        @if (isPreferredSkillSelected(skill.id)) {
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                        }
+                      </div>
+
+                      <div class="item-details">
+                        <span class="item-name">{{ skill.name }}</span>
+                        <span class="item-category-tag">{{ getSkillCategoryName(skill.name) }}</span>
+                      </div>
+
+                      <div class="item-status-col">
+                        @if (isSkillSelected(skill.id)) {
+                          <span class="other-group-badge core-group-badge" title="Click to move from Core to Nice-to-Have">In Core</span>
+                        } @else if (isPreferredSkillSelected(skill.id)) {
+                          <span class="selected-text-badge badge-preferred-text">Selected</span>
+                        }
+                      </div>
+                    </div>
+                  } @empty {
+                    <div class="dropdown-empty-state">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                      <p>No skills match "{{ preferredSearchQuery() }}"</p>
+                      <button type="button" class="btn-reset-filters" (click)="clearPreferredSearch(); setPreferredCategory('all')">
+                        Clear search & filters
+                      </button>
+                    </div>
+                  }
+                </div>
+
+                <!-- Dropdown Footer -->
+                <div class="dropdown-panel-footer">
+                  <span class="footer-count-text">
+                    <strong>{{ selectedPreferredSkillIds().length }}</strong> of 5 skills selected
+                  </span>
+                  <button type="button" class="btn-dropdown-done btn-done-preferred" (click)="closePreferredDropdown()">
+                    Done
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- 3. Matching Preferences & Criteria -->
+        <section class="form-section preferences-section">
+          <div class="section-heading">
+            <div class="section-icon preferences-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+            </div>
+            <div>
+              <h2 class="section-title">Matching Preferences & Seniority</h2>
+              <p class="section-desc">Tailors job match scores to your preferred work arrangement, location, and experience tier.</p>
+            </div>
+          </div>
+
+          <div class="preferences-grid">
+            <div class="form-group">
+              <label for="onboardingLocation" class="form-label">City / Location</label>
+              <input
+                id="onboardingLocation"
+                type="text"
+                formControlName="location"
+                placeholder="e.g. Addis Ababa, Ethiopia"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="onboardingArrangement" class="form-label">Work Arrangement</label>
+              <select id="onboardingArrangement" formControlName="preferredWorkArrangement" class="form-input form-select">
+                <option value="" disabled selected>Select work arrangement</option>
+                <option value="Remote">Remote</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="OnSite">On-site</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="onboardingJobType" class="form-label">Job Type</label>
+              <select id="onboardingJobType" formControlName="preferredJobType" class="form-input form-select">
+                <option value="" disabled selected>Select job type</option>
+                <option value="FullTime">Full-time</option>
+                <option value="PartTime">Part-time</option>
+                <option value="Contract">Contract</option>
+                <option value="Internship">Internship</option>
+                <option value="Freelance">Freelance</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="onboardingExperienceLevel" class="form-label">Experience Level</label>
+              <select id="onboardingExperienceLevel" formControlName="experienceLevel" class="form-input form-select">
+                <option value="" disabled selected>Select experience level</option>
+                <option value="EntryLevel">Entry Level</option>
+                <option value="Junior">Junior</option>
+                <option value="MidLevel">Mid Level</option>
+                <option value="Senior">Senior</option>
+                <option value="Lead">Lead / Architect</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="onboardingYears" class="form-label">Years of Experience</label>
+              <input
+                id="onboardingYears"
+                type="number"
+                min="0"
+                max="50"
+                formControlName="yearsOfExperience"
+                class="form-input"
+                placeholder="e.g. 2"
+              />
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Optional Additional Details (Accordion/Toggle) -->
+        <section class="form-section optional-section">
+          <button
+            type="button"
+            class="toggle-additional-btn"
+            (click)="toggleAdditionalInfo()"
+            [attr.aria-expanded]="showAdditionalInfo()"
+          >
+            <div class="toggle-copy">
+              <span class="toggle-title">Add Bio & GitHub Profile</span>
+              <span class="optional-tag">Optional</span>
+            </div>
+            <svg
+              class="chevron-icon"
+              [class.open]="showAdditionalInfo()"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+
+          @if (showAdditionalInfo()) {
+            <div class="additional-fields">
+              <!-- GitHub URL -->
+              <div class="form-group">
+                <label for="gitHubUrl" class="form-label">GitHub Profile URL</label>
+                <div class="input-wrapper" [class.has-error]="gitHubUrlControl?.invalid && (gitHubUrlControl?.touched || gitHubUrlControl?.dirty)">
+                  <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                  </svg>
+                  <input
+                    id="gitHubUrl"
+                    type="url"
+                    formControlName="gitHubUrl"
+                    placeholder="https://github.com/username"
+                    class="form-input has-icon"
+                  />
+                </div>
+                @if (gitHubUrlControl?.invalid && (gitHubUrlControl?.touched || gitHubUrlControl?.dirty)) {
+                  <div class="inline-error" role="alert">
+                    <span>Please enter a valid URL starting with http:// or https://</span>
+                  </div>
+                }
+              </div>
+
+              <!-- Bio -->
+              <div class="form-group">
+                <label for="bio" class="form-label">Brief Bio / Summary</label>
+                <textarea
+                  id="bio"
+                  formControlName="bio"
+                  rows="3"
+                  placeholder="Share a short background on your interests, projects, and goals..."
+                  class="form-textarea"
+                ></textarea>
+              </div>
+            </div>
+          }
+        </section>
+
+        <!-- Actions Footer -->
+        <footer class="onboarding-footer">
+          <button
+            type="button"
+            class="skip-action-btn"
+            (click)="skipForNow()"
+          >
+            Skip for now
+          </button>
+
+          <button
+            type="submit"
+            class="submit-action-btn"
+            [disabled]="isSubmitting() || selectedSkillIds().length === 0"
+          >
+            @if (isSubmitting()) {
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Registering Skills...</span>
+            } @else {
+              <span>Complete Skill Registration</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="arrow-icon">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            }
+          </button>
+        </footer>
+      </form>
+    }
+  </div>
+</main>
