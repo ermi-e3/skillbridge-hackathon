@@ -30,7 +30,7 @@ describe('LandingComponent', () => {
     fixture.detectChanges();
 
     expect(component.audience()).toBe('teams');
-    expect(fixture.nativeElement.textContent).toContain('applicants ranked by fit');
+    expect(fixture.nativeElement.textContent).toContain('APPLICANT RANKING');
   });
 
   it('recalculates compatibility score when toggling hero skill nodes', () => {

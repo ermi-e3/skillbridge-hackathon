@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkillBridge — 20s Product Walkthrough Motion Sequence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --stage-bg: #F8FAFC;
+      --card-bg: #1E293B;
+      --card-surface: #273549;
+      --teal: #0D9488;
+      --teal-glow: rgba(13, 148, 136, 0.45);
+      --orange: #F97316;
+      --orange-glow: rgba(249, 115, 22, 0.45);
+      --ink-dark: #1E293B;
+      --ink-light: #F8FAFC;
+      --ink-muted: #94A3B8;
+      --spring: cubic-bezier(0.16, 1, 0.3, 1);
+      --sans: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #E2E8F0;
+      font-family: var(--sans);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* 16:9 Cinema Frame */
+    .cinema-frame {
+      position: relative;
+      width: min(1280px, 96vw);
+      aspect-ratio: 16 / 9;
+      background: var(--stage-bg);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow:
+        0 32px 80px -20px rgba(30, 41, 59, 0.25),
+        0 0 0 1px rgba(30, 41, 59, 0.08);
+      perspective: 1400px;
+      user-select: none;
+    }
+
+    /* Subtle Architectural Grid */
+    .arch-grid {
+      position: absolute;
+      inset: -40px;
+      background-image:
+        linear-gradient(to right, rgba(30, 41, 59, 0.045) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(30, 41, 59, 0.045) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 85% 80% at 50% 50%, #000 45%, transparent 100%);
+      transition: transform 1.2s var(--spring), opacity 0.6s ease;
+      pointer-events: none;
+    }
+
+    .ambient-glow {
+      position: absolute;
+      width: 560px;
+      height: 560px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(13, 148, 136, 0.14), transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      transition: transform 1.2s var(--spring), opacity 0.8s ease;
+    }
+
+    /* Camera Rig */
+    .camera-rig {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      transition: transform 1.1s var(--spring);
+    }
+
+    /* Scene Pill Indicator (Top-Left Subtle Telemetry) */
+    .scene-hud {
+      position: absolute;
+      top: 22px;
+      left: 26px;
+      z-index: 40;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 14px;
+      border-radius: 9999px;
+      background: rgba(30, 41, 59, 0.06);
+      border: 1px solid rgba(30, 41, 59, 0.1);
+      backdrop-filter: blur(8px);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-dark);
+      letter-spacing: 0.04em;
+    }
+
+    .hud-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--teal);
+      box-shadow: 0 0 10px var(--teal-glow);
+    }
+
+    .hud-time {
+      color: var(--teal);
+      margin-left: 4px;
+    }
+
+    /* ============================================================
+       SCENE 1: SKILL EXTRACTION (0s - 5s)
+       ============================================================ */
+    .scene-1 {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.65s var(--spring), transform 0.9s var(--spring);
+    }
+
+    .dropzone-card {
+      position: relative;
+      width: 390px;
+      padding: 34px 28px;
+      border-radius: 22px;
+      background: var(--card-bg);
+      color: var(--ink-light);
+      box-shadow:
+        0 30px 60px -15px rgba(30, 41, 59, 0.35),
+        0 0 0 1px rgba(255, 255, 255, 0.08);
+      text-align: center;
+      transform: translateY(28px) rotateX(8deg) scale(0.92);
+      opacity: 0;
+      transition: transform 0.85s var(--spring), opacity 0.6s ease, border-color 0.4s ease;
+    }
+
+    .dropzone-card.visible {
+      transform: translateY(0) rotateX(2deg) rotateY(-2deg) scale(1);
+      opacity: 1;
+    }
+
+    .dropzone-card.absorbing {
+      transform: scale(0.95) rotateX(0deg);
+      box-shadow:
+        0 0 0 2px var(--teal),
+        0 25px 60px -12px rgba(13, 148, 136, 0.45);
+    }
+
+    .dropzone-card.dissolved {
+      transform: scale(0.75);
+      opacity: 0;
+    }
+
+    .dropzone-dashed {
+      border: 1.5px dashed rgba(148, 163, 184, 0.35);
+      border-radius: 14px;
+      padding: 28px 18px;
+      transition: border-color 0.3s ease, background-color 0.3s ease;
+    }
+
+    .dropzone-card.absorbing .dropzone-dashed {
+      border-color: var(--teal);
+      background: rgba(13, 148, 136, 0.12);
+    }
+
+    .dz-kicker {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--teal);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .dz-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+
+    .dz-sub {
+      font-size: 13px;
+      color: var(--ink-muted);
+      margin: 0;
+    }
+
+    /* Gliding Resume File Icon */
+    .resume-file {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 18px;
+      border-radius: 14px;
+      background: #FFFFFF;
+      color: var(--ink-dark);
+      border: 1.5px solid rgba(30, 41, 59, 0.12);
+      box-shadow: 0 20px 40px -10px rgba(30, 41, 59, 0.28);
+      transform: translate(-240px, -210px) rotate(-10deg) scale(0.85);
+      opacity: 0;
+      transition: transform 0.9s var(--spring), opacity 0.45s ease;
+      z-index: 5;
+    }
+
+    .resume-file.glide-in {
+      transform: translate(-50%, -108%) rotate(-2deg) scale(1);
+      opacity: 1;
+    }
+
+    .resume-file.dropped {
+      transform: translate(-50%, -50%) rotate(0deg) scale(0.5);
+      opacity: 0;
+    }
+
+    .file-badge {
+      width: 34px;
+      height: 40px;
+      border-radius: 8px;
+      background: rgba(13, 148, 136, 0.12);
+      color: var(--teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .file-meta strong {
+      display: block;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .file-meta span {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: #64748B;
+    }
+
+    /* Particle Canvas */
+    .particle-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 6;
+    }
+
+    /* Orbital Skill Cluster */
+    .orbital-cluster {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 8;
+    }
+
+    .skill-pill {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border-radius: 9999px;
+      background: var(--card-bg);
+      color: var(--ink-light);
+      border: 1.5px solid var(--teal);
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow:
+        0 14px 30px -8px rgba(30, 41, 59, 0.3),
+        0 0 22px -4px rgba(13, 148, 136, 0.45);
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0;
+      transition: transform 0.8s var(--spring), opacity 0.45s ease;
+    }
+
+    .skill-pill::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--teal);
+      box-shadow: 0 0 8px var(--teal);
+    }
+
+    /* Orbital positions */
+    .skill-pill.orbit[data-idx="0"] { transform: translate(-215px, -110px) scale(1); opacity: 1; }
+    .skill-pill.orbit[data-idx="1"] { transform: translate(65px, -125px) scale(1); opacity: 1; }
+    .skill-pill.orbit[data-idx="2"] { transform: translate(-205px, 65px) scale(1); opacity: 1; }
+    .skill-pill.orbit[data-idx="3"] { transform: translate(55px, 75px) scale(1); opacity: 1; }
+
+    /* Aligned left column for Scene 2 beam shooting */
+    .skill-pill.beam-ready {
+      transition: transform 0.85s var(--spring), opacity 0.5s ease;
+    }
+    .skill-pill.beam-ready[data-idx="0"] { transform: translate(-490px, -135px) scale(0.95); opacity: 1; }
+    .skill-pill.beam-ready[data-idx="1"] { transform: translate(-490px, -45px) scale(0.95); opacity: 1; }
+    .skill-pill.beam-ready[data-idx="2"] { transform: translate(-490px, 45px) scale(0.95); opacity: 1; }
+    .skill-pill.beam-ready[data-idx="3"] { transform: translate(-490px, 135px) scale(0.95); opacity: 1; }
+
+    /* ============================================================
+       SCENE 2 & 3: MATCHING ENGINE + TELEMETRY (5s - 16s)
+       ============================================================ */
+    .scene-2-3 {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.65s ease, transform 1s var(--spring);
+    }
+
+    .scene-2-3.active {
+      opacity: 1;
+    }
+
+    /* Glowing SVG Beams */
+    .beams-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    .beam-path {
+      fill: none;
+      stroke: var(--teal);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 8px rgba(13, 148, 136, 0.75));
+      stroke-dasharray: 420;
+      stroke-dashoffset: 420;
+      transition: stroke-dashoffset 0.9s var(--spring), opacity 0.5s ease;
+    }
+
+    .beam-path.shoot {
+      stroke-dashoffset: 0;
+    }
+
+    .beam-path.dim {
+      opacity: 0.25;
+    }
+
+    /* Blurred Low-Fit Cards */
+    .blur-card {
+      position: absolute;
+      width: 300px;
+      padding: 20px;
+      border-radius: 18px;
+      background: rgba(30, 41, 59, 0.55);
+      color: var(--ink-light);
+      backdrop-filter: blur(8px);
+      filter: blur(3px);
+      opacity: 0;
+      transform: translate(80px, 0) scale(0.88);
+      transition: transform 0.8s var(--spring), opacity 0.6s ease, filter 0.6s ease;
+      z-index: 3;
+    }
+
+    .blur-card.top {
+      top: 16%;
+      right: 12%;
+    }
+
+    .blur-card.bottom {
+      bottom: 16%;
+      right: 10%;
+    }
+
+    .blur-card.show {
+      opacity: 0.65;
+      transform: translate(0, 0) scale(0.92);
+    }
+
+    .blur-card.fade-out {
+      opacity: 0;
+      transform: translate(70px, 0) scale(0.8);
+      filter: blur(8px);
+    }
+
+    .blur-score {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--ink-muted);
+      margin-bottom: 6px;
+    }
+
+    .blur-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    /* Hero Center Matched Role Card */
+    .matched-card {
+      position: absolute;
+      top: 50%;
+      left: 56%;
+      width: 460px;
+      padding: 28px;
+      border-radius: 22px;
+      background: var(--card-bg);
+      color: var(--ink-light);
+      border: 1.5px solid rgba(13, 148, 136, 0.55);
+      box-shadow:
+        0 35px 75px -18px rgba(30, 41, 59, 0.45),
+        0 0 40px -10px rgba(13, 148, 136, 0.35);
+      transform: translate(-50%, -50%) translateX(90px) rotateY(8deg) scale(0.86);
+      opacity: 0;
+      transition: transform 0.95s var(--spring), opacity 0.6s ease, box-shadow 0.5s ease;
+      z-index: 10;
+    }
+
+    .matched-card.focus {
+      transform: translate(-50%, -50%) translateX(0) rotateY(-2deg) rotateX(1deg) scale(1);
+      opacity: 1;
+    }
+
+    .matched-card.zoom-in {
+      transform: translate(-54%, -50%) rotateY(0deg) rotateX(0deg) scale(1.16);
+      box-shadow:
+        0 45px 90px -20px rgba(30, 41, 59, 0.55),
+        0 0 60px -10px rgba(13, 148, 136, 0.42);
+    }
+
+    .mc-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .mc-badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--teal);
+      letter-spacing: 0.06em;
+      padding: 5px 10px;
+      border-radius: 9999px;
+      background: rgba(13, 148, 136, 0.16);
+      border: 1px solid rgba(13, 148, 136, 0.35);
+    }
+
+    /* Circular Match Ring */
+    .ring-wrap {
+      position: relative;
+      width: 78px;
+      height: 78px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .ring-svg {
+      width: 78px;
+      height: 78px;
+      transform: rotate(-90deg);
+    }
+
+    .ring-track {
+      fill: none;
+      stroke: rgba(148, 163, 184, 0.2);
+      stroke-width: 6;
+    }
+
+    .ring-fill {
+      fill: none;
+      stroke: var(--teal);
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-dasharray: 201.06;
+      stroke-dashoffset: 201.06;
+      filter: drop-shadow(0 0 6px rgba(13, 148, 136, 0.6));
+    }
+
+    .ring-label {
+      position: absolute;
+      text-align: center;
+      font-family: var(--mono);
+      line-height: 1.05;
+    }
+
+    .ring-num {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: #F8FAFC;
+    }
+
+    .ring-sub {
+      font-size: 8px;
+      color: var(--teal);
+      letter-spacing: 0.08em;
+    }
+
+    .mc-role {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin: 0 0 8px;
+      color: var(--ink-light);
+    }
+
+    .mc-telemetry {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: #CBD5E1;
+      margin-bottom: 18px;
+    }
+
+    .mc-comp {
+      color: #F8FAFC;
+      font-weight: 700;
+    }
+
+    .mc-remote {
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(248, 250, 252, 0.1);
+      color: #F8FAFC;
+    }
+
+    .mc-skills {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .mc-skill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border-radius: 10px;
+      background: rgba(248, 250, 252, 0.05);
+      border: 1px solid rgba(248, 250, 252, 0.08);
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: #E2E8F0;
+    }
+
+    .mc-check {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: rgba(13, 148, 136, 0.22);
+      color: var(--teal);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 800;
+      opacity: 0;
+      transform: scale(0.4);
+      transition: transform 0.35s var(--spring), opacity 0.25s ease;
+    }
+
+    .mc-skill.checked .mc-check {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Action Button & Calendar Confirmation */
+    .mc-action-slot {
+      position: relative;
+      height: 48px;
+    }
+
+    .intro-btn {
+      position: relative;
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 12px;
+      background: var(--orange);
+      color: #FFFFFF;
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      overflow: hidden;
+      box-shadow: 0 10px 25px -6px var(--orange-glow);
+      transition: transform 0.15s ease, opacity 0.3s ease;
+    }
+
+    .intro-btn.clicked {
+      transform: scale(0.96);
+    }
+
+    .intro-btn.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .btn-ripple {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.65);
+      top: 50%;
+      left: 55%;
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .btn-ripple.animate {
+      animation: rippleOut 0.55s var(--spring) forwards;
+    }
+
+    @keyframes rippleOut {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 0.9; }
+      100% { transform: translate(-50%, -50%) scale(16); opacity: 0; }
+    }
+
+    .calendar-confirmed {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border-radius: 12px;
+      background: rgba(13, 148, 136, 0.18);
+      border: 1.5px solid var(--teal);
+      color: #F8FAFC;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(10px) scale(0.95);
+      transition: transform 0.5s var(--spring), opacity 0.35s ease;
+      pointer-events: none;
+    }
+
+    .calendar-confirmed.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .cal-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 10px var(--orange);
+    }
+
+    /* Simulated Cursor */
+    .sim-cursor {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 26px;
+      height: 26px;
+      transform: translate(340px, 230px) scale(1);
+      opacity: 0;
+      z-index: 30;
+      pointer-events: none;
+      transition: transform 1.05s var(--spring), opacity 0.35s ease;
+      filter: drop-shadow(0 6px 12px rgba(15, 23, 42, 0.35));
+    }
+
+    .sim-cursor.glide {
+      opacity: 1;
+      transform: translate(35px, 142px) scale(1);
+    }
+
+    .sim-cursor.click {
+      opacity: 1;
+      transform: translate(35px, 142px) scale(0.84);
+    }
+
+    .sim-cursor.exit {
+      opacity: 0;
+      transform: translate(110px, 190px) scale(0.9);
+    }
+
+    /* ============================================================
+       SCENE 4: 3D STACK & BRAND OUTRO (16s - 20s)
+       ============================================================ */
+    .scene-4 {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+      z-index: 15;
+    }
+
+    .scene-4.active {
+      opacity: 1;
+    }
+
+    .stack-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-style: preserve-3d;
+    }
+
+    .stack-layer {
+      position: absolute;
+      width: 380px;
+      height: 220px;
+      border-radius: 22px;
+      background: var(--card-bg);
+      border: 1px solid rgba(13, 148, 136, 0.35);
+      box-shadow: 0 25px 55px -15px rgba(30, 41, 59, 0.3);
+      opacity: 0;
+      transition: transform 0.9s var(--spring), opacity 0.6s ease;
+    }
+
+    .stack-layer.l1 { transform: translateZ(-120px) rotateX(22deg) rotateY(-14deg) translateY(30px); }
+    .stack-layer.l2 { transform: translateZ(-60px) rotateX(18deg) rotateY(-10deg) translateY(15px); }
+    .stack-layer.l3 { transform: translateZ(0px) rotateX(14deg) rotateY(-6deg); }
+
+    .scene-4.stack-in .stack-layer { opacity: 0.9; }
+    .scene-4.stack-collapse .stack-layer {
+      transform: scale(0.55) translateY(20px);
+      opacity: 0;
+    }
+
+    .brand-outro {
+      position: relative;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(18px) scale(0.92);
+      transition: transform 0.8s var(--spring), opacity 0.55s ease;
+    }
+
+    .scene-4.logo-show .brand-outro {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .outro-wordmark {
+      font-size: 62px;
+      font-weight: 800;
+      letter-spacing: -0.045em;
+      color: var(--ink-dark);
+      margin: 0 0 10px;
+      line-height: 1;
+    }
+
+    .outro-dot {
+      color: var(--teal);
+    }
+
+    .outro-tagline {
+      font-family: var(--mono);
+      font-size: 15px;
+      font-weight: 600;
+      color: #475569;
+      letter-spacing: 0.06em;
+      margin: 0;
+    }
+
+    /* ============================================================
+       CONTROLS & 60FPS PROGRESS BAR
+       ============================================================ */
+    .controls-bar {
+      position: absolute;
+      bottom: 20px;
+      right: 24px;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ctrl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 9999px;
+      border: 1px solid rgba(30, 41, 59, 0.14);
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(10px);
+      color: var(--ink-dark);
+      font-family: var(--mono);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 18px -6px rgba(30, 41, 59, 0.16);
+      transition: transform 0.15s ease, border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .ctrl-btn:hover {
+      border-color: var(--teal);
+      background: #FFFFFF;
+      transform: translateY(-1px);
+    }
+
+    .ctrl-btn svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    .progress-rail {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 4px;
+      background: rgba(30, 41, 59, 0.08);
+      z-index: 60;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #0D9488, #14B8A6);
+      box-shadow: 0 0 12px rgba(13, 148, 136, 0.6);
+      will-change: width;
+    }
+  </style>
+</head>
+<body>
+  <div class="cinema-frame" id="stage">
+    <div class="arch-grid" id="archGrid"></div>
+    <div class="ambient-glow" id="ambientGlow"></div>
+
+    <!-- Top-Left Scene Telemetry -->
+    <div class="scene-hud">
+      <span class="hud-dot"></span>
+      <span id="hudSceneLabel">01 // SKILL EXTRACTION</span>
+      <span class="hud-time" id="hudTimer">00.0s</span>
+    </div>
+
+    <div class="camera-rig" id="cameraRig">
+      <!-- SCENE 1 -->
+      <div class="scene-1" id="scene1">
+        <div class="dropzone-card" id="dropzoneCard">
+          <div class="dropzone-dashed">
+            <div class="dz-kicker">SkillBridge Ingestion</div>
+            <h2 class="dz-title">Drop Resume or Profile</h2>
+            <p class="dz-sub">Extracting verified capabilities</p>
+          </div>
+
+          <div class="resume-file" id="resumeFile">
+            <div class="file-badge">PDF</div>
+            <div class="file-meta">
+              <strong>Resume_2026.pdf</strong>
+              <span>428 KB · Verified</span>
+            </div>
+          </div>
+        </div>
+
+        <canvas class="particle-canvas" id="particleCanvas"></canvas>
+
+        <div class="orbital-cluster" id="orbitalCluster">
+          <div class="skill-pill" data-idx="0">TypeScript</div>
+          <div class="skill-pill" data-idx="1">System Design</div>
+          <div class="skill-pill" data-idx="2">Rust</div>
+          <div class="skill-pill" data-idx="3">Product Strategy</div>
+        </div>
+      </div>
+
+      <!-- SCENE 2 & 3 -->
+      <div class="scene-2-3" id="scene23">
+        <svg class="beams-svg" id="beamsSvg" viewBox="0 0 1280 720" preserveAspectRatio="none">
+          <path class="beam-path" id="beam0" d="M 250 225 C 400 225, 420 360, 515 360" />
+          <path class="beam-path" id="beam1" d="M 250 315 C 390 315, 430 360, 515 360" />
+          <path class="beam-path" id="beam2" d="M 250 405 C 390 405, 430 360, 515 360" />
+          <path class="beam-path" id="beam3" d="M 250 495 C 400 495, 420 360, 515 360" />
+        </svg>
+
+        <!-- Low-Fit Blurred Opportunity Cards -->
+        <div class="blur-card top" id="blurTop">
+          <div class="blur-score">42.1% MATCH · FILTERED</div>
+          <div class="blur-title">Enterprise Legacy Maintainer</div>
+        </div>
+        <div class="blur-card bottom" id="blurBottom">
+          <div class="blur-score">58.6% MATCH · FILTERED</div>
+          <div class="blur-title">Generalist Support Lead</div>
+        </div>
+
+        <!-- Centerpiece Matched Role Card -->
+        <div class="matched-card" id="matchedCard">
+          <div class="mc-top">
+            <span class="mc-badge">TOP SIGNAL MATCH</span>
+            <div class="ring-wrap">
+              <svg class="ring-svg" viewBox="0 0 78 78">
+                <circle class="ring-track" cx="39" cy="39" r="32" />
+                <circle class="ring-fill" id="ringFill" cx="39" cy="39" r="32" />
+              </svg>
+              <div class="ring-label">
+                <span class="ring-num" id="matchCounter">0.0%</span>
+                <span class="ring-sub">MATCH</span>
+              </div>
+            </div>
+          </div>
+
+          <h2 class="mc-role">Staff Frontend Architect</h2>
+          <div class="mc-telemetry">
+            <span class="mc-comp">$185k – $210k</span>
+            <span>·</span>
+            <span class="mc-remote">Remote</span>
+          </div>
+
+          <div class="mc-skills">
+            <div class="mc-skill" data-check="0"><span class="mc-check">✓</span>TypeScript</div>
+            <div class="mc-skill" data-check="1"><span class="mc-check">✓</span>System Design</div>
+            <div class="mc-skill" data-check="2"><span class="mc-check">✓</span>Rust</div>
+            <div class="mc-skill" data-check="3"><span class="mc-check">✓</span>Product Strategy</div>
+          </div>
+
+          <div class="mc-action-slot">
+            <button type="button" class="intro-btn" id="introBtn">
+              Accept Direct Intro
+              <span class="btn-ripple" id="btnRipple"></span>
+            </button>
+            <div class="calendar-confirmed" id="calendarConfirmed">
+              <span class="cal-dot"></span>
+              <span>Intro Scheduled: Thursday, 2:00 PM</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simulated Cursor -->
+        <svg class="sim-cursor" id="simCursor" viewBox="0 0 28 28" fill="none">
+          <path
+            d="M4 3L23 13.5L14.2 15.8L10.5 24.5L4 3Z"
+            fill="#F97316"
+            stroke="#FFFFFF"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+
+      <!-- SCENE 4 -->
+      <div class="scene-4" id="scene4">
+        <div class="stack-container">
+          <div class="stack-layer l1"></div>
+          <div class="stack-layer l2"></div>
+          <div class="stack-layer l3"></div>
+          <div class="brand-outro">
+            <h1 class="outro-wordmark">SkillBridge<span class="outro-dot">.</span></h1>
+            <p class="outro-tagline">Precision Matching. Zero Noise.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Playback Controls -->
+    <div class="controls-bar">
+      <button type="button" class="ctrl-btn" id="playPauseBtn" aria-label="Play or pause">
+        <svg viewBox="0 0 24 24" fill="currentColor" id="playPauseIcon">
+          <rect x="6" y="4" width="4" height="16" rx="1"></rect>
+          <rect x="14" y="4" width="4" height="16" rx="1"></rect>
+        </svg>
+        <span id="playPauseText">Pause</span>
+      </button>
+      <button type="button" class="ctrl-btn" id="replayBtn" aria-label="Replay walkthrough">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polyline points="1 4 1 10 7 10"></polyline>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+        </svg>
+        <span>Replay</span>
+      </button>
+    </div>
+
+    <!-- Bottom Progress Bar -->
+    <div class="progress-rail">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const DURATION_MS = 20000;
+      const RING_CIRCUMFERENCE = 201.06;
+      const TARGET_MATCH = 98.4;
+
+      const dropzoneCard = document.getElementById('dropzoneCard');
+      const resumeFile = document.getElementById('resumeFile');
+      const pills = Array.from(document.querySelectorAll('.skill-pill'));
+      const scene1 = document.getElementById('scene1');
+      const scene23 = document.getElementById('scene23');
+      const scene4 = document.getElementById('scene4');
+      const beams = [0, 1, 2, 3].map((i) => document.getElementById('beam' + i));
+      const blurTop = document.getElementById('blurTop');
+      const blurBottom = document.getElementById('blurBottom');
+      const matchedCard = document.getElementById('matchedCard');
+      const ringFill = document.getElementById('ringFill');
+      const matchCounter = document.getElementById('matchCounter');
+      const skillChecks = Array.from(document.querySelectorAll('.mc-skill'));
+      const simCursor = document.getElementById('simCursor');
+      const introBtn = document.getElementById('introBtn');
+      const btnRipple = document.getElementById('btnRipple');
+      const calendarConfirmed = document.getElementById('calendarConfirmed');
+      const archGrid = document.getElementById('archGrid');
+      const ambientGlow = document.getElementById('ambientGlow');
+      const hudSceneLabel = document.getElementById('hudSceneLabel');
+      const hudTimer = document.getElementById('hudTimer');
+      const progressFill = document.getElementById('progressFill');
+      const playPauseBtn = document.getElementById('playPauseBtn');
+      const playPauseText = document.getElementById('playPauseText');
+      const replayBtn = document.getElementById('replayBtn');
+
+      // Particle System
+      const canvas = document.getElementById('particleCanvas');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+      let particlesSpawned = false;
+
+      function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      function spawnParticles() {
+        const rect = canvas.getBoundingClientRect();
+        const cx = rect.width / 2;
+        const cy = rect.height / 2;
+        particles = [];
+        for (let i = 0; i < 48; i++) {
+          const angle = (Math.PI * 2 * i) / 48 + (Math.random() - 0.5) * 0.4;
+          const speed = 1.6 + Math.random() * 4.2;
+          particles.push({
+            x: cx,
+            y: cy,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            r: 2 + Math.random() * 3.5,
+            alpha: 1,
+          });
+        }
+      }
+
+      function stepParticles() {
+        const rect = canvas.getBoundingClientRect();
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vx *= 0.96;
+          p.vy *= 0.96;
+          p.alpha -= 0.02;
+          if (p.alpha <= 0) {
+            particles.splice(i, 1);
+            continue;
+          }
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(13, 148, 136, ${p.alpha})`;
+          ctx.shadowColor = '#0D9488';
+          ctx.shadowBlur = 10;
+          ctx.fill();
+        }
+      }
+
+      let isPlaying = true;
+      let elapsedMs = 0;
+      let lastFrameTs = null;
+      let rippleTriggered = false;
+
+      function resetVisualState() {
+        particles = [];
+        particlesSpawned = false;
+        rippleTriggered = false;
+
+        dropzoneCard.className = 'dropzone-card';
+        resumeFile.className = 'resume-file';
+        pills.forEach((p) => (p.className = 'skill-pill'));
+        scene1.style.opacity = '1';
+        scene1.style.transform = 'translateX(0)';
+
+        scene23.className = 'scene-2-3';
+        beams.forEach((b) => (b.className.baseVal = 'beam-path'));
+        blurTop.className = 'blur-card top';
+        blurBottom.className = 'blur-card bottom';
+        matchedCard.className = 'matched-card';
+        ringFill.style.strokeDashoffset = String(RING_CIRCUMFERENCE);
+        matchCounter.textContent = '0.0%';
+        skillChecks.forEach((s) => s.classList.remove('checked'));
+        simCursor.className = 'sim-cursor';
+        introBtn.className = 'intro-btn';
+        btnRipple.className = 'btn-ripple';
+        calendarConfirmed.className = 'calendar-confirmed';
+
+        scene4.className = 'scene-4';
+        archGrid.style.transform = 'translate(0, 0)';
+        ambientGlow.style.transform = 'translate(-50%, -50%) scale(1)';
+      }
+
+      function renderTimeline(t) {
+        const sec = t / 1000;
+        progressFill.style.width = `${Math.min(100, (t / DURATION_MS) * 100)}%`;
+        hudTimer.textContent = `${sec.toFixed(1)}s`;
+
+        // SCENE 1: 0s -> 5s (Skill Extraction)
+        if (sec < 5) {
+          hudSceneLabel.textContent = '01 // SKILL EXTRACTION';
+          scene4.className = 'scene-4';
+          scene23.className = 'scene-2-3';
+          scene1.style.opacity = '1';
+
+          if (sec >= 0.15) dropzoneCard.classList.add('visible');
+          if (sec >= 0.75 && sec < 1.85) resumeFile.classList.add('glide-in');
+          if (sec >= 1.85) {
+            resumeFile.classList.add('dropped');
+            dropzoneCard.classList.add('absorbing');
+            if (!particlesSpawned) {
+              spawnParticles();
+              particlesSpawned = true;
+            }
+          }
+          if (sec >= 2.55) {
+            dropzoneCard.classList.add('dissolved');
+            pills.forEach((pill, i) => {
+              if (sec >= 2.55 + i * 0.14) pill.classList.add('orbit');
+            });
+          }
+        }
+
+        // SCENE 2: 5s -> 11s (The Matching Engine)
+        else if (sec >= 5 && sec < 11) {
+          hudSceneLabel.textContent = '02 // THE MATCHING ENGINE';
+          archGrid.style.transform = 'translate(-44px, 0)';
+          ambientGlow.style.transform = 'translate(-38%, -50%) scale(1.12)';
+
+          pills.forEach((p) => {
+            p.classList.add('orbit', 'beam-ready');
+          });
+          scene23.classList.add('active');
+
+          if (sec >= 5.5) {
+            beams.forEach((b) => b.classList.add('shoot'));
+            blurTop.classList.add('show');
+            blurBottom.classList.add('show');
+          }
+          if (sec >= 6.8) {
+            blurTop.classList.add('fade-out');
+            blurBottom.classList.add('fade-out');
+            matchedCard.classList.add('focus');
+          }
+          if (sec >= 7.4) {
+            const p = Math.min(1, (sec - 7.4) / 2.2);
+            const eased = 1 - Math.pow(1 - p, 3);
+            const currentVal = TARGET_MATCH * eased;
+            matchCounter.textContent = `${currentVal.toFixed(1)}%`;
+            const offset = RING_CIRCUMFERENCE * (1 - (currentVal / 100));
+            ringFill.style.strokeDashoffset = String(offset);
+          }
+        }
+
+        // SCENE 3: 11s -> 16s (Transparent Telemetry & Direct Intro)
+        else if (sec >= 11 && sec < 16) {
+          hudSceneLabel.textContent = '03 // DIRECT INTRO';
+          scene23.classList.add('active');
+          matchedCard.classList.add('focus', 'zoom-in');
+          pills.forEach((p) => (p.style.opacity = '0'));
+          beams.forEach((b) => b.classList.add('shoot', 'dim'));
+          matchCounter.textContent = '98.4%';
+          ringFill.style.strokeDashoffset = String(RING_CIRCUMFERENCE * (1 - 0.984));
+
+          skillChecks.forEach((el, idx) => {
+            if (sec >= 11.25 + idx * 0.16) el.classList.add('checked');
+          });
+
+          if (sec >= 12.1 && sec < 13.45) {
+            simCursor.classList.add('glide');
+          }
+          if (sec >= 13.45 && sec < 14.0) {
+            simCursor.classList.remove('glide');
+            simCursor.classList.add('click');
+            introBtn.classList.add('clicked');
+            if (!rippleTriggered) {
+              btnRipple.classList.add('animate');
+              rippleTriggered = true;
+            }
+          }
+          if (sec >= 14.0) {
+            simCursor.classList.remove('click');
+            simCursor.classList.add('exit');
+            introBtn.classList.add('hidden');
+            calendarConfirmed.classList.add('show');
+          }
+        }
+
+        // SCENE 4: 16s -> 20s (Brand Outro & Loop Reset)
+        else {
+          hudSceneLabel.textContent = '04 // SKILLBRIDGE';
+          scene1.style.opacity = '0';
+          scene23.classList.remove('active');
+          scene4.classList.add('active');
+          archGrid.style.transform = 'translate(0, 0)';
+
+          if (sec >= 16.05 && sec < 17.3) {
+            scene4.classList.add('stack-in');
+          }
+          if (sec >= 17.3) {
+            scene4.classList.add('stack-collapse', 'logo-show');
+          }
+        }
+
+        stepParticles();
+      }
+
+      function tick(ts) {
+        if (lastFrameTs === null) lastFrameTs = ts;
+        const delta = ts - lastFrameTs;
+        lastFrameTs = ts;
+
+        if (isPlaying) {
+          elapsedMs += delta;
+          if (elapsedMs >= DURATION_MS) {
+            elapsedMs = 0;
+            pills.forEach((p) => (p.style.opacity = ''));
+            resetVisualState();
+          }
+          renderTimeline(elapsedMs);
+        } else {
+          stepParticles();
+        }
+        requestAnimationFrame(tick);
+      }
+
+      playPauseBtn.addEventListener('click', () => {
+        isPlaying = !isPlaying;
+        playPauseText.textContent = isPlaying ? 'Pause' : 'Play';
+      });
+
+      replayBtn.addEventListener('click', () => {
+        elapsedMs = 0;
+        isPlaying = true;
+        playPauseText.textContent = 'Pause';
+        pills.forEach((p) => (p.style.opacity = ''));
+        resetVisualState();
+      });
+
+      resetVisualState();
+      requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>
+

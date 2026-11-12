@@ -64,9 +64,24 @@
   </header>
 
   <main>
-    <!-- 2. Cinematic Hero & Interactive Match Engine -->
+    <!-- Edge-to-Edge Autoplay Walkthrough Banner (Flush Below Sticky Navbar) -->
+    <section class="walkthrough-bleed" aria-label="SkillBridge product walkthrough">
+      <app-walkthrough-showcase />
+    </section>
+
+    <!-- 2. Hero CTA Bar & Interactive Match Engine -->
     <section class="hero-section">
-      <!-- Audience Switcher -->
+      <!-- Dual CTA Buttons Directly Below Video -->
+      <div class="hero-cta-row">
+        <a routerLink="/register" class="cta-primary-orange">
+          <span>Build Candidate Profile</span>
+        </a>
+        <a href="#engine" (click)="scrollToSection('engine', $event)" class="cta-secondary-teal">
+          <span>Explore Match Engine</span>
+        </a>
+      </div>
+
+      <!-- Audience Switcher for Live Match Engine Preview -->
       <div class="audience-switcher-wrap reveal-stagger">
         <div class="audience-pill" role="tablist" aria-label="Switch perspective">
           <button
@@ -92,35 +107,6 @@
             I Need Talent
           </button>
         </div>
-      </div>
-
-      <!-- Display Headline & Subcopy -->
-      <div class="hero-copy reveal-stagger">
-        <p class="hero-eyebrow">
-          @if (audience() === 'talent') {
-            <span class="mono-chip">SKILLS-MATCHED JOBS &amp; INTERNSHIPS</span>
-          } @else {
-            <span class="mono-chip accent">RANKED APPLICANT MATCHING</span>
-          }
-        </p>
-
-        <h1 class="hero-title">
-          @if (audience() === 'talent') {
-            Jobs matched to the<br />
-            <span class="title-gradient">skills you actually have.</span>
-          } @else {
-            Post once, review<br />
-            <span class="title-gradient">applicants ranked by fit.</span>
-          }
-        </h1>
-
-        <p class="hero-subtitle">
-          @if (audience() === 'talent') {
-            Build your skills profile across any industry, inspect your exact matched and missing skills for every active opening, submit with your saved CV, and track status changes in real time.
-          } @else {
-            Define required and nice-to-have skills, experience level, category, and application deadlines. SkillBridge scores every applicant automatically and lets you inspect CVs in one place.
-          }
-        </p>
       </div>
 
       <!-- Interactive Match Engine Canvas -->

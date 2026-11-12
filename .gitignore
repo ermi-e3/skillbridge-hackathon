@@ -6,6 +6,10 @@ Thumbs.db
 !.vscode/extensions.json
 *.swp
 
+##
+/frontend/nul
+/frontend/nul.map
+
 # ---------- environment ----------
 .env
 

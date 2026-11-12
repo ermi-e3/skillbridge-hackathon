@@ -1,0 +1,212 @@
+<div class="walkthrough-stage" aria-hidden="true">
+  <!-- Optional MP4 Video Layer (auto-plays silently if asset is present) -->
+  <video
+    src="walkthrough.mp4"
+    autoplay
+    loop
+    muted
+    playsinline
+    disablePictureInPicture
+    class="walkthrough-video"
+    [class.visible]="videoAvailable()"
+    (canplay)="onVideoCanPlay()"
+    (error)="onVideoError()"
+  ></video>
+
+  <!-- Live HTML5/CSS/JS Motion-Graphics Canvas (Zero Controls, Borderless) -->
+  <div class="motion-canvas" [class.hidden]="videoAvailable()">
+    <div class="grid-backdrop"></div>
+    <div class="teal-glow" [class.panned]="scene() === 2 || scene() === 3"></div>
+
+    <!-- Opening Hero Text (Shown for 2s then fades out into motion sequence) -->
+    <div
+      class="stage-hero-copy"
+      [class.entered]="heroIntroVisible()"
+      [class.exited]="!showHeroIntro()"
+    >
+      <span class="stage-eyebrow">SKILLS-MATCHED JOBS &amp; INTERNSHIPS</span>
+      <h1 class="stage-title">
+        Jobs matched to the<br />
+        <span class="stage-title-accent">skills you actually have.</span>
+      </h1>
+      <p class="stage-subtitle">
+        Build your skills profile across any industry, inspect your exact matched and missing skills for every active opening, submit with your saved CV, and track status changes in real time.
+      </p>
+    </div>
+
+    <!-- Animated Motion Stage Zone (Fills full canvas after 2s intro) -->
+    <div #stageZone class="motion-stage-zone" [class.active]="!showHeroIntro()">
+      <!-- SCENE 1: SKILL EXTRACTION -->
+    <div class="scene-layer" [class.faded]="scene() === 4">
+      <div
+        class="dropzone-card"
+        [class.visible]="dropzoneState() === 'visible'"
+        [class.absorbing]="dropzoneState() === 'absorbing'"
+        [class.dissolved]="dropzoneState() === 'dissolved'"
+      >
+        <div class="dropzone-inner">
+          <span class="dz-tag">SKILLBRIDGE ENGINE</span>
+          <h3>Drop Profile or Resume</h3>
+          <p>Extracting verified capabilities</p>
+        </div>
+
+        <div
+          class="resume-chip"
+          [class.glide-in]="fileState() === 'glide-in'"
+          [class.dropped]="fileState() === 'dropped'"
+        >
+          <span class="pdf-badge">PDF</span>
+          <div class="pdf-copy">
+            <strong>Resume_2026.pdf</strong>
+            <span>Verified · 428 KB</span>
+          </div>
+        </div>
+      </div>
+
+      <canvas #particleCanvas class="particle-canvas"></canvas>
+
+      <div class="orbital-pills">
+        @for (skill of skills; track skill; let i = $index) {
+          <div
+            class="skill-pill"
+            [attr.data-idx]="i"
+            [class.orbit]="visiblePillsCount() > i"
+            [class.beam-ready]="pillsBeamReady()"
+            [class.faded]="pillsFaded()"
+          >
+            <span class="pill-dot"></span>
+            <span>{{ skill }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- SCENE 2 & 3: MATCHING ENGINE + TELEMETRY -->
+    <div class="engine-layer" [class.active]="scene() === 2 || scene() === 3">
+      <svg class="beams-svg" [attr.viewBox]="svgViewBox()" preserveAspectRatio="none">
+        @for (pathD of beamPaths(); track $index) {
+          <path
+            class="beam-path"
+            [class.shoot]="beamsShot()"
+            [class.dim]="beamsDimmed()"
+            [attr.d]="pathD"
+          />
+        }
+      </svg>
+
+      <div
+        class="blur-card top"
+        [class.show]="blurCardsState() === 'show'"
+        [class.fade-out]="blurCardsState() === 'fade-out'"
+      >
+        <span>42.1% MATCH · FILTERED</span>
+        <strong>Legacy Systems Maintainer</strong>
+      </div>
+
+      <div
+        class="blur-card bottom"
+        [class.show]="blurCardsState() === 'show'"
+        [class.fade-out]="blurCardsState() === 'fade-out'"
+      >
+        <span>58.6% MATCH · FILTERED</span>
+        <strong>Generalist Operations Lead</strong>
+      </div>
+
+      <div
+        #matchedCardEl
+        class="matched-card"
+        [class.focus]="matchedCardState() === 'focus' || matchedCardState() === 'zoom-in'"
+        [class.zoom-in]="matchedCardState() === 'zoom-in'"
+      >
+        <div class="mc-header">
+          <span class="mc-badge">VERIFIED TOP MATCH</span>
+          <div class="ring-box">
+            <svg class="ring-svg" viewBox="0 0 78 78">
+              <circle class="ring-track" cx="39" cy="39" r="32" />
+              <circle
+                class="ring-fill"
+                cx="39"
+                cy="39"
+                r="32"
+                [style.stroke-dashoffset]="ringOffset()"
+              />
+            </svg>
+            <div class="ring-text">
+              <strong>{{ matchPercent() }}</strong>
+              <span>MATCH</span>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="mc-title">Senior Full-Stack Architect</h3>
+        <div class="mc-meta">
+          <span>Hybrid · Full-Time</span>
+          <span>·</span>
+          <span class="mc-pill">Addis Ababa</span>
+        </div>
+
+        <div class="mc-checks">
+          @for (skill of skills; track skill; let i = $index) {
+            <div class="mc-check-item" [class.checked]="checkedCount() > i">
+              <span class="check-mark">✓</span>
+              <span>{{ skill }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="mc-cta-slot">
+          <div
+            class="orange-cta"
+            [class.clicked]="cursorState() === 'click'"
+            [class.hidden]="introConfirmed()"
+          >
+            <span>Submit Verified Application</span>
+            <span class="cta-ripple" [class.active]="rippleActive()"></span>
+          </div>
+
+          <div class="confirmed-bar" [class.show]="introConfirmed()">
+            <span class="conf-dot"></span>
+            <span>Application Submitted · Status: Shortlisted</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Simulated Cursor -->
+      <svg
+        class="sim-cursor"
+        [class.glide]="cursorState() === 'glide'"
+        [class.click]="cursorState() === 'click'"
+        [class.exit]="cursorState() === 'exit'"
+        viewBox="0 0 28 28"
+        fill="none"
+      >
+        <path
+          d="M4 3L23 13.5L14.2 15.8L10.5 24.5L4 3Z"
+          fill="#F97316"
+          stroke="#FFFFFF"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </div>
+
+    <!-- SCENE 4: 3D PERSPECTIVE STACK & BRAND OUTRO -->
+    <div
+      class="outro-layer"
+      [class.active]="scene() === 4 && !outroFading()"
+      [class.fading]="outroFading()"
+      [class.stack-in]="stackState() === 'stack-in'"
+      [class.logo-show]="stackState() === 'logo-show'"
+    >
+      <div class="stack-card s1"></div>
+      <div class="stack-card s2"></div>
+      <div class="stack-card s3"></div>
+      <div class="outro-brand">
+        <div class="outro-wordmark">SkillBridge<span>.</span></div>
+        <p>Precision Matching. Zero Noise.</p>
+      </div>
+    </div>
+    </div>
+  </div>
+</div>
+

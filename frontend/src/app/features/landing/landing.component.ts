@@ -13,6 +13,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
+import { WalkthroughShowcaseComponent } from './walkthrough-showcase/walkthrough-showcase.component';
 
 export type AudienceMode = 'talent' | 'teams';
 
@@ -64,7 +65,7 @@ const SANDBOX_SKILLS: SandboxSkill[] = [
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ThemeToggleComponent],
+  imports: [CommonModule, FormsModule, RouterLink, ThemeToggleComponent, WalkthroughShowcaseComponent],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss',
 })
