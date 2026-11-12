@@ -1,330 +1,508 @@
-<!-- ═══════════════════════════════ NAVBAR ═══════════════════════════════ -->
-<nav class="navbar" id="landing-navbar">
-  <div class="nav-container">
-    <a routerLink="/" class="nav-brand" id="nav-brand">
-      <div class="brand-logo">
-        <img src="/logo.png" alt="SkillBridge Logo" class="brand-img" />
-      </div>
-      <span class="brand-name">SkillBridge</span>
-    </a>
-
-    <div class="nav-links" [class.open]="mobileMenuOpen()">
-      <a href="#features" class="nav-link" id="nav-features">Features</a>
-      <a href="#how-it-works" class="nav-link" id="nav-how">How it Works</a>
-      <a href="#testimonials" class="nav-link" id="nav-testimonials">Testimonials</a>
-      <div class="nav-auth">
-        <a routerLink="/login" class="nav-btn-ghost" id="nav-signin">Sign In</a>
-        <a routerLink="/register" class="nav-btn-primary" id="nav-signup">Get Started</a>
-      </div>
-    </div>
-
-    <button
-      class="mobile-toggle"
-      (click)="toggleMobileMenu()"
-      [attr.aria-label]="mobileMenuOpen() ? 'Close menu' : 'Open menu'"
-      id="mobile-menu-toggle"
-    >
-      @if (mobileMenuOpen()) {
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"/>
-          <line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      } @else {
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <line x1="3" y1="12" x2="21" y2="12"/>
-          <line x1="3" y1="18" x2="21" y2="18"/>
-        </svg>
-      }
-    </button>
-  </div>
-</nav>
-
-<!-- ═══════════════════════════════ HERO ═══════════════════════════════ -->
-<section class="hero" id="hero-section">
-  <div class="hero-bg-effects">
-    <div class="hero-orb hero-orb-1"></div>
-    <div class="hero-orb hero-orb-2"></div>
-    <div class="hero-orb hero-orb-3"></div>
-    <div class="hero-grid-pattern"></div>
+<div class="editorial-shell">
+  <!-- Ambient Background Grid & Radial Mesh -->
+  <div class="ambient-canvas" aria-hidden="true">
+    <div class="grid-overlay"></div>
+    <div class="orb orb-teal"></div>
+    <div class="orb orb-accent"></div>
   </div>
 
-  <div class="hero-container">
-    <div class="hero-content">
-      <div class="hero-badge">
-        <span class="badge-dot"></span>
-        <span>Bridging Skills to Opportunities</span>
+  <!-- 1. Minimalist Floating Glassmorphic Header -->
+  <header class="floating-nav-wrap">
+    <nav class="floating-pill" aria-label="Primary navigation">
+      <a routerLink="/" class="brand-lockup">
+        <img src="/logo.png" alt="SkillBridge mark" class="brand-mark" />
+        <span class="brand-name">SkillBridge</span>
+        <span class="brand-tag">ENGINE</span>
+      </a>
+
+      <div class="nav-anchors">
+        <a href="#engine" (click)="scrollToSection('engine', $event)">The Engine</a>
+        <a href="#sandbox" (click)="scrollToSection('sandbox', $event)">For Talent</a>
+        <a href="#pillars" (click)="scrollToSection('pillars', $event)">For Teams</a>
       </div>
 
-      <h1 class="hero-title">
-        Your skills deserve
-        <span class="gradient-text">the right match</span>
-      </h1>
-
-      <p class="hero-subtitle">
-        SkillBridge connects candidates with internships and entry-level jobs
-        based on <strong>real skills</strong> — not just keywords. Transparent matching,
-        explainable results, instant applications.
-      </p>
-
-      <div class="hero-actions">
-        <a routerLink="/register" class="hero-btn-primary" id="hero-cta-signup">
-          <span>Start Matching Free</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
-            <line x1="5" y1="12" x2="19" y2="12"/>
-            <polyline points="12 5 19 12 12 19"/>
+      <div class="nav-actions">
+        <app-theme-toggle variant="icon" />
+        <a routerLink="/login" class="nav-signin">Sign In</a>
+        <a
+          routerLink="/register"
+          class="magnetic-cta"
+          [style.transform]="magneticTransform()"
+          (mousemove)="onMagneticMove($event)"
+          (mouseleave)="onMagneticLeave()"
+        >
+          <span>Initialize Profile</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
           </svg>
         </a>
-        <a routerLink="/login" class="hero-btn-ghost" id="hero-cta-signin">
-          Sign In
-        </a>
+
+        <button
+          type="button"
+          class="mobile-trigger"
+          (click)="toggleMobileMenu()"
+          [attr.aria-expanded]="mobileMenuOpen()"
+          aria-label="Toggle navigation menu"
+        >
+          <span></span>
+          <span></span>
+        </button>
       </div>
+    </nav>
 
-      <!-- Stats Row -->
-      <div class="hero-stats">
-        @for (stat of stats; track stat.label) {
-          <div class="stat-item">
-            <span class="stat-value">{{ stat.value }}</span>
-            <span class="stat-label">{{ stat.label }}</span>
-          </div>
-        }
+    @if (mobileMenuOpen()) {
+      <div class="mobile-drawer" role="menu">
+        <a href="#engine" (click)="scrollToSection('engine', $event)" role="menuitem">The Engine</a>
+        <a href="#sandbox" (click)="scrollToSection('sandbox', $event)" role="menuitem">For Talent</a>
+        <a href="#pillars" (click)="scrollToSection('pillars', $event)" role="menuitem">For Teams</a>
+        <div class="drawer-divider"></div>
+        <a routerLink="/login" (click)="toggleMobileMenu()" role="menuitem">Sign In</a>
+        <a routerLink="/register" class="drawer-cta" (click)="toggleMobileMenu()" role="menuitem">Initialize Profile</a>
       </div>
-    </div>
+    }
+  </header>
 
-    <div class="hero-visual">
-      <div class="hero-card-stack">
-        <!-- Floating skill match card -->
-        <div class="float-card card-match">
-          <div class="fc-header">
-            <div class="fc-dot fc-dot-green"></div>
-            <span>Match Score</span>
-          </div>
-          <div class="fc-score">94%</div>
-          <div class="fc-bar">
-            <div class="fc-bar-fill" style="width: 94%"></div>
-          </div>
-        </div>
-
-        <!-- Main dashboard preview -->
-        <div class="preview-dashboard">
-          <div class="pd-header">
-            <div class="pd-dots">
-              <span class="pd-dot pd-dot-r"></span>
-              <span class="pd-dot pd-dot-y"></span>
-              <span class="pd-dot pd-dot-g"></span>
-            </div>
-            <span class="pd-title">SkillBridge Dashboard</span>
-          </div>
-          <div class="pd-body">
-            <div class="pd-sidebar">
-              <div class="pd-nav-item pd-nav-active">
-                <div class="pd-nav-icon"></div>
-                <span>Jobs</span>
-              </div>
-              <div class="pd-nav-item">
-                <div class="pd-nav-icon"></div>
-                <span>Profile</span>
-              </div>
-              <div class="pd-nav-item">
-                <div class="pd-nav-icon"></div>
-                <span>Applications</span>
-              </div>
-            </div>
-            <div class="pd-content">
-              <div class="pd-job-card">
-                <div class="pd-job-top">
-                  <span class="pd-company">TechStart</span>
-                  <span class="pd-match-badge">94% match</span>
-                </div>
-                <div class="pd-job-title">Frontend Developer Intern</div>
-                <div class="pd-skills">
-                  <span class="pd-skill matched">Angular</span>
-                  <span class="pd-skill matched">TypeScript</span>
-                  <span class="pd-skill missing">React</span>
-                </div>
-              </div>
-              <div class="pd-job-card">
-                <div class="pd-job-top">
-                  <span class="pd-company">DataCo</span>
-                  <span class="pd-match-badge match-mid">78% match</span>
-                </div>
-                <div class="pd-job-title">Junior Full-Stack Dev</div>
-                <div class="pd-skills">
-                  <span class="pd-skill matched">Node.js</span>
-                  <span class="pd-skill matched">SQL</span>
-                  <span class="pd-skill missing">Docker</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Floating notification card -->
-        <div class="float-card card-notif">
-          <div class="fc-header">
-            <div class="fc-dot fc-dot-orange"></div>
-            <span>New Application</span>
-          </div>
-          <div class="fc-text">Sarah M. applied — <strong>94% match</strong></div>
+  <main>
+    <!-- 2. Cinematic Hero & Interactive Match Engine -->
+    <section class="hero-section">
+      <!-- Audience Switcher -->
+      <div class="audience-switcher-wrap reveal-stagger">
+        <div class="audience-pill" role="tablist" aria-label="Switch perspective">
+          <button
+            type="button"
+            role="tab"
+            class="audience-btn"
+            [class.active]="audience() === 'talent'"
+            [attr.aria-selected]="audience() === 'talent'"
+            (click)="setAudience('talent')"
+          >
+            <span class="status-dot" aria-hidden="true"></span>
+            I Have Skills
+          </button>
+          <button
+            type="button"
+            role="tab"
+            class="audience-btn"
+            [class.active]="audience() === 'teams'"
+            [attr.aria-selected]="audience() === 'teams'"
+            (click)="setAudience('teams')"
+          >
+            <span class="status-dot teams" aria-hidden="true"></span>
+            I Need Talent
+          </button>
         </div>
       </div>
-    </div>
-  </div>
-</section>
 
-<!-- ═══════════════════════════════ FEATURES ═══════════════════════════════ -->
-<section class="features-section" id="features">
-  <div class="section-container">
-    <div class="section-header">
-      <span class="section-badge">Features</span>
-      <h2 class="section-title">Everything you need to<br><span class="gradient-text">bridge the gap</span></h2>
-      <p class="section-subtitle">
-        A complete platform for candidates seeking opportunities and employers finding talent that truly fits.
-      </p>
-    </div>
+      <!-- Display Headline & Subcopy -->
+      <div class="hero-copy reveal-stagger">
+        <p class="hero-eyebrow">
+          @if (audience() === 'talent') {
+            <span class="mono-chip">SIGNAL-FIRST CAREER ENGINE</span>
+          } @else {
+            <span class="mono-chip accent">VERIFIED TALENT TELEMETRY</span>
+          }
+        </p>
 
-    <div class="features-grid">
-      @for (feature of features; track feature.title) {
-        <div class="feature-card" [id]="'feature-' + feature.icon">
-          <div class="feature-icon-wrap">
-            @switch (feature.icon) {
-              @case ('target') {
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
-                </svg>
-              }
-              @case ('briefcase') {
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
-                </svg>
-              }
-              @case ('user') {
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                </svg>
-              }
-              @case ('chart') {
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
-                </svg>
-              }
-              @case ('shield') {
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
-              }
-              @case ('zap') {
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                </svg>
-              }
+        <h1 class="hero-title">
+          @if (audience() === 'talent') {
+            Precision matching,<br />
+            <span class="title-gradient">zero application noise.</span>
+          } @else {
+            Verified capability,<br />
+            <span class="title-gradient">zero resume guesswork.</span>
+          }
+        </h1>
+
+        <p class="hero-subtitle">
+          @if (audience() === 'talent') {
+            Stop feeding keyword-blind ATS black holes. Connect your verified engineering, product, and domain skills directly to high-signal teams that already want what you build.
+          } @else {
+            Define exact skill graphs, proficiency floors, and team context. Receive explainable, pre-scored candidate matches ready for direct founder intros.
+          }
+        </p>
+      </div>
+
+      <!-- Interactive Match Engine Canvas -->
+      <div
+        id="engine"
+        class="match-engine-canvas"
+        #revealEl
+        (mousemove)="onCardPointerMove($event)"
+      >
+        <div class="canvas-topbar">
+          <div class="window-dots" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <span class="canvas-label">SKILLBRIDGE // LIVE MATCH ENGINE v2.4</span>
+          <span class="canvas-hint">Click nodes to recalibrate</span>
+        </div>
+
+        <div class="canvas-stage">
+          <!-- Interactive Floating Skill Nodes -->
+          <div class="nodes-column" role="group" aria-label="Interactive skill nodes">
+            @for (node of heroNodes(); track node.id) {
+              <button
+                type="button"
+                class="skill-node-card"
+                [class.active]="isHeroNodeActive(node.id)"
+                [attr.aria-pressed]="isHeroNodeActive(node.id)"
+                (click)="toggleHeroNode(node.id)"
+              >
+                <div class="node-header">
+                  <span class="node-pulse" aria-hidden="true"></span>
+                  <span class="node-tag">{{ node.tag }}</span>
+                </div>
+                <div class="node-title">{{ node.label }}</div>
+                <div class="node-weight">+{{ node.weight }}% signal</div>
+              </button>
             }
           </div>
-          <h3 class="feature-title">{{ feature.title }}</h3>
-          <p class="feature-desc">{{ feature.description }}</p>
-        </div>
-      }
-    </div>
-  </div>
-</section>
 
-<!-- ═══════════════════════════════ HOW IT WORKS ═══════════════════════════════ -->
-<section class="how-section" id="how-it-works">
-  <div class="section-container">
-    <div class="section-header">
-      <span class="section-badge">How It Works</span>
-      <h2 class="section-title">Three steps to your<br><span class="gradient-text">perfect match</span></h2>
-      <p class="section-subtitle">Getting started takes less than 5 minutes.</p>
-    </div>
+          <!-- Glowing SVG Signal Paths -->
+          <div class="svg-bridge" aria-hidden="true">
+            <svg viewBox="0 0 210 260" preserveAspectRatio="none" class="bridge-svg">
+              <defs>
+                <linearGradient id="sbSignalGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#0d9488" stop-opacity="0.35" />
+                  <stop offset="50%" stop-color="#2dd4bf" stop-opacity="0.95" />
+                  <stop offset="100%" stop-color="#5eead4" stop-opacity="1" />
+                </linearGradient>
+              </defs>
 
-    <div class="steps-row">
-      @for (step of steps; track step.number; let i = $index) {
-        <div class="step-card" [id]="'step-' + step.number">
-          <div class="step-number">{{ step.number }}</div>
-          <h3 class="step-title">{{ step.title }}</h3>
-          <p class="step-desc">{{ step.description }}</p>
-          @if (i < steps.length - 1) {
-            <div class="step-connector"></div>
-          }
-        </div>
-      }
-    </div>
-  </div>
-</section>
+              @for (node of heroNodes(); track node.id) {
+                <path
+                  [attr.d]="node.pathD"
+                  class="signal-track"
+                  [class.active]="isHeroNodeActive(node.id)"
+                />
+                @if (isHeroNodeActive(node.id)) {
+                  <path
+                    [attr.d]="node.pathD"
+                    class="signal-flow"
+                  />
+                }
+              }
 
-<!-- ═══════════════════════════════ TESTIMONIALS ═══════════════════════════════ -->
-<section class="testimonials-section" id="testimonials">
-  <div class="section-container">
-    <div class="section-header">
-      <span class="section-badge">Testimonials</span>
-      <h2 class="section-title">Loved by candidates<br><span class="gradient-text">&amp; employers</span></h2>
-    </div>
+              <circle cx="195" cy="130" r="7" class="core-anchor" />
+            </svg>
+          </div>
 
-    <div class="testimonials-carousel">
-      @for (t of testimonials; track t.name; let i = $index) {
-        <div class="testimonial-card" [class.active]="activeTestimonial() === i" [id]="'testimonial-' + i">
-          <div class="t-quote-mark">"</div>
-          <p class="t-quote">{{ t.quote }}</p>
-          <div class="t-author">
-            <div class="t-avatar">{{ t.avatar }}</div>
-            <div class="t-info">
-              <span class="t-name">{{ t.name }}</span>
-              <span class="t-role">{{ t.role }}</span>
+          <!-- High-Signal Opportunity / Candidate Match Card -->
+          <article class="opportunity-card">
+            <div class="opp-header">
+              <div class="opp-badge">
+                <span class="live-indicator"></span>
+                <span>{{ audience() === 'talent' ? 'HIGH-SIGNAL ROLE' : 'VERIFIED MATCH' }}</span>
+              </div>
+              <div class="score-readout">
+                <span class="score-value">{{ heroCompatibility() }}%</span>
+                <span class="score-label">Compatibility Score</span>
+              </div>
             </div>
+
+            <div class="score-bar-track" aria-hidden="true">
+              <div class="score-bar-fill" [style.width.%]="heroCompatibility()"></div>
+            </div>
+
+            <h2 class="opp-title">
+              {{ audience() === 'talent' ? 'Principal Product Systems Engineer' : 'Dawit T. — Staff Systems Architect' }}
+            </h2>
+            <p class="opp-meta">
+              {{ audience() === 'talent' ? 'Abyssinia FinTech Labs · Remote / Addis Hybrid' : '7+ yrs verified · Available for direct intro' }}
+            </p>
+
+            <div class="opp-comp-box">
+              <span class="comp-k">{{ audience() === 'talent' ? 'TRANSPARENT COMP' : 'TARGET COMP' }}</span>
+              <span class="comp-v">$115,000 – $142,000 / yr · Equity</span>
+            </div>
+
+            <div class="opp-matched-row">
+              @for (node of heroNodes(); track node.id) {
+                @if (isHeroNodeActive(node.id)) {
+                  <span class="matched-chip">{{ node.label }}</span>
+                }
+              }
+            </div>
+
+            <div class="opp-footer">
+              <button
+                type="button"
+                class="accept-intro-btn"
+                [class.accepted]="introAccepted()"
+                (click)="acceptIntro()"
+              >
+                @if (introAccepted()) {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>Intro Accepted · Calendar Synced</span>
+                } @else {
+                  <span>Accept Intro</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                }
+              </button>
+              <a routerLink="/register" class="open-full-link">Full breakdown →</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Interactive Live Skill Sandbox -->
+    <section id="sandbox" class="sandbox-section reveal-block" #revealEl>
+      <div class="section-heading">
+        <span class="mono-chip">LIVE SKILL SANDBOX</span>
+        <h2>Test the match engine before you sign up.</h2>
+        <p>Toggle 3–4 capabilities below to preview real-time role alignment and transparent compensation bands.</p>
+      </div>
+
+      <div class="sandbox-pills" role="group" aria-label="Interactive capability selector">
+        @for (skill of sandboxSkills; track skill.id) {
+          <button
+            type="button"
+            class="sandbox-pill"
+            [class.selected]="isSandboxSelected(skill.id)"
+            [attr.aria-pressed]="isSandboxSelected(skill.id)"
+            (click)="toggleSandboxSkill(skill.id)"
+          >
+            <span class="pill-check" aria-hidden="true">
+              @if (isSandboxSelected(skill.id)) { ✓ } @else { + }
+            </span>
+            <span class="pill-name">{{ skill.label }}</span>
+            <span class="pill-cat">{{ skill.category }}</span>
+          </button>
+        }
+      </div>
+
+      <div class="sandbox-preview-card" (mousemove)="onCardPointerMove($event)">
+        <div class="preview-left">
+          <div class="preview-eyebrow">{{ sandboxMatch().teamLabel }}</div>
+          <h3 class="preview-role">{{ sandboxMatch().roleTitle }}</h3>
+          <p class="preview-synergy">{{ sandboxMatch().synergyLabel }}</p>
+          <div class="preview-tags">
+            @for (tag of sandboxMatch().matchedHighlights; track tag) {
+              <span class="preview-tag">{{ tag }}</span>
+            }
           </div>
         </div>
-      }
-    </div>
 
-    <div class="testimonial-dots">
-      @for (t of testimonials; track t.name; let i = $index) {
-        <button
-          class="t-dot"
-          [class.active]="activeTestimonial() === i"
-          (click)="setTestimonial(i)"
-          [attr.aria-label]="'View testimonial from ' + t.name"
-        ></button>
-      }
-    </div>
-  </div>
-</section>
+        <div class="preview-right">
+          <div class="metric-pair">
+            <div class="metric-block">
+              <span class="metric-label">EST. COMPENSATION</span>
+              <span class="metric-value comp">{{ sandboxMatch().salaryRange }}</span>
+            </div>
+            <div class="metric-block">
+              <span class="metric-label">LIVE MATCH SCORE</span>
+              <span class="metric-value score">{{ sandboxMatch().compatibility }}%</span>
+            </div>
+          </div>
 
-<!-- ═══════════════════════════════ CTA ═══════════════════════════════ -->
-<section class="cta-section" id="cta-section">
-  <div class="cta-bg-effects">
-    <div class="cta-orb cta-orb-1"></div>
-    <div class="cta-orb cta-orb-2"></div>
-  </div>
-  <div class="section-container cta-inner">
-    <h2 class="cta-title">Ready to find your <span class="gradient-text">perfect match</span>?</h2>
-    <p class="cta-subtitle">Join thousands of candidates and employers already using SkillBridge.</p>
-    <div class="cta-actions">
-      <a routerLink="/register" class="cta-btn-primary" id="cta-signup">
-        <span>Create Free Account</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
-          <line x1="5" y1="12" x2="19" y2="12"/>
-          <polyline points="12 5 19 12 12 19"/>
-        </svg>
-      </a>
-      <a routerLink="/login" class="cta-btn-ghost" id="cta-signin">
-        I already have an account
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════ FOOTER ═══════════════════════════════ -->
-<footer class="landing-footer" id="landing-footer">
-  <div class="section-container footer-inner">
-    <div class="footer-brand">
-      <div class="brand-logo">
-        <img src="/logo.png" alt="SkillBridge Logo" class="brand-img" />
+          <a routerLink="/register" class="sandbox-cta">
+            Lock These Skills into Profile →
+          </a>
+        </div>
       </div>
-      <span class="brand-name">SkillBridge</span>
+    </section>
+
+    <!-- 4. Asymmetric Bento Grid: Why It's Different -->
+    <section id="pillars" class="bento-section reveal-block" #revealEl>
+      <div class="section-heading">
+        <span class="mono-chip">ARCHITECTURE</span>
+        <h2>Built for signal, not volume.</h2>
+        <p>Every interaction is engineered to replace black-box filtering with transparent proof.</p>
+      </div>
+
+      <div class="bento-grid">
+        <!-- Wide Pillar 1: Zero Resume Black Holes -->
+        <article class="bento-card bento-wide" (mousemove)="onCardPointerMove($event)">
+          <div class="bento-copy">
+            <span class="pillar-index">01 / TRANSPARENCY</span>
+            <h3>Zero Resume Black Holes</h3>
+            <p>Track every state transition in real time—from match calculation to founder review—backed by SignalR live telemetry.</p>
+          </div>
+          <div class="timeline-widget" aria-label="Live application status timeline">
+            <div class="tl-step done">
+              <span class="tl-node"></span>
+              <div class="tl-meta">
+                <strong>Skills Verified</strong>
+                <span>98.4% alignment computed</span>
+              </div>
+              <span class="tl-time">00:01s</span>
+            </div>
+            <div class="tl-step done">
+              <span class="tl-node"></span>
+              <div class="tl-meta">
+                <strong>Hiring Lead Alerted</strong>
+                <span>Ranked #1 in active cohort</span>
+              </div>
+              <span class="tl-time">02m</span>
+            </div>
+            <div class="tl-step active">
+              <span class="tl-node"></span>
+              <div class="tl-meta">
+                <strong>Direct Intro Triggered</strong>
+                <span>Calendar link unlocked</span>
+              </div>
+              <span class="tl-time">LIVE</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Tall Pillar 2: Verified Skill Telemetry -->
+        <article class="bento-card bento-tall" (mousemove)="onCardPointerMove($event)">
+          <div class="bento-copy">
+            <span class="pillar-index">02 / TELEMETRY</span>
+            <h3>Verified Skill Telemetry</h3>
+            <p>Weighted proficiency scoring across core, preferred, and seniority dimensions—never keyword stuffing.</p>
+          </div>
+          <div class="telemetry-chart" aria-label="Capability telemetry bars">
+            <div class="bar-row">
+              <span class="bar-label">Architecture</span>
+              <div class="bar-track"><div class="bar-fill" style="width: 96%"></div></div>
+              <span class="bar-val">96</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">TypeScript</span>
+              <div class="bar-track"><div class="bar-fill" style="width: 94%"></div></div>
+              <span class="bar-val">94</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Systems</span>
+              <div class="bar-track"><div class="bar-fill" style="width: 89%"></div></div>
+              <span class="bar-val">89</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Product</span>
+              <div class="bar-track"><div class="bar-fill accent" style="width: 84%"></div></div>
+              <span class="bar-val">84</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Full-Width Asymmetric Pillar 3: Direct-to-Founder Intros -->
+        <article class="bento-card bento-full" (mousemove)="onCardPointerMove($event)">
+          <div class="bento-copy">
+            <span class="pillar-index">03 / DIRECT ACCESS</span>
+            <h3>Direct-to-Founder Intros</h3>
+            <p>High-compatibility matches bypass six rounds of recruiter phone screens. Confirm a 15-minute intro directly with the hiring founder or engineering lead.</p>
+          </div>
+
+          <div class="founder-snippet">
+            <div class="chat-bubble">
+              <div class="chat-author">
+                <span class="author-badge">SM</span>
+                <div>
+                  <strong>Sara Mekonnen</strong>
+                  <span>CTO · Nile Cloud</span>
+                </div>
+              </div>
+              <p>“Saw your 98.4% TypeScript + System Architecture match. Want to skip the form screen and talk architecture for 15 mins?”</p>
+            </div>
+
+            <div class="slot-picker">
+              <button
+                type="button"
+                class="slot-btn"
+                [class.active]="selectedSlot() === 'thu-10'"
+                (click)="selectSlot('thu-10')"
+              >
+                Thu · 10:00 EAT
+              </button>
+              <button
+                type="button"
+                class="slot-btn"
+                [class.active]="selectedSlot() === 'fri-14'"
+                (click)="selectSlot('fri-14')"
+              >
+                Fri · 14:30 EAT
+              </button>
+              <span class="slot-confirm">
+                {{ slotBooked() ? '✓ Intro slot reserved' : 'Select a slot' }}
+              </span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- 5. Social Proof Logo Marquee -->
+    <section class="marquee-section" aria-label="Teams hiring on SkillBridge">
+      <p class="marquee-caption">TEAMS CALIBRATING HIRING ON SKILLBRIDGE</p>
+      <div class="marquee-viewport">
+        <div class="marquee-track">
+          @for (logo of marqueeCompanies; track logo) {
+            <span class="marquee-item">{{ logo }}</span>
+          }
+          @for (logo of marqueeCompanies; track logo + '-dup') {
+            <span class="marquee-item" aria-hidden="true">{{ logo }}</span>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Dramatic Full-Bleed Closing CTA & Quick-Start Dropzone -->
+    <section class="closing-section reveal-block" #revealEl>
+      <div class="closing-glow" aria-hidden="true"></div>
+      <div class="closing-inner">
+        <span class="mono-chip">INSTANT CALIBRATION</span>
+        <h2 class="closing-title">Your next chapter isn’t a keyword search.</h2>
+        <p class="closing-subtitle">
+          Drop your GitHub URL, portfolio link, or resume PDF to initialize your skill profile in seconds.
+        </p>
+
+        <div
+          class="dropzone-bar"
+          [class.drag-over]="isDragOver()"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave()"
+          (drop)="onDrop($event)"
+        >
+          <input
+            type="text"
+            class="dropzone-input"
+            [ngModel]="quickStartInput()"
+            (ngModelChange)="quickStartInput.set($event)"
+            placeholder="github.com/username, portfolio URL, or drop resume PDF..."
+            aria-label="Portfolio URL, GitHub URL, or resume file"
+          />
+
+          <label class="upload-trigger">
+            <input type="file" accept=".pdf,.doc,.docx" (change)="onFileSelected($event)" hidden />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span>{{ droppedFileName() ? 'PDF Ready' : 'Upload PDF' }}</span>
+          </label>
+
+          <button type="button" class="launch-btn" (click)="launchQuickStart()">
+            Launch Match →
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="editorial-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="/logo.png" alt="SkillBridge" class="footer-logo" />
+        <span>SkillBridge</span>
+        <span class="footer-copy">© 2026 SkillBridge. Precision skill matching.</span>
+      </div>
+      <div class="footer-links">
+        <a href="#engine" (click)="scrollToSection('engine', $event)">Engine</a>
+        <a href="#sandbox" (click)="scrollToSection('sandbox', $event)">Sandbox</a>
+        <a href="#pillars" (click)="scrollToSection('pillars', $event)">Architecture</a>
+        <a routerLink="/login">Sign In</a>
+        <a routerLink="/register">Register</a>
+      </div>
     </div>
-    <p class="footer-text">Skills-matched jobs & internships. Built for the future of hiring.</p>
-    <div class="footer-bottom">
-      <span>&copy; 2026 SkillBridge. All rights reserved.</span>
-    </div>
-  </div>
-</footer>
+  </footer>
+</div>
