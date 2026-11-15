@@ -18,23 +18,41 @@
     <div class="grid-backdrop"></div>
     <div class="teal-glow" [class.panned]="scene() === 2 || scene() === 3"></div>
 
-    <!-- Opening Hero Text (Shown for 2s then fades out into motion sequence) -->
+    <!-- Opening Hero Text (Shown for 6s then fades out into motion sequence) -->
     <div
       class="stage-hero-copy"
       [class.entered]="heroIntroVisible()"
       [class.exited]="!showHeroIntro()"
     >
-      <span class="stage-eyebrow">SKILLS-MATCHED JOBS &amp; INTERNSHIPS</span>
+      <div class="line-mask eyebrow-mask">
+        <span class="stage-eyebrow">SKILLS-MATCHED JOBS &amp; INTERNSHIPS</span>
+      </div>
+
       <h1 class="stage-title">
-        Jobs matched to the<br />
-        <span class="stage-title-accent">skills you actually have.</span>
+        <span class="line-mask title-mask">
+          <span class="title-line title-line-1">Jobs matched to the</span>
+        </span>
+        <span class="line-mask title-mask">
+          <span class="title-line title-line-2">
+            <span class="stage-title-accent">skills you actually have.</span>
+          </span>
+        </span>
       </h1>
+
       <p class="stage-subtitle">
-        Build your skills profile across any industry, inspect your exact matched and missing skills for every active opening, submit with your saved CV, and track status changes in real time.
+        <span class="line-mask sub-mask">
+          <span class="sub-line sub-line-1">Build your skills profile across any industry, inspect your exact matched and</span>
+        </span>
+        <span class="line-mask sub-mask">
+          <span class="sub-line sub-line-2">missing skills for every active opening, submit with your saved CV, and track</span>
+        </span>
+        <span class="line-mask sub-mask">
+          <span class="sub-line sub-line-3">status changes in real time.</span>
+        </span>
       </p>
     </div>
 
-    <!-- Animated Motion Stage Zone (Fills full canvas after 2s intro) -->
+    <!-- Animated Motion Stage Zone (Fills full canvas after 6s intro) -->
     <div #stageZone class="motion-stage-zone" [class.active]="!showHeroIntro()">
       <!-- SCENE 1: SKILL EXTRACTION -->
     <div class="scene-layer" [class.faded]="scene() === 4">
@@ -190,18 +208,16 @@
       </svg>
     </div>
 
-    <!-- SCENE 4: 3D PERSPECTIVE STACK & BRAND OUTRO -->
+    <!-- SCENE 4: BRAND OUTRO -->
     <div
       class="outro-layer"
       [class.active]="scene() === 4 && !outroFading()"
       [class.fading]="outroFading()"
-      [class.stack-in]="stackState() === 'stack-in'"
-      [class.logo-show]="stackState() === 'logo-show'"
     >
-      <div class="stack-card s1"></div>
-      <div class="stack-card s2"></div>
-      <div class="stack-card s3"></div>
       <div class="outro-brand">
+        <div class="outro-brand-mark">
+          <img src="/logo.png" alt="SkillBridge mark" class="outro-logo-img" />
+        </div>
         <div class="outro-wordmark">SkillBridge<span>.</span></div>
         <p>Precision Matching. Zero Noise.</p>
       </div>

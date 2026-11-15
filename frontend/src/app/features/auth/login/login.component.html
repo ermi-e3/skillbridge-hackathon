@@ -1,180 +1,325 @@
 <div class="auth-page">
-  <div class="auth-theme-corner">
-    <app-theme-toggle variant="icon" />
-  </div>
-  <div class="auth-card">
-    <!-- Brand Header -->
-    <header class="auth-header">
-      <div class="brand-badge">
-        <img src="/logo.png" alt="SkillBridge Logo" class="brand-icon-img" />
-        <span class="brand-title">SkillBridge</span>
-      </div>
-      <h1 class="auth-title">Welcome back</h1>
-      <p class="auth-subtitle">Sign in to access your skills-matched job pipeline</p>
-    </header>
-
-    <!-- Dismissible Error Alert Banner -->
-    @if (errorMessage()) {
-      <div class="alert-banner" role="alert" aria-live="assertive">
-        <div class="alert-content">
-          <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
-            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
-          <span class="alert-text">{{ errorMessage() }}</span>
+  <!-- Minimalist Floating Header -->
+  <header class="floating-header">
+    <div class="header-inner">
+      <!-- Left: Brand Logo & Title -->
+      <a routerLink="/" class="brand-link" aria-label="SkillBridge Home">
+        <div class="brand-logo-wrap">
+          <img src="/logo.png" alt="SkillBridge Logo" class="brand-logo-img" />
         </div>
-        <button
-          type="button"
-          class="alert-close-btn"
-          aria-label="Dismiss error"
-          (click)="dismissAlert()"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-    }
+        <span class="brand-name">SkillBridge</span>
+      </a>
 
-    <!-- Login Form -->
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate class="auth-form">
-      <!-- Email Field -->
-      <div class="form-group">
-        <label for="email" class="form-label">Email address</label>
-        <div class="input-wrapper" [class.has-error]="emailControl?.invalid && (emailControl?.touched || emailControl?.dirty)">
-          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-            <polyline points="22,6 12,13 2,6"></polyline>
+      <!-- Right: Back to Landing + Theme Toggle -->
+      <div class="header-actions">
+        <a routerLink="/" class="back-link">
+          <svg class="back-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
           </svg>
-          <input
-            id="email"
-            type="email"
-            formControlName="email"
-            placeholder="you@example.com"
-            autocomplete="email"
-            class="form-input"
-            [attr.aria-invalid]="emailControl?.invalid && emailControl?.touched"
-            aria-describedby="email-error"
-          />
+          <span class="back-text">Back to Landing</span>
+        </a>
+        <div class="header-theme-toggle">
+          <app-theme-toggle variant="icon" />
         </div>
+      </div>
+    </div>
+  </header>
 
-        @if (emailControl?.invalid && (emailControl?.touched || emailControl?.dirty)) {
-          <div id="email-error" class="inline-error" role="alert">
-            <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="12" r="10"></circle>
-            </svg>
-            @if (emailControl?.errors?.['required']) {
-              <span>Email is required.</span>
-            } @else if (emailControl?.errors?.['email']) {
-              <span>Please enter a valid email address.</span>
-            }
+  <!-- Asymmetric Split Layout Container -->
+  <main class="auth-main-layout">
+    <!-- Left Column: The Elevated Tactile Form Card -->
+    <section class="form-column">
+      <div class="auth-card">
+        <!-- Form Header -->
+        <header class="auth-header">
+          <div class="brand-badge">
+            <span class="badge-dot"></span>
+            <span class="badge-label">TALENT PLATFORM ACCESS</span>
+          </div>
+          <h1 class="auth-title">Welcome back</h1>
+          <p class="auth-subtitle">Sign in to access your skills-matched job pipeline and live application tracker</p>
+        </header>
+
+        <!-- Dismissible Error Alert Banner -->
+        @if (errorMessage()) {
+          <div class="alert-banner" role="alert" aria-live="assertive">
+            <div class="alert-content">
+              <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span class="alert-text">{{ errorMessage() }}</span>
+            </div>
+            <button
+              type="button"
+              class="alert-close-btn"
+              aria-label="Dismiss error"
+              (click)="dismissAlert()"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
           </div>
         }
-      </div>
 
-      <!-- Password Field -->
-      <div class="form-group">
-        <div class="password-label-row">
-          <label for="password" class="form-label">Password</label>
-          <a routerLink="/forgot-password" class="forgot-link">Forgot password?</a>
-        </div>
-        <div class="input-wrapper" [class.has-error]="passwordControl?.invalid && (passwordControl?.touched || passwordControl?.dirty)">
-          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-          </svg>
-          <input
-            id="password"
-            [type]="showPassword() ? 'text' : 'password'"
-            formControlName="password"
-            placeholder="Enter your password"
-            autocomplete="current-password"
-            class="form-input"
-            [attr.aria-invalid]="passwordControl?.invalid && passwordControl?.touched"
-            aria-describedby="password-error"
-          />
+        <!-- Login Form -->
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate class="auth-form">
+          <!-- Email Field -->
+          <div class="form-group">
+            <label for="email" class="form-label">Email address</label>
+            <div class="input-wrapper" [class.has-error]="emailControl?.invalid && (emailControl?.touched || emailControl?.dirty)">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                placeholder="you@example.com"
+                autocomplete="email"
+                class="form-input"
+                [attr.aria-invalid]="emailControl?.invalid && emailControl?.touched"
+                aria-describedby="email-error"
+              />
+            </div>
+
+            @if (emailControl?.invalid && (emailControl?.touched || emailControl?.dirty)) {
+              <div id="email-error" class="inline-error" role="alert">
+                <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+                @if (emailControl?.errors?.['required']) {
+                  <span>Email is required.</span>
+                } @else if (emailControl?.errors?.['email']) {
+                  <span>Please enter a valid email address.</span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Password Field -->
+          <div class="form-group">
+            <div class="password-label-row">
+              <label for="password" class="form-label">Password</label>
+              <a routerLink="/forgot-password" class="forgot-link">Forgot password?</a>
+            </div>
+            <div class="input-wrapper" [class.has-error]="passwordControl?.invalid && (passwordControl?.touched || passwordControl?.dirty)">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              <input
+                id="password"
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                class="form-input"
+                [attr.aria-invalid]="passwordControl?.invalid && passwordControl?.touched"
+                aria-describedby="password-error"
+              />
+              <button
+                type="button"
+                class="password-toggle-btn"
+                (click)="togglePasswordVisibility()"
+                [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+              >
+                @if (showPassword()) {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                }
+              </button>
+            </div>
+
+            @if (passwordControl?.invalid && (passwordControl?.touched || passwordControl?.dirty)) {
+              <div id="password-error" class="inline-error" role="alert">
+                <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+                @if (passwordControl?.errors?.['required']) {
+                  <span>Password is required.</span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Submit Button in Vibrant Orange-500 -->
           <button
-            type="button"
-            class="password-toggle-btn"
-            (click)="togglePasswordVisibility()"
-            [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+            type="submit"
+            class="submit-btn"
+            [disabled]="loginForm.invalid || isSubmitting()"
           >
-            @if (showPassword()) {
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
+            @if (isSubmitting()) {
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Signing in...</span>
             } @else {
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
+              <span>Sign In</span>
+              <span class="btn-arrow" aria-hidden="true">→</span>
             }
           </button>
+
+          <!-- Social Auth Divider -->
+          <div class="social-divider">
+            <span>or continue with</span>
+          </div>
+
+          <div class="social-grid">
+            <button type="button" class="social-btn" (click)="signInWithSocial('Google')" [disabled]="isSubmitting()">
+              <svg class="social-icon" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.16 0 9.94 0 12s.45 3.84 1.25 5.42l4.03-3.15z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+              </svg>
+              <span>Google</span>
+            </button>
+
+            <button type="button" class="social-btn" (click)="signInWithSocial('GitHub')" [disabled]="isSubmitting()">
+              <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+              </svg>
+              <span>GitHub</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Footer Switcher with Orange-500 Accent -->
+        <footer class="auth-footer">
+          <p>
+            Don't have an account?
+            <a routerLink="/register" class="auth-link">Create an account →</a>
+          </p>
+        </footer>
+      </div>
+    </section>
+
+    <!-- Right Column: Cinematic Live Match Telemetry Panel in Slate-800 -->
+    <aside class="showcase-column" aria-label="SkillBridge Platform Telemetry">
+      <div class="showcase-panel">
+        <!-- Top Editorial Telemetry Strip -->
+        <div class="telemetry-header">
+          <div class="telemetry-status">
+            <span class="live-pulse"></span>
+            <span class="telemetry-mono">SKILLBRIDGE OS // VERIFIED TALENT GRAPH</span>
+          </div>
+          <div class="telemetry-metric">
+            <span class="metric-mono">LIVE STATUS NOTIFICATIONS</span>
+          </div>
         </div>
 
-        @if (passwordControl?.invalid && (passwordControl?.touched || passwordControl?.dirty)) {
-          <div id="password-error" class="inline-error" role="alert">
-            <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="12" r="10"></circle>
-            </svg>
-            @if (passwordControl?.errors?.['required']) {
-              <span>Password is required.</span>
-            }
+        <!-- Telemetry Stage: Animated Nodes + Glowing Curvature + Floating Passport Preview Card -->
+        <div class="telemetry-stage">
+          <!-- Skill Nodes on Left Side -->
+          <div class="telemetry-nodes">
+            <div class="telemetry-node node-1">
+              <span class="node-dot"></span>
+              <span class="node-label">Skills Profile Catalog</span>
+            </div>
+            <div class="telemetry-node node-2">
+              <span class="node-dot"></span>
+              <span class="node-label">Algorithmic Matching</span>
+            </div>
+            <div class="telemetry-node node-3">
+              <span class="node-dot"></span>
+              <span class="node-label">Direct CV Submissions</span>
+            </div>
+            <div class="telemetry-node node-4">
+              <span class="node-dot"></span>
+              <span class="node-label">SignalR Live Telemetry</span>
+            </div>
           </div>
-        }
+
+          <!-- Glowing SVG Connection Paths -->
+          <div class="telemetry-connector">
+            <svg class="connector-svg" viewBox="0 0 160 220" fill="none" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="curveGradientLogin" x1="0%" y1="50%" x2="100%" y2="50%">
+                  <stop offset="0%" stop-color="#0D9488" stop-opacity="0.9" />
+                  <stop offset="100%" stop-color="#0D9488" stop-opacity="0.3" />
+                </linearGradient>
+                <filter id="tealGlowLogin" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              <path d="M 0 32 C 85 32, 85 110, 160 110" stroke="url(#curveGradientLogin)" stroke-width="2" filter="url(#tealGlowLogin)" />
+              <path d="M 0 84 C 75 84, 85 110, 160 110" stroke="url(#curveGradientLogin)" stroke-width="2" filter="url(#tealGlowLogin)" />
+              <path d="M 0 136 C 75 136, 85 110, 160 110" stroke="url(#curveGradientLogin)" stroke-width="2" filter="url(#tealGlowLogin)" />
+              <path d="M 0 188 C 85 188, 85 110, 160 110" stroke="url(#curveGradientLogin)" stroke-width="2" filter="url(#tealGlowLogin)" />
+            </svg>
+          </div>
+
+          <!-- Floating Glassmorphic Candidate Match Card -->
+          <div class="telemetry-card">
+            <div class="match-card-top">
+              <span class="match-badge">INTEGRATED CAREER PASSPORT</span>
+              <div class="match-score-pill">
+                <span class="score-num">INSTANT</span>
+                <span class="score-txt">SYNC</span>
+              </div>
+            </div>
+
+            <div class="match-card-body">
+              <h3 class="role-headline">Candidate &amp; Employer Hub</h3>
+              <div class="role-meta">
+                <span class="meta-item">Skill Verification</span>
+                <span class="meta-dot">·</span>
+                <span class="meta-item">Live Pipeline</span>
+                <span class="meta-dot">·</span>
+                <span class="meta-item">Status Alerts</span>
+              </div>
+
+              <!-- Bento Metric Row -->
+              <div class="bento-metric-row">
+                <div class="bento-box">
+                  <span class="bento-val">MATCH %</span>
+                  <span class="bento-lbl">Instant Fit</span>
+                </div>
+                <div class="bento-box">
+                  <span class="bento-val">5 STAGES</span>
+                  <span class="bento-lbl">Live Tracking</span>
+                </div>
+                <div class="bento-box">
+                  <span class="bento-val">ZERO BIAS</span>
+                  <span class="bento-lbl">Capabilities</span>
+                </div>
+              </div>
+
+              <div class="card-action-preview">
+                <div class="action-btn-dummy">
+                  <span>Access Verified Opportunities</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Telemetry Ticker / Live Status -->
+        <div class="telemetry-footer">
+          <div class="status-indicator-row">
+            <span class="pulse-emerald"></span>
+            <span class="status-strong">REAL-TIME APPLICATION PIPELINE CONNECTED</span>
+          </div>
+          <p class="telemetry-caption">
+            Track application progression from initial review through to interview invites with instant real-time telemetry and transparent status changes.
+          </p>
+        </div>
       </div>
-
-      <!-- Submit Button (Disabled while invalid or submitting) -->
-      <button
-        type="submit"
-        class="submit-btn"
-        [disabled]="loginForm.invalid || isSubmitting()"
-      >
-        @if (isSubmitting()) {
-          <span class="spinner" aria-hidden="true"></span>
-          <span>Signing in...</span>
-        } @else {
-          <span>Sign In</span>
-          <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-            <polyline points="12 5 19 12 12 19"></polyline>
-          </svg>
-        }
-      </button>
-
-      <!-- Social Auth Divider -->
-      <div class="social-divider">
-        <span>or continue with</span>
-      </div>
-
-      <div class="social-grid">
-        <button type="button" class="social-btn" (click)="signInWithSocial('Google')" [disabled]="isSubmitting()">
-          <svg class="social-icon" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
-            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
-            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.16 0 9.94 0 12s.45 3.84 1.25 5.42l4.03-3.15z"/>
-            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-          </svg>
-          Google
-        </button>
-
-        <button type="button" class="social-btn" (click)="signInWithSocial('GitHub')" [disabled]="isSubmitting()">
-          <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-          </svg>
-          GitHub
-        </button>
-      </div>
-    </form>
-    <!-- Footer Switcher -->
-    <footer class="auth-footer">
-      <p>
-        Don't have an account?
-        <a routerLink="/register" class="auth-link">Create an account</a>
-      </p>
-    </footer>
-  </div>
+    </aside>
+  </main>
 </div>

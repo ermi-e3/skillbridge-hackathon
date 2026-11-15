@@ -1,319 +1,529 @@
 <div class="auth-page">
-  <div class="auth-theme-corner">
-    <app-theme-toggle variant="icon" />
-  </div>
-  <div class="auth-card">
-    <!-- Brand Header -->
-    <header class="auth-header">
-      <div class="brand-badge">
-        <img src="/logo.png" alt="SkillBridge Logo" class="brand-icon-img" />
-        <span class="brand-title">SkillBridge</span>
-      </div>
-      <h1 class="auth-title">Create your account</h1>
-      <p class="auth-subtitle">Join Ethiopia's skill-verified career & talent marketplace</p>
-    </header>
-
-    <!-- Dismissible Error Alert Banner -->
-    @if (errorMessage()) {
-      <div class="alert-banner" role="alert" aria-live="assertive">
-        <div class="alert-content">
-          <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
-            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
-          <span class="alert-text">{{ errorMessage() }}</span>
+  <!-- Minimalist Floating Header -->
+  <header class="floating-header">
+    <div class="header-inner">
+      <!-- Left: Brand Logo & Title -->
+      <a routerLink="/" class="brand-link" aria-label="SkillBridge Home">
+        <div class="brand-logo-wrap">
+          <img src="/logo.png" alt="SkillBridge Logo" class="brand-logo-img" />
         </div>
-        <button
-          type="button"
-          class="alert-close-btn"
-          aria-label="Dismiss error"
-          (click)="dismissAlert()"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-    }
+        <span class="brand-name">SkillBridge</span>
+      </a>
 
-    <!-- Register Form -->
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate class="auth-form">
-      <!-- Role Selection Cards at the Top -->
-      <div class="form-group role-selection-group">
-        <label class="form-label">I am joining as a:</label>
-        <div class="role-cards" role="radiogroup" aria-label="Select Account Role">
-          <!-- Candidate Radio Card -->
-          <div
-            class="role-card"
-            [class.active]="selectedRole() === 'Candidate'"
-            (click)="setRole('Candidate')"
-            tabindex="0"
-            role="radio"
-            [attr.aria-checked]="selectedRole() === 'Candidate'"
-            (keydown.enter)="setRole('Candidate')"
-            (keydown.space)="setRole('Candidate')"
-          >
-            <div class="role-icon-box">
+      <!-- Right: Back to Landing + Theme Toggle -->
+      <div class="header-actions">
+        <a routerLink="/" class="back-link">
+          <svg class="back-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span class="back-text">Back to Landing</span>
+        </a>
+        <div class="header-theme-toggle">
+          <app-theme-toggle variant="icon" />
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Asymmetric Split Layout Container -->
+  <main class="auth-main-layout">
+    <!-- Left Column: The Elevated Tactile Form Card -->
+    <section class="form-column">
+      <div class="auth-card">
+        <!-- Form Header -->
+        <header class="auth-header">
+          <div class="brand-badge">
+            <span class="badge-dot"></span>
+            <span class="badge-label">SKILLS-FIRST ONBOARDING</span>
+          </div>
+          <h1 class="auth-title">Create your account</h1>
+          <p class="auth-subtitle">Join the skill-verified career marketplace where your actual capabilities unlock direct opportunities</p>
+        </header>
+
+        <!-- Dismissible Error Alert Banner -->
+        @if (errorMessage()) {
+          <div class="alert-banner" role="alert" aria-live="assertive">
+            <div class="alert-content">
+              <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span class="alert-text">{{ errorMessage() }}</span>
+            </div>
+            <button
+              type="button"
+              class="alert-close-btn"
+              aria-label="Dismiss error"
+              (click)="dismissAlert()"
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        }
+
+        <!-- Register Form -->
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate class="auth-form">
+          <!-- Role Selection Cards at the Top -->
+          <div class="form-group role-selection-group">
+            <label class="form-label">I am joining as a:</label>
+            <div class="role-cards" role="radiogroup" aria-label="Select Account Role">
+              <!-- Candidate Radio Card -->
+              <div
+                class="role-card"
+                [class.active]="selectedRole() === 'Candidate'"
+                (click)="setRole('Candidate')"
+                tabindex="0"
+                role="radio"
+                [attr.aria-checked]="selectedRole() === 'Candidate'"
+                (keydown.enter)="setRole('Candidate')"
+                (keydown.space)="setRole('Candidate')"
+              >
+                <div class="role-icon-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                </div>
+                <div class="role-text-box">
+                  <span class="role-name">Candidate</span>
+                  <span class="role-desc">Job seeker &amp; talent</span>
+                </div>
+                <div class="role-check-indicator">
+                  @if (selectedRole() === 'Candidate') {
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                  } @else {
+                    <span class="empty-circle"></span>
+                  }
+                </div>
+              </div>
+
+              <!-- Employer Radio Card -->
+              <div
+                class="role-card"
+                [class.active]="selectedRole() === 'Employer'"
+                (click)="setRole('Employer')"
+                tabindex="0"
+                role="radio"
+                [attr.aria-checked]="selectedRole() === 'Employer'"
+                (keydown.enter)="setRole('Employer')"
+                (keydown.space)="setRole('Employer')"
+              >
+                <div class="role-icon-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                  </svg>
+                </div>
+                <div class="role-text-box">
+                  <span class="role-name">Employer</span>
+                  <span class="role-desc">Company &amp; hiring team</span>
+                </div>
+                <div class="role-check-indicator">
+                  @if (selectedRole() === 'Employer') {
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                  } @else {
+                    <span class="empty-circle"></span>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Full Name Field -->
+          <div class="form-group">
+            <label for="fullName" class="form-label">Full Name</label>
+            <div class="input-wrapper" [class.has-error]="fullNameControl?.invalid && (fullNameControl?.touched || fullNameControl?.dirty)">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
+              <input
+                id="fullName"
+                type="text"
+                formControlName="fullName"
+                placeholder="e.g. Hana Tesfaye"
+                autocomplete="name"
+                class="form-input"
+                [attr.aria-invalid]="fullNameControl?.invalid && fullNameControl?.touched"
+                aria-describedby="fullName-error"
+              />
             </div>
-            <div class="role-text-box">
-              <span class="role-name">Candidate</span>
-              <span class="role-desc">Job seeker & student</span>
-            </div>
-            <div class="role-check-indicator">
-              @if (selectedRole() === 'Candidate') {
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+
+            @if (fullNameControl?.invalid && (fullNameControl?.touched || fullNameControl?.dirty)) {
+              <div id="fullName-error" class="inline-error" role="alert">
+                <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="12" r="10"></circle>
                 </svg>
-              } @else {
-                <span class="empty-circle"></span>
-              }
-            </div>
-          </div>
-
-          <!-- Employer Radio Card -->
-          <div
-            class="role-card"
-            [class.active]="selectedRole() === 'Employer'"
-            (click)="setRole('Employer')"
-            tabindex="0"
-            role="radio"
-            [attr.aria-checked]="selectedRole() === 'Employer'"
-            (keydown.enter)="setRole('Employer')"
-            (keydown.space)="setRole('Employer')"
-          >
-            <div class="role-icon-box">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-              </svg>
-            </div>
-            <div class="role-text-box">
-              <span class="role-name">Employer</span>
-              <span class="role-desc">Company & hiring manager</span>
-            </div>
-            <div class="role-check-indicator">
-              @if (selectedRole() === 'Employer') {
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-              } @else {
-                <span class="empty-circle"></span>
-              }
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Full Name Field -->
-      <div class="form-group">
-        <label for="fullName" class="form-label">Full Name</label>
-        <div class="input-wrapper" [class.has-error]="fullNameControl?.invalid && (fullNameControl?.touched || fullNameControl?.dirty)">
-          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-          <input
-            id="fullName"
-            type="text"
-            formControlName="fullName"
-            placeholder="e.g. Hana Tesfaye"
-            autocomplete="name"
-            class="form-input"
-            [attr.aria-invalid]="fullNameControl?.invalid && fullNameControl?.touched"
-            aria-describedby="fullName-error"
-          />
-        </div>
-
-        @if (fullNameControl?.invalid && (fullNameControl?.touched || fullNameControl?.dirty)) {
-          <div id="fullName-error" class="inline-error" role="alert">
-            <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="12" r="10"></circle>
-            </svg>
-            @if (fullNameControl?.errors?.['required']) {
-              <span>Full Name is required.</span>
-            } @else if (fullNameControl?.errors?.['minlength']) {
-              <span>Full Name must be at least 2 characters.</span>
-            } @else if (fullNameControl?.errors?.['maxlength']) {
-              <span>Full Name cannot exceed 100 characters.</span>
+                @if (fullNameControl?.errors?.['required']) {
+                  <span>Full Name is required.</span>
+                } @else if (fullNameControl?.errors?.['minlength']) {
+                  <span>Full Name must be at least 2 characters.</span>
+                } @else if (fullNameControl?.errors?.['maxlength']) {
+                  <span>Full Name cannot exceed 100 characters.</span>
+                }
+              </div>
             }
           </div>
-        }
-      </div>
 
-      <!-- Conditionally Shown: Company Name (shown ONLY when role === 'Employer') -->
-      @if (isEmployer) {
-        <div class="form-group company-field-animate">
-          <label for="companyName" class="form-label">Company Name</label>
-          <div class="input-wrapper" [class.has-error]="companyNameControl?.invalid && (companyNameControl?.touched || companyNameControl?.dirty)">
-            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-              <line x1="8" y1="21" x2="16" y2="21"></line>
-              <line x1="12" y1="17" x2="12" y2="21"></line>
-            </svg>
-            <input
-              id="companyName"
-              type="text"
-              formControlName="companyName"
-              placeholder="e.g. Abyssinia Capital or St. Paul Network"
-              autocomplete="organization"
-              class="form-input"
-              [attr.aria-invalid]="companyNameControl?.invalid && companyNameControl?.touched"
-              aria-describedby="companyName-error"
-            />
-          </div>
+          <!-- Conditionally Shown: Company Name -->
+          @if (isEmployer) {
+            <div class="form-group company-field-animate">
+              <label for="companyName" class="form-label">Company Name</label>
+              <div class="input-wrapper" [class.has-error]="companyNameControl?.invalid && (companyNameControl?.touched || companyNameControl?.dirty)">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                  <line x1="8" y1="21" x2="16" y2="21"></line>
+                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+                <input
+                  id="companyName"
+                  type="text"
+                  formControlName="companyName"
+                  placeholder="e.g. Abyssinia Technologies or Apex Labs"
+                  autocomplete="organization"
+                  class="form-input"
+                  [attr.aria-invalid]="companyNameControl?.invalid && companyNameControl?.touched"
+                  aria-describedby="companyName-error"
+                />
+              </div>
 
-          @if (companyNameControl?.invalid && (companyNameControl?.touched || companyNameControl?.dirty)) {
-            <div id="companyName-error" class="inline-error" role="alert">
-              <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="12" cy="12" r="10"></circle>
-              </svg>
-              @if (companyNameControl?.errors?.['required']) {
-                <span>Company Name is required for Employers.</span>
-              } @else if (companyNameControl?.errors?.['maxlength']) {
-                <span>Company Name cannot exceed 120 characters.</span>
+              @if (companyNameControl?.invalid && (companyNameControl?.touched || companyNameControl?.dirty)) {
+                <div id="companyName-error" class="inline-error" role="alert">
+                  <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="12" r="10"></circle>
+                  </svg>
+                  @if (companyNameControl?.errors?.['required']) {
+                    <span>Company Name is required for Employers.</span>
+                  } @else if (companyNameControl?.errors?.['maxlength']) {
+                    <span>Company Name cannot exceed 120 characters.</span>
+                  }
+                </div>
               }
             </div>
           }
-        </div>
-      }
 
-      <!-- Email Field -->
-      <div class="form-group">
-        <label for="email" class="form-label">Work or Personal Email</label>
-        <div class="input-wrapper" [class.has-error]="emailControl?.invalid && (emailControl?.touched || emailControl?.dirty)">
-          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-            <polyline points="22,6 12,13 2,6"></polyline>
-          </svg>
-          <input
-            id="email"
-            type="email"
-            formControlName="email"
-            placeholder="name@example.com"
-            autocomplete="email"
-            class="form-input"
-            [attr.aria-invalid]="emailControl?.invalid && emailControl?.touched"
-            aria-describedby="email-error"
-          />
-        </div>
+          <!-- Email Field -->
+          <div class="form-group">
+            <label for="email" class="form-label">Work or Personal Email</label>
+            <div class="input-wrapper" [class.has-error]="emailControl?.invalid && (emailControl?.touched || emailControl?.dirty)">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                placeholder="name@example.com"
+                autocomplete="email"
+                class="form-input"
+                [attr.aria-invalid]="emailControl?.invalid && emailControl?.touched"
+                aria-describedby="email-error"
+              />
+            </div>
 
-        @if (emailControl?.invalid && (emailControl?.touched || emailControl?.dirty)) {
-          <div id="email-error" class="inline-error" role="alert">
-            <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="12" r="10"></circle>
-            </svg>
-            @if (emailControl?.errors?.['required']) {
-              <span>Email is required.</span>
-            } @else if (emailControl?.errors?.['email']) {
-              <span>Please enter a valid email address.</span>
+            @if (emailControl?.invalid && (emailControl?.touched || emailControl?.dirty)) {
+              <div id="email-error" class="inline-error" role="alert">
+                <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+                @if (emailControl?.errors?.['required']) {
+                  <span>Email is required.</span>
+                } @else if (emailControl?.errors?.['email']) {
+                  <span>Please enter a valid email address.</span>
+                }
+              </div>
             }
           </div>
-        }
-      </div>
 
-      <!-- Password Field -->
-      <div class="form-group">
-        <label for="password" class="form-label">Password</label>
-        <div class="input-wrapper" [class.has-error]="passwordControl?.invalid && (passwordControl?.touched || passwordControl?.dirty)">
-          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-          </svg>
-          <input
-            id="password"
-            [type]="showPassword() ? 'text' : 'password'"
-            formControlName="password"
-            placeholder="Min 8 chars (1 upper, 1 lower, 1 digit)"
-            autocomplete="new-password"
-            class="form-input"
-            [attr.aria-invalid]="passwordControl?.invalid && passwordControl?.touched"
-            aria-describedby="password-error"
-          />
+          <!-- Password Field -->
+          <div class="form-group">
+            <label for="password" class="form-label">Password</label>
+            <div class="input-wrapper" [class.has-error]="passwordControl?.invalid && (passwordControl?.touched || passwordControl?.dirty)">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              <input
+                id="password"
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+                placeholder="Min 8 chars (1 upper, 1 lower, 1 digit)"
+                autocomplete="new-password"
+                class="form-input"
+                [attr.aria-invalid]="passwordControl?.invalid && passwordControl?.touched"
+                aria-describedby="password-error"
+              />
+              <button
+                type="button"
+                class="password-toggle-btn"
+                (click)="togglePasswordVisibility()"
+                [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+              >
+                @if (showPassword()) {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                }
+              </button>
+            </div>
+
+            @if (passwordControl?.invalid && (passwordControl?.touched || passwordControl?.dirty)) {
+              <div id="password-error" class="inline-error" role="alert">
+                <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+                <span>{{ getPasswordFeedback() }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Submit Button in High-Contrast Orange-500 -->
           <button
-            type="button"
-            class="password-toggle-btn"
-            (click)="togglePasswordVisibility()"
-            [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+            type="submit"
+            class="submit-btn"
+            [disabled]="registerForm.invalid || isSubmitting()"
           >
-            @if (showPassword()) {
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
+            @if (isSubmitting()) {
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Creating account...</span>
             } @else {
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
+              <span>Create Account</span>
+              <span class="btn-arrow" aria-hidden="true">→</span>
             }
           </button>
+
+          <!-- Social Auth Divider -->
+          <div class="social-divider">
+            <span>or join with</span>
+          </div>
+
+          <div class="social-grid">
+            <button type="button" class="social-btn" (click)="signUpWithSocial('Google')" [disabled]="isSubmitting()">
+              <svg class="social-icon" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.16 0 9.94 0 12s.45 3.84 1.25 5.42l4.03-3.15z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+              </svg>
+              <span>Google</span>
+            </button>
+
+            <button type="button" class="social-btn" (click)="signUpWithSocial('GitHub')" [disabled]="isSubmitting()">
+              <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+              </svg>
+              <span>GitHub</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Footer Switcher with Orange-500 Accent -->
+        <footer class="auth-footer">
+          <p>
+            Already have an account?
+            <a routerLink="/login" class="auth-link">Sign in here →</a>
+          </p>
+        </footer>
+      </div>
+    </section>
+
+    <!-- Right Column: Cinematic Live Match Telemetry Panel in Slate-800 -->
+    <aside class="showcase-column" aria-label="Live Match Telemetry">
+      <div class="showcase-panel">
+        <!-- Top Editorial Telemetry Strip -->
+        <div class="telemetry-header">
+          <div class="telemetry-status">
+            <span class="live-pulse"></span>
+            <span class="telemetry-mono">
+              @if (selectedRole() === 'Candidate') {
+                MATCH ENGINE // CANDIDATE SKILLS PROFILE
+              } @else {
+                TALENT ENGINE // HIRING PIPELINE
+              }
+            </span>
+          </div>
+          <div class="telemetry-metric">
+            <span class="metric-mono">
+              @if (selectedRole() === 'Candidate') {
+                REAL-TIME MATCH SCORING
+              } @else {
+                THRESHOLD-RANKED APPLICANTS
+              }
+            </span>
+          </div>
         </div>
 
-        @if (passwordControl?.invalid && (passwordControl?.touched || passwordControl?.dirty)) {
-          <div id="password-error" class="inline-error" role="alert">
-            <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="12" r="10"></circle>
-            </svg>
-            <span>{{ getPasswordFeedback() }}</span>
+        <!-- Telemetry Stage: Animated Nodes + Glowing Curvature + Floating Match Card -->
+        <div class="telemetry-stage">
+          <!-- Skill Nodes on Left Side -->
+          <div class="telemetry-nodes">
+            @if (selectedRole() === 'Candidate') {
+              <div class="telemetry-node node-1">
+                <span class="node-dot"></span>
+                <span class="node-label">TypeScript &amp; Node</span>
+              </div>
+              <div class="telemetry-node node-2">
+                <span class="node-dot"></span>
+                <span class="node-label">System Architecture</span>
+              </div>
+              <div class="telemetry-node node-3">
+                <span class="node-dot"></span>
+                <span class="node-label">Database Optimization</span>
+              </div>
+              <div class="telemetry-node node-4">
+                <span class="node-dot"></span>
+                <span class="node-label">API Security &amp; REST</span>
+              </div>
+            } @else {
+              <div class="telemetry-node node-1">
+                <span class="node-dot"></span>
+                <span class="node-label">Go / Microservices</span>
+              </div>
+              <div class="telemetry-node node-2">
+                <span class="node-dot"></span>
+                <span class="node-label">Cloud Infra (K8s)</span>
+              </div>
+              <div class="telemetry-node node-3">
+                <span class="node-dot"></span>
+                <span class="node-label">High-Scale Architecture</span>
+              </div>
+              <div class="telemetry-node node-4">
+                <span class="node-dot"></span>
+                <span class="node-label">Data Reliability</span>
+              </div>
+            }
           </div>
-        }
+
+          <!-- Glowing SVG Connection Paths -->
+          <div class="telemetry-connector">
+            <svg class="connector-svg" viewBox="0 0 160 220" fill="none" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="curveGradient" x1="0%" y1="50%" x2="100%" y2="50%">
+                  <stop offset="0%" stop-color="#0D9488" stop-opacity="0.9" />
+                  <stop offset="100%" stop-color="#0D9488" stop-opacity="0.3" />
+                </linearGradient>
+                <filter id="tealGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              <path d="M 0 32 C 85 32, 85 110, 160 110" stroke="url(#curveGradient)" stroke-width="2" filter="url(#tealGlow)" />
+              <path d="M 0 84 C 75 84, 85 110, 160 110" stroke="url(#curveGradient)" stroke-width="2" filter="url(#tealGlow)" />
+              <path d="M 0 136 C 75 136, 85 110, 160 110" stroke="url(#curveGradient)" stroke-width="2" filter="url(#tealGlow)" />
+              <path d="M 0 188 C 85 188, 85 110, 160 110" stroke="url(#curveGradient)" stroke-width="2" filter="url(#tealGlow)" />
+            </svg>
+          </div>
+
+          <!-- Floating Glassmorphic Candidate Match Card -->
+          <div class="telemetry-card">
+            @if (selectedRole() === 'Candidate') {
+              <div class="match-card-top">
+                <span class="match-badge">VERIFIED TOP MATCH</span>
+                <div class="match-score-pill">
+                  <span class="score-num">98.4%</span>
+                  <span class="score-txt">MATCH</span>
+                </div>
+              </div>
+
+              <div class="match-card-body">
+                <h3 class="role-headline">Senior Full-Stack Architect</h3>
+                <div class="role-meta">
+                  <span class="meta-item">Hybrid / Remote</span>
+                  <span class="meta-dot">·</span>
+                  <span class="meta-item">Full-Time</span>
+                  <span class="meta-dot">·</span>
+                  <span class="meta-item">Verified Opening</span>
+                </div>
+
+                <div class="skill-tags-grid">
+                  <span class="skill-tag">TypeScript &amp; Node</span>
+                  <span class="skill-tag">System Architecture</span>
+                  <span class="skill-tag">Database Optimization</span>
+                  <span class="skill-tag">API Security</span>
+                </div>
+
+                <div class="card-action-preview">
+                  <div class="action-btn-dummy">
+                    <span>Submit Verified Application</span>
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <div class="match-card-top">
+                <span class="match-badge badge-employer">RANKED TALENT PIPELINE</span>
+                <div class="match-score-pill score-employer">
+                  <span class="score-num">85%+</span>
+                  <span class="score-txt">THRESHOLD</span>
+                </div>
+              </div>
+
+              <div class="match-card-body">
+                <h3 class="role-headline">Targeted Technical Pipeline</h3>
+                <div class="role-meta">
+                  <span class="meta-item">Verified Candidates</span>
+                  <span class="meta-dot">·</span>
+                  <span class="meta-item">Objective Scoring</span>
+                  <span class="meta-dot">·</span>
+                  <span class="meta-item">Zero Bias</span>
+                </div>
+
+                <div class="skill-tags-grid">
+                  <span class="skill-tag">Go / Microservices</span>
+                  <span class="skill-tag">Cloud Infra (K8s)</span>
+                  <span class="skill-tag">High-Scale Architecture</span>
+                  <span class="skill-tag">Data Reliability</span>
+                </div>
+
+                <div class="card-action-preview">
+                  <div class="action-btn-dummy employer-btn">
+                    <span>Review Ranked Applicants</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Bottom Telemetry Ticker / Live Status -->
+        <div class="telemetry-footer">
+          <div class="status-indicator-row">
+            <span class="pulse-emerald"></span>
+            <span class="status-strong">
+              @if (selectedRole() === 'Candidate') {
+                REAL-TIME SKILL GAP ANALYSIS
+              } @else {
+                OBJECTIVE TALENT MATCHING ACTIVE
+              }
+            </span>
+          </div>
+          <p class="telemetry-caption">
+            @if (selectedRole() === 'Candidate') {
+              SkillBridge computes your exact skill overlap with active job openings, displaying verified proficiencies alongside missing skills before you apply.
+            } @else {
+              Define required skills and minimum match thresholds. Receive pre-scored applicants ranked purely on verified technical proficiency with zero recruiter noise.
+            }
+          </p>
+        </div>
       </div>
-
-      <!-- Submit Button (Disabled while invalid or submitting) -->
-      <button
-        type="submit"
-        class="submit-btn"
-        [disabled]="registerForm.invalid || isSubmitting()"
-      >
-        @if (isSubmitting()) {
-          <span class="spinner" aria-hidden="true"></span>
-          <span>Creating account...</span>
-        } @else {
-          <span>Create Account</span>
-          <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-            <polyline points="12 5 19 12 12 19"></polyline>
-          </svg>
-        }
-      </button>
-
-      <!-- Social Auth Divider -->
-      <div class="social-divider">
-        <span>or join with</span>
-      </div>
-
-      <div class="social-grid">
-        <button type="button" class="social-btn" (click)="signUpWithSocial('Google')" [disabled]="isSubmitting()">
-          <svg class="social-icon" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
-            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
-            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.16 0 9.94 0 12s.45 3.84 1.25 5.42l4.03-3.15z"/>
-            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-          </svg>
-          Google
-        </button>
-
-        <button type="button" class="social-btn" (click)="signUpWithSocial('GitHub')" [disabled]="isSubmitting()">
-          <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-          </svg>
-          GitHub
-        </button>
-      </div>
-    </form>
-
-    <!-- Footer Switcher -->
-    <footer class="auth-footer">
-      <p>
-        Already have an account?
-        <a routerLink="/login" class="auth-link">Sign in here</a>
-      </p>
-    </footer>
-  </div>
+    </aside>
+  </main>
 </div>

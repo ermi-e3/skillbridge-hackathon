@@ -60,8 +60,8 @@ export class WalkthroughShowcaseComponent implements AfterViewInit, OnDestroy {
 
   readonly skills = ['TypeScript', 'Financial Modeling', 'System Design', 'Product Strategy'];
 
-  private readonly DURATION_MS = 22000;
-  private readonly INTRO_END_SEC = 2.0;
+  private readonly DURATION_MS = 24000;
+  private readonly INTRO_END_SEC = 4.0;
   private readonly RING_CIRCUMFERENCE = 201.06;
   private readonly TARGET_MATCH = 98.4;
 
@@ -222,7 +222,7 @@ export class WalkthroughShowcaseComponent implements AfterViewInit, OnDestroy {
   private renderTimeline(ms: number): void {
     const sec = ms / 1000;
 
-    // 0s -> 2s: Opening Hero Text Only (with smooth fade-in)
+    // 0s -> 6s: Opening Hero Text Only (with smooth fade-in)
     if (sec < this.INTRO_END_SEC) {
       this.scene.set(0);
       this.showHeroIntro.set(true);
@@ -253,30 +253,29 @@ export class WalkthroughShowcaseComponent implements AfterViewInit, OnDestroy {
         const count = Math.min(4, Math.floor((t - 2.5) / 0.15) + 1);
         this.visiblePillsCount.set(count);
       }
-    } else if (t < 11) {
+    } else if (t < 8.6) {
       this.scene.set(2);
       this.visiblePillsCount.set(4);
       this.pillsBeamReady.set(true);
 
-      if (t >= 5.05 && t <= 6.6) {
+      if (t >= 5.05 && t <= 6.2) {
         this.syncBeamGeometry();
       }
-      if (t >= 5.35) {
+      if (t >= 5.2) {
         this.beamsShot.set(true);
-        this.blurCardsState.set('show');
+        this.blurCardsState.set(t < 5.8 ? 'show' : 'fade-out');
       }
-      if (t >= 6.8) {
-        this.blurCardsState.set('fade-out');
+      if (t >= 5.8) {
         this.matchedCardState.set('focus');
       }
-      if (t >= 7.35) {
-        const p = Math.min(1, (t - 7.35) / 2.2);
+      if (t >= 6.35) {
+        const p = Math.min(1, (t - 6.35) / 1.7);
         const eased = 1 - Math.pow(1 - p, 3);
         const val = this.TARGET_MATCH * eased;
         this.matchPercent.set(`${val.toFixed(1)}%`);
         this.ringOffset.set(this.RING_CIRCUMFERENCE * (1 - val / 100));
       }
-    } else if (t < 16) {
+    } else if (t < 14.5) {
       this.scene.set(3);
       this.matchedCardState.set('zoom-in');
       this.pillsFaded.set(true);
@@ -285,21 +284,20 @@ export class WalkthroughShowcaseComponent implements AfterViewInit, OnDestroy {
       this.matchPercent.set('98.4%');
       this.ringOffset.set(this.RING_CIRCUMFERENCE * (1 - 0.984));
 
-      const checks = Math.min(4, Math.max(0, Math.floor((t - 11.2) / 0.16) + 1));
+      const checks = Math.min(4, Math.max(0, Math.floor((t - 8.8) / 0.14) + 1));
       this.checkedCount.set(checks);
 
-      if (t >= 12.1 && t < 13.45) {
+      if (t >= 9.8 && t < 11.2) {
         this.cursorState.set('glide');
-      } else if (t >= 13.45 && t < 14.0) {
+      } else if (t >= 11.2 && t < 11.8) {
         this.cursorState.set('click');
         this.rippleActive.set(true);
-      } else if (t >= 14.0) {
+      } else if (t >= 11.8) {
         this.cursorState.set('exit');
         this.introConfirmed.set(true);
       }
     } else {
       this.scene.set(4);
-      this.stackState.set(t < 17.3 ? 'stack-in' : 'logo-show');
       this.outroFading.set(t >= 19.15);
     }
 
