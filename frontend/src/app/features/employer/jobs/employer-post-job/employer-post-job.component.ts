@@ -10,6 +10,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../../../core/services/auth.service';
 import { CreateJobRequest, UpdateJobRequest } from '../../../../core/models/job.models';
 import { SkillDto } from '../../../../core/models/profile.models';
 import { JobsService } from '../../../../core/services/jobs.service';
@@ -18,6 +19,13 @@ import { extractErrorMessage } from '../../../../core/utils/error-formatter';
 import { JOB_CATEGORY_NAMES } from '../../../../shared/utils/job-department.util';
 import { UserProfileMenuComponent } from '../../../../shared/components/user-profile-menu/user-profile-menu.component';
 import { SKILL_CATEGORIES } from '../../../candidate/onboarding/candidate-skill-onboarding.component';
+import {
+  formatCompensationText,
+  formatNumberWithCommas,
+  parseNumberFromCommas,
+  SalaryMode,
+  SalaryPeriod,
+} from '../../../../shared/utils/salary.util';
 
 /**
  * Custom validator ensuring at least 1 and at most 20 skills (including custom tags) are selected
@@ -51,6 +59,11 @@ export class EmployerPostJobComponent implements OnInit {
   readonly router = inject(Router);
   readonly route = inject(ActivatedRoute);
   private readonly elementRef = inject(ElementRef);
+  private readonly authService = inject(AuthService, { optional: true });
+
+  readonly companyName = computed(
+    () => this.authService?.currentUser()?.companyName || this.authService?.currentUser()?.fullName || 'Acme Technologies'
+  );
 
   // Edit Mode & State Signals
   readonly jobId = signal<number | null>(null);
@@ -82,6 +95,55 @@ export class EmployerPostJobComponent implements OnInit {
   readonly selectedSkillIds = signal<number[]>([]);
   readonly selectedPreferredSkillIds = signal<number[]>([]);
   readonly preferredSkillSearchQuery = signal<string>('');
+
+  // Compensation & Salary (ETB) Signals
+  readonly salaryMode = signal<SalaryMode>('range');
+  readonly minSalaryInput = signal<string>('25,000');
+  readonly maxSalaryInput = signal<string>('45,000');
+  readonly salaryPeriod = signal<SalaryPeriod>('month');
+
+  readonly salaryError = computed(() => {
+    if (this.salaryMode() === 'negotiable') return null;
+    const min = parseNumberFromCommas(this.minSalaryInput());
+    const max = parseNumberFromCommas(this.maxSalaryInput());
+    if (min !== null && max !== null && max < min) {
+      return 'Max salary cannot be lower than min salary.';
+    }
+    return null;
+  });
+
+  readonly previewSalaryText = computed(() => {
+    return formatCompensationText(
+      this.salaryMode(),
+      parseNumberFromCommas(this.minSalaryInput()),
+      parseNumberFromCommas(this.maxSalaryInput()),
+      this.salaryPeriod()
+    );
+  });
+
+  readonly isSalaryNegotiable = computed(() => this.salaryMode() === 'negotiable');
+
+  setSalaryMode(mode: SalaryMode): void {
+    if (this.isEditingExpired()) return;
+    this.salaryMode.set(mode);
+  }
+
+  onMinSalaryInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const formatted = formatNumberWithCommas(input.value);
+    this.minSalaryInput.set(formatted);
+  }
+
+  onMaxSalaryInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const formatted = formatNumberWithCommas(input.value);
+    this.maxSalaryInput.set(formatted);
+  }
+
+  setSalaryPeriod(period: SalaryPeriod): void {
+    if (this.isEditingExpired()) return;
+    this.salaryPeriod.set(period);
+  }
 
   // Filtered skills based on category filter and search query
   readonly filteredSkills = computed(() => {
@@ -141,7 +203,7 @@ export class EmployerPostJobComponent implements OnInit {
   // Job Categories for dropdown
   readonly jobCategories = JOB_CATEGORY_NAMES;
 
-  // Reactive Form
+  // Reactive Form & Live Snapshot
   readonly jobForm: FormGroup = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(120)]],
     category: ['', [Validators.maxLength(100)]],
@@ -155,7 +217,78 @@ export class EmployerPostJobComponent implements OnInit {
     requiredSkillIds: [[], [requiredSkillsValidator(1, 20, () => this.customSkills().length)]],
   });
 
+  readonly formValues = signal(this.jobForm.value);
+
+  readonly previewTitle = computed(() => this.formValues().title?.trim() || 'Untitled Role Opening');
+  readonly previewCategory = computed(() => this.formValues().category?.trim() || '');
+  readonly previewLocation = computed(() => this.formValues().location?.trim() || 'Addis Ababa (Flexible)');
+  readonly previewWorkArrangement = computed(() => this.formValues().workArrangement || 'Remote');
+  readonly previewJobType = computed(() => this.formValues().jobType || 'FullTime');
+  readonly previewExperienceLevel = computed(() => this.formValues().experienceLevel || 'MidLevel');
+  readonly previewMinYears = computed(() => Number(this.formValues().minExperienceYears || 0));
+  readonly previewDeadline = computed(() => this.formValues().deadline || '');
+
+  readonly roleReadiness = computed(() => {
+    let score = 0;
+    const title = this.formValues().title?.trim() || '';
+    if (title.length >= 3) score += 25;
+
+    const desc = this.formValues().description?.trim() || '';
+    if (desc.length >= 20) score += 25;
+
+    if (this.totalRequiredSkillsCount() >= 1) score += 30;
+
+    if (this.formValues().workArrangement && this.formValues().jobType) score += 10;
+    if (this.formValues().category || this.formValues().location) score += 10;
+
+    return Math.min(100, score);
+  });
+
+  readonly readinessFeedback = computed(() => {
+    const title = this.formValues().title?.trim() || '';
+    if (title.length < 3) return 'Add a job title (min 3 chars)';
+    const desc = this.formValues().description?.trim() || '';
+    if (desc.length < 20) return 'Add job description (min 20 chars)';
+    if (this.totalRequiredSkillsCount() < 1) return 'Select at least 1 required skill';
+    return 'Ready to broadcast to talent';
+  });
+
+  formatJobType(type: string): string {
+    switch (type) {
+      case 'FullTime': return 'Full-time';
+      case 'PartTime': return 'Part-time';
+      case 'Contract': return 'Contract';
+      case 'Internship': return 'Internship';
+      case 'Freelance': return 'Freelance';
+      default: return type || 'Full-time';
+    }
+  }
+
+  formatExperienceLevel(level: string): string {
+    switch (level) {
+      case 'EntryLevel': return 'Entry Level';
+      case 'Junior': return 'Junior';
+      case 'MidLevel': return 'Mid-Level';
+      case 'Senior': return 'Senior';
+      case 'Lead': return 'Lead / Architect';
+      default: return level || 'Mid-Level';
+    }
+  }
+
+  formatPreviewDeadline(deadlineStr: string): string {
+    if (!deadlineStr) return '';
+    const d = new Date(deadlineStr);
+    if (isNaN(d.getTime())) return '';
+    const diffDays = Math.ceil((d.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    if (diffDays <= 0) return 'Closes today';
+    if (diffDays === 1) return '1 day left';
+    return `${diffDays} days left`;
+  }
+
   ngOnInit(): void {
+    this.jobForm.valueChanges.subscribe(() => {
+      this.formValues.set(this.jobForm.getRawValue());
+    });
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       const parsedId = Number(idParam);
@@ -208,6 +341,40 @@ export class EmployerPostJobComponent implements OnInit {
           deadline: job.deadline ? this.formatDateForInput(job.deadline) : '',
           requiredSkillIds: reqIds,
         });
+
+        this.formValues.set(this.jobForm.getRawValue());
+
+        // Parse & populate compensation state
+        if (job.isSalaryNegotiable) {
+          this.salaryMode.set('negotiable');
+        } else if (job.minSalary != null || job.maxSalary != null) {
+          this.salaryMode.set('range');
+          if (job.minSalary != null) this.minSalaryInput.set(formatNumberWithCommas(job.minSalary));
+          if (job.maxSalary != null) this.maxSalaryInput.set(formatNumberWithCommas(job.maxSalary));
+          if (job.salaryPeriod) this.salaryPeriod.set(job.salaryPeriod as SalaryPeriod);
+        } else if (job.description) {
+          const match = job.description.match(/(?:\[Salary:\s*([^\]]+)\]|\*\*Compensation:\*\*\s*([^\n\r]+)|Compensation:\s*([^\n\r]+))/i);
+          const raw = match ? (match[1] || match[2] || match[3])?.trim() : null;
+          if (raw) {
+            if (raw.toLowerCase().includes('negotiable')) {
+              this.salaryMode.set('negotiable');
+            } else {
+              this.salaryMode.set('range');
+              if (raw.includes('/ yr') || raw.includes('/ year')) this.salaryPeriod.set('year');
+              else if (raw.includes('/ proj') || raw.includes('/ project')) this.salaryPeriod.set('project');
+              else this.salaryPeriod.set('month');
+
+              const nums = raw.match(/\d[\d,]*/g);
+              if (nums && nums.length >= 2) {
+                this.minSalaryInput.set(nums[0]);
+                this.maxSalaryInput.set(nums[1]);
+              } else if (nums && nums.length === 1) {
+                this.minSalaryInput.set(nums[0]);
+                this.maxSalaryInput.set('');
+              }
+            }
+          }
+        }
 
         if (this.isEditingExpired()) {
           this.jobForm.disable();
@@ -510,7 +677,7 @@ export class EmployerPostJobComponent implements OnInit {
       return;
     }
 
-    if (this.jobForm.invalid || this.isSubmitting()) {
+    if (this.jobForm.invalid || this.salaryError() || this.isSubmitting()) {
       this.jobForm.markAllAsTouched();
       return;
     }
@@ -520,6 +687,10 @@ export class EmployerPostJobComponent implements OnInit {
 
     const formValue = this.jobForm.value;
     const custom = this.customSkills().length > 0 ? this.customSkills() : undefined;
+    const minSal = this.salaryMode() === 'range' ? parseNumberFromCommas(this.minSalaryInput()) : null;
+    const maxSal = this.salaryMode() === 'range' ? parseNumberFromCommas(this.maxSalaryInput()) : null;
+    const isNeg = this.salaryMode() === 'negotiable';
+    const salText = this.previewSalaryText();
 
     if (this.isEditMode()) {
       const editPayload: UpdateJobRequest = {
@@ -535,6 +706,11 @@ export class EmployerPostJobComponent implements OnInit {
         preferredSkillIds: this.selectedPreferredSkillIds(),
         customSkills: custom,
         deadline: formValue.deadline ? new Date(formValue.deadline).toISOString() : null,
+        minSalary: minSal,
+        maxSalary: maxSal,
+        salaryPeriod: this.salaryPeriod(),
+        isSalaryNegotiable: isNeg,
+        salaryText: salText,
       };
 
       this.jobsService.updateJob(this.jobId()!, editPayload).subscribe({
@@ -565,6 +741,11 @@ export class EmployerPostJobComponent implements OnInit {
         preferredSkillIds: this.selectedPreferredSkillIds(),
         customSkills: custom,
         deadline: formValue.deadline ? new Date(formValue.deadline).toISOString() : null,
+        minSalary: minSal,
+        maxSalary: maxSal,
+        salaryPeriod: this.salaryPeriod(),
+        isSalaryNegotiable: isNeg,
+        salaryText: salText,
       };
 
       this.jobsService.postJob(createPayload).subscribe({

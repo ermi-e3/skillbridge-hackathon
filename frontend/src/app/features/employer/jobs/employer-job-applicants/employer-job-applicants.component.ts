@@ -88,6 +88,10 @@ export class EmployerJobApplicantsComponent implements OnInit, OnDestroy {
     () => this.applicants().filter((a) => a.status === 'Withdrawn').length
   );
 
+  padZero(val: number): string {
+    return val < 10 ? `0${val}` : `${val}`;
+  }
+
   readonly activeFilterCount = computed(() => {
     let count = 0;
     if (this.searchNameQuery().trim()) count++;

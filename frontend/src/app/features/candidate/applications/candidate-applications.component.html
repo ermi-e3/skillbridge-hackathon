@@ -74,33 +74,25 @@
   }
 
   <div class="applications-container">
-    <!-- Header with Breadcrumbs & Metrics -->
-    <header class="page-header">
-      <div class="header-text-group">
-        <div class="brand-pill">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-            <polyline points="10 9 9 9 8 9"></polyline>
-          </svg>
-          <span>Candidate Tracking</span>
-        </div>
-        <h1 class="page-title">My Applications</h1>
-        <p class="page-subtitle">Track status updates for your submitted applications in real time.</p>
-      </div>
+    <!-- 1. Minimalist Translucent Top Bar -->
+    <header class="applications-top-bar">
+      <a routerLink="/jobs" class="back-link" aria-label="Back to Jobs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="back-arrow">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Back to Jobs</span>
+      </a>
 
-      <div class="header-actions" style="display: flex; align-items: center; gap: 0.75rem;">
-        <a routerLink="/jobs" class="nav-action-btn primary-action">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-            <polyline points="12 5 19 12 12 19"></polyline>
-          </svg>
-          <span>Browse More Jobs</span>
-        </a>
+      <div class="top-bar-right">
         <app-user-profile-menu />
       </div>
+    </header>
+
+    <!-- 2. Editorial Page Header -->
+    <header class="editorial-page-header">
+      <h1 class="page-title">My Applications</h1>
+      <p class="page-subtitle">Track status updates for your submitted applications in real time.</p>
     </header>
 
     <!-- Error Alert Banner -->
@@ -128,34 +120,93 @@
       </div>
     }
 
-    <!-- Summary Metrics Cards -->
-    <div class="metrics-grid">
-      <div class="metric-card">
+    <!-- 3. Interactive 5-Card Telemetry KPI Strip -->
+    <section class="telemetry-kpi-strip" aria-label="Application status metrics">
+      <!-- 1. Total Applied -->
+      <button
+        type="button"
+        class="kpi-card"
+        [class.is-active]="statusFilter() === 'All'"
+        (click)="filterByStatus('All')"
+        aria-label="Filter by all applications"
+      >
+        <div class="kpi-top">
+          <span class="kpi-tag">ALL</span>
+          <span class="kpi-indicator-dot"></span>
+        </div>
         <span class="metric-number">{{ totalCount() }}</span>
         <span class="metric-label">Total Applied</span>
-      </div>
-      <div class="metric-card received-metric">
+      </button>
+
+      <!-- 2. Under Review (Received) -->
+      <button
+        type="button"
+        class="kpi-card received-metric"
+        [class.is-active]="statusFilter() === 'Received'"
+        (click)="filterByStatus('Received')"
+        aria-label="Filter by received applications"
+      >
+        <div class="kpi-top">
+          <span class="kpi-tag">RECEIVED</span>
+          <span class="kpi-indicator-dot blue"></span>
+        </div>
         <span class="metric-number">{{ receivedCount() }}</span>
         <span class="metric-label">Under Review (Received)</span>
-      </div>
-      <div class="metric-card shortlisted-metric">
+      </button>
+
+      <!-- 3. Shortlisted (Highlight Card in Slate-800) -->
+      <button
+        type="button"
+        class="kpi-card shortlisted-metric dark-hero-kpi"
+        [class.is-active]="statusFilter() === 'Shortlisted'"
+        (click)="filterByStatus('Shortlisted')"
+        aria-label="Filter by shortlisted applications"
+      >
+        <div class="kpi-top">
+          <span class="kpi-tag highlight">SHORTLISTED</span>
+          <span class="kpi-indicator-dot teal-pulse"></span>
+        </div>
         <span class="metric-number">{{ shortlistedCount() }}</span>
         <span class="metric-label">Shortlisted</span>
-      </div>
-      <div class="metric-card rejected-metric">
+      </button>
+
+      <!-- 4. Rejected -->
+      <button
+        type="button"
+        class="kpi-card rejected-metric"
+        [class.is-active]="statusFilter() === 'Rejected'"
+        (click)="filterByStatus('Rejected')"
+        aria-label="Filter by rejected applications"
+      >
+        <div class="kpi-top">
+          <span class="kpi-tag">REJECTED</span>
+          <span class="kpi-indicator-dot red"></span>
+        </div>
         <span class="metric-number">{{ rejectedCount() }}</span>
         <span class="metric-label">Rejected</span>
-      </div>
-      <div class="metric-card withdrawn-metric">
+      </button>
+
+      <!-- 5. Withdrawn -->
+      <button
+        type="button"
+        class="kpi-card withdrawn-metric"
+        [class.is-active]="statusFilter() === 'Withdrawn'"
+        (click)="filterByStatus('Withdrawn')"
+        aria-label="Filter by withdrawn applications"
+      >
+        <div class="kpi-top">
+          <span class="kpi-tag">WITHDRAWN</span>
+          <span class="kpi-indicator-dot gray"></span>
+        </div>
         <span class="metric-number">{{ withdrawnCount() }}</span>
         <span class="metric-label">Withdrawn</span>
-      </div>
-    </div>
+      </button>
+    </section>
 
-    <!-- Modern Filter & Search Bar -->
+    <!-- 4. Floating Command Search & Filter Dock -->
     @if (!isLoading() && applications().length > 0) {
-      <section class="modern-filter-card" aria-label="Filter your submitted applications">
-        <div class="modern-filter-toolbar">
+      <section class="command-filter-dock" aria-label="Filter submitted applications">
+        <div class="command-dock-inner">
           <!-- Primary Search Input (Job Title) -->
           <div class="filter-search-box">
             <svg class="filter-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -186,7 +237,7 @@
             }
           </div>
 
-          <!-- Quick Dropdowns: Application Status & Company -->
+          <!-- Quick Dropdowns: Status & Company -->
           <div class="filter-quick-controls">
             <div class="compact-select-wrap">
               <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -232,7 +283,7 @@
             }
           </div>
 
-          <!-- Right Actions: Advanced Date Drawer Toggle & Reset -->
+          <!-- Right Actions: Date Drawer & Reset -->
           <div class="filter-toolbar-actions">
             <button
               type="button"
@@ -270,7 +321,7 @@
           </div>
         </div>
 
-        <!-- Collapsible Date Range Drawer -->
+        <!-- Collapsible Date Drawer -->
         @if (showAdvancedFilters()) {
           <div id="apps-advanced-filters" class="advanced-filter-panel">
             <div class="advanced-filter-grid">
@@ -347,7 +398,7 @@
 
             @if (datePreset() !== 'all' || appliedFromDate() || appliedToDate()) {
               <span class="active-filter-pill">
-                <span>Date: {{ datePreset() === 'custom' ? ((appliedFromDate() || 'Any') + ' → ' + (appliedToDate() || 'Any')) : datePreset() }}</span>
+                <span>Date: {{ datePreset() === 'custom' ? ((appliedFromDate() || 'Any') + ' &rarr; ' + (appliedToDate() || 'Any')) : datePreset() }}</span>
                 <button type="button" class="pill-remove" (click)="clearDateFilters()" aria-label="Remove date filter">&times;</button>
               </span>
             }
@@ -356,7 +407,7 @@
       </section>
     }
 
-    <!-- Table Section -->
+    <!-- 5. Cinematic Application Pipeline Table -->
     <div class="table-card">
       @if (isLoading()) {
         <!-- Skeleton Loading Table -->
@@ -376,33 +427,37 @@
           <table class="applications-table" aria-label="Candidate applications table">
             <thead>
               <tr>
-                <th scope="col" class="th-job">Job Title</th>
-                <th scope="col" class="th-date">Applied Date</th>
-                <th scope="col" class="th-match">Match %</th>
-                <th scope="col" class="th-status">Status</th>
-                <th scope="col" class="th-actions">Actions</th>
+                <th scope="col" class="th-job">JOB TITLE</th>
+                <th scope="col" class="th-date">APPLIED DATE</th>
+                <th scope="col" class="th-match">MATCH %</th>
+                <th scope="col" class="th-status">STATUS</th>
+                <th scope="col" class="th-actions">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               @for (app of paginatedApplications(); track app.id) {
                 <tr class="app-row" [class.withdrawn-row]="app.status === 'Withdrawn'">
-                  <!-- Job Title & Company -->
+                  <!-- 1. Job Title & Company -->
                   <td class="td-job">
-                    <a [routerLink]="['/jobs', app.jobId]" class="job-link">
-                      {{ app.jobTitle }}
-                    </a>
-                    @if (app.companyName) {
-                      <span class="company-sub">{{ app.companyName }}</span>
-                    }
+                    <div class="job-meta-stack">
+                      <a [routerLink]="['/jobs', app.jobId]" class="job-link">
+                        {{ app.jobTitle }}
+                      </a>
+                      @if (app.companyName) {
+                        <span class="company-sub">{{ app.companyName }}</span>
+                      }
+                    </div>
                   </td>
 
-                  <!-- Applied Date -->
+                  <!-- 2. Applied Date & Timestamp -->
                   <td class="td-date">
-                    <span class="date-text">{{ app.appliedAt | date: 'mediumDate' }}</span>
-                    <span class="time-sub">{{ app.appliedAt | date: 'shortTime' }}</span>
+                    <div class="date-meta-stack">
+                      <span class="date-text">{{ app.appliedAt | date: 'mediumDate' }}</span>
+                      <span class="time-sub">{{ app.appliedAt | date: 'shortTime' }}</span>
+                    </div>
                   </td>
 
-                  <!-- Match % Chip & Bar -->
+                  <!-- 3. Match % Chip & Mini Progress Bar -->
                   <td class="td-match">
                     <div class="match-cell-group">
                       <div class="match-badge-row">
@@ -433,7 +488,7 @@
                     </div>
                   </td>
 
-                  <!-- Status Badge (Received = Blue, Shortlisted = Green, Rejected = Red, Withdrawn = Gray) -->
+                  <!-- 4. Status Badge -->
                   <td class="td-status">
                     <span class="status-badge" [ngClass]="getStatusBadgeClass(app.status)">
                       <span class="status-dot"></span>
@@ -441,11 +496,15 @@
                     </span>
                   </td>
 
-                  <!-- Actions -->
+                  <!-- 5. Actions -->
                   <td class="td-actions">
                     <div class="actions-cell">
                       <a [routerLink]="['/jobs', app.jobId]" class="action-btn-view" title="View Job Details">
-                        View
+                        <span>View</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="view-arr">
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                          <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
                       </a>
 
                       @if (app.hasCv) {
@@ -456,6 +515,10 @@
                           [title]="'Preview attached CV: ' + (app.cvOriginalFileName || 'resume')"
                           aria-label="Preview attached CV"
                         >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                          </svg>
                           <span>CV Preview</span>
                         </button>
                       }
@@ -510,22 +573,25 @@
             Browse open career opportunities tailored for Ethiopian talent across diverse industries, and apply with your verified skills profile.
           </p>
           <a routerLink="/jobs" class="empty-action-btn">
-            Explore Open Jobs
+            Explore Open Jobs &rarr;
           </a>
         </div>
       }
     </div>
 
+    <!-- 6. Refined Pagination Footer -->
     @if (!isLoading() && filteredApplications().length > 0) {
-      <app-pagination
-        [currentPage]="effectivePage()"
-        [totalItems]="filteredApplications().length"
-        [pageSize]="pageSize()"
-        [pageSizeOptions]="[5, 10, 20, 50]"
-        itemLabel="applications"
-        (pageChange)="onPageChange($event)"
-        (pageSizeChange)="onPageSizeChange($event)"
-      />
+      <div class="pagination-wrapper">
+        <app-pagination
+          [currentPage]="effectivePage()"
+          [totalItems]="filteredApplications().length"
+          [pageSize]="pageSize()"
+          [pageSizeOptions]="[5, 10, 20, 50]"
+          itemLabel="applications"
+          (pageChange)="onPageChange($event)"
+          (pageSizeChange)="onPageSizeChange($event)"
+        />
+      </div>
     }
   </div>
 

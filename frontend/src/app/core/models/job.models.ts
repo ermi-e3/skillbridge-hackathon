@@ -46,6 +46,11 @@ export interface JobDto {
   applicationStatus?: string;
   applicationId?: number;
   deadline?: string | null;
+  minSalary?: number | null;
+  maxSalary?: number | null;
+  salaryPeriod?: string | null;
+  isSalaryNegotiable?: boolean;
+  salaryText?: string | null;
 }
 
 export interface PagedJobsResponse {
@@ -101,6 +106,11 @@ export interface CreateJobRequest {
   deadline?: string | null;
   customSkills?: string[];
   customPreferredSkills?: string[];
+  minSalary?: number | null;
+  maxSalary?: number | null;
+  salaryPeriod?: string | null;
+  isSalaryNegotiable?: boolean;
+  salaryText?: string | null;
 }
 
 export interface UpdateJobRequest {
@@ -118,4 +128,9 @@ export interface UpdateJobRequest {
   deadline?: string | null;
   customSkills?: string[];
   customPreferredSkills?: string[];
+  minSalary?: number | null;
+  maxSalary?: number | null;
+  salaryPeriod?: string | null;
+  isSalaryNegotiable?: boolean;
+  salaryText?: string | null;
 }

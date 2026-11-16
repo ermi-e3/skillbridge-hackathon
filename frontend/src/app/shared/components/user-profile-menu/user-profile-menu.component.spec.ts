@@ -85,6 +85,7 @@ describe('UserProfileMenuComponent', () => {
   it('displays dynamic candidate full name, email, and candidate navigation links when opened', () => {
     const trigger = fixture.nativeElement.querySelector('.user-avatar-trigger') as HTMLButtonElement;
     expect(trigger.textContent).toContain('AB');
+    expect(trigger.querySelector('.user-trigger-name')?.textContent?.trim()).toBe('Abebe Bikila');
     expect(fixture.nativeElement.querySelector('.profile-dropdown-panel')).toBeNull();
 
     trigger.click();
@@ -102,6 +103,10 @@ describe('UserProfileMenuComponent', () => {
 
     expect(titles).toEqual(['Profile', 'Applications', 'Settings']);
     expect(hrefs).toEqual(['/candidate/profile', '/my-applications', '/account/security']);
+
+    // Icons are omitted from dropdown menu items
+    const icons = panel.querySelectorAll('.item-icon');
+    expect(icons.length).toBe(0);
   });
 
   it('displays dynamic employer navigation links and company name for Employer role', () => {
@@ -169,23 +174,17 @@ describe('UserProfileMenuComponent', () => {
     await fixture.whenStable();
   });
 
-  it('allows switching between Light, Dark, and System themes inside the dropdown without closing it', () => {
-    const themeService = TestBed.inject(ThemeService);
-    themeService.setTheme('light');
-
+  it('omits the theme changer option from inside the dropdown while maintaining clean typography', () => {
     const trigger = fixture.nativeElement.querySelector('.user-avatar-trigger') as HTMLButtonElement;
     trigger.click();
     fixture.detectChanges();
 
-    const segButtons = Array.from(
-      fixture.nativeElement.querySelectorAll('.dropdown-theme-section .seg-option')
-    ) as HTMLButtonElement[];
-    expect(segButtons.length).toBe(3);
+    const panel = fixture.nativeElement.querySelector('.profile-dropdown-panel') as HTMLElement;
+    expect(panel).toBeTruthy();
 
-    segButtons[1].click(); // Dark
-    fixture.detectChanges();
-    expect(themeService.isDark()).toBe(true);
-    expect(component.isOpen()).toBe(true);
+    // Verify theme changer option inside dropdown is removed
+    const dropdownThemeSection = panel.querySelector('.dropdown-theme-section');
+    expect(dropdownThemeSection).toBeNull();
   });
 
   it('calls authService.logout and closes menu when clicking Sign Out', () => {

@@ -1,19 +1,22 @@
-<main class="applicants-page">
-  <div class="applicants-container">
-    <!-- Top Bar with Navigation & Actions -->
-    <header class="top-nav">
-      <a routerLink="/employer/jobs" class="back-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-          <path d="M19 12H5M12 19l-7-7 7-7"></path>
+<div class="applicants-page">
+  <!-- Minimalist Translucent Sticky Top Bar -->
+  <header class="applicants-top-bar">
+    <div class="top-bar-inner">
+      <a routerLink="/employer/jobs" class="back-link" aria-label="Back to My Jobs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="back-arrow" aria-hidden="true">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
         <span>Back to My Jobs</span>
       </a>
 
-      <div class="top-actions">
+      <div class="top-bar-right">
         <app-user-profile-menu />
       </div>
-    </header>
+    </div>
+  </header>
 
+  <div class="applicants-container">
     <!-- Feedback Message Banner -->
     @if (feedbackMessage()) {
       <div
@@ -43,13 +46,13 @@
       </div>
     }
 
-    <!-- Job Header Summary Card -->
+    <!-- 2. Editorial Role Header & Dark #1E293B Telemetry Strip -->
     @if (jobSummary()) {
       <section class="job-header-card" aria-label="Job Overview">
         <div class="job-header-main">
           <div class="job-title-row">
             <div class="title-with-pill">
-              <h1>{{ jobSummary()?.title }}</h1>
+              <h1 class="page-title">{{ jobSummary()?.title }}</h1>
               <span class="status-pill" [class.closed]="!jobSummary()?.isOpen">
                 <span class="status-dot"></span>
                 {{ jobSummary()?.isOpen ? 'Active Opening' : 'Closed' }}
@@ -79,44 +82,130 @@
             </div>
           </div>
 
-          <div class="job-skills-overview">
-            <span class="label">Required skills:</span>
-            <div class="skills-wrap">
-              @for (skill of jobSummary()?.requiredSkills; track skill.id) {
-                <span class="job-skill-chip">{{ skill.name }}</span>
-              }
-            </div>
-          </div>
-
-          @if (jobSummary()?.preferredSkills && jobSummary()!.preferredSkills!.length > 0) {
-            <div class="job-skills-overview preferred-overview">
-              <span class="label preferred-label">Nice-to-Have (Preferred):</span>
-              <div class="skills-wrap">
-                @for (skill of jobSummary()?.preferredSkills; track skill.id) {
-                  <span class="job-skill-chip preferred-chip">{{ skill.name }}</span>
+          <!-- Unified Skill Requirements Bar -->
+          <div class="job-skills-bar">
+            <div class="job-skills-group required-skills-group">
+              <span class="skills-label">Required skills:</span>
+              <div class="skills-chips">
+                @for (skill of jobSummary()?.requiredSkills; track skill.id) {
+                  <span class="job-skill-chip">{{ skill.name }}</span>
                 }
               </div>
             </div>
-          }
+
+            @if (jobSummary()?.preferredSkills && jobSummary()!.preferredSkills!.length > 0) {
+              <div class="job-skills-group preferred-skills-group">
+                <span class="skills-label preferred-label">Nice-to-Have (Preferred):</span>
+                <div class="skills-chips">
+                  @for (skill of jobSummary()?.preferredSkills; track skill.id) {
+                    <span class="job-skill-chip preferred-chip">{{ skill.name }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
         </div>
 
-        <!-- Quick Stats -->
-        <div class="stats-ribbon">
-          <div class="stat-box">
-            <span class="stat-number">{{ totalApplicantsCount() }}</span>
-            <span class="stat-label">Total Applicants</span>
+        <!-- 4-Card Pipeline KPI Strip -->
+        <div class="pipeline-kpi-strip">
+          <div
+            class="kpi-card"
+            [class.active]="statusFilter() === 'All'"
+            (click)="setStatusFilter('All')"
+            role="button"
+            tabindex="0"
+            (keydown.enter)="setStatusFilter('All')"
+            (keydown.space)="setStatusFilter('All')"
+            aria-label="Filter all applicants"
+          >
+            <div class="kpi-signal">
+              <span class="kpi-beacon total"></span>
+              <span class="kpi-label">TOTAL APPLICANTS</span>
+            </div>
+            <div class="kpi-value-row">
+              <span class="kpi-number">{{ padZero(totalApplicantsCount()) }}</span>
+              <span class="kpi-sub">Total Pool</span>
+            </div>
           </div>
-          <div class="stat-box highlight-received">
-            <span class="stat-number">{{ receivedCount() }}</span>
-            <span class="stat-label">Received</span>
+
+          <div
+            class="kpi-card highlight-received"
+            [class.active]="statusFilter() === 'Received'"
+            (click)="setStatusFilter('Received')"
+            role="button"
+            tabindex="0"
+            (keydown.enter)="setStatusFilter('Received')"
+            (keydown.space)="setStatusFilter('Received')"
+            aria-label="Filter received applicants"
+          >
+            <div class="kpi-signal">
+              <span class="kpi-beacon received"></span>
+              <span class="kpi-label">RECEIVED</span>
+            </div>
+            <div class="kpi-value-row">
+              <span class="kpi-number">{{ padZero(receivedCount()) }}</span>
+              <span class="kpi-sub">Awaiting Review</span>
+            </div>
           </div>
-          <div class="stat-box highlight-shortlisted">
-            <span class="stat-number">{{ shortlistedCount() }}</span>
-            <span class="stat-label">Shortlisted</span>
+
+          <div
+            class="kpi-card highlight-shortlisted"
+            [class.active]="statusFilter() === 'Shortlisted'"
+            (click)="setStatusFilter('Shortlisted')"
+            role="button"
+            tabindex="0"
+            (keydown.enter)="setStatusFilter('Shortlisted')"
+            (keydown.space)="setStatusFilter('Shortlisted')"
+            aria-label="Filter shortlisted applicants"
+          >
+            <div class="kpi-signal">
+              <span class="kpi-beacon shortlisted"></span>
+              <span class="kpi-label">SHORTLISTED</span>
+            </div>
+            <div class="kpi-value-row">
+              <span class="kpi-number">{{ padZero(shortlistedCount()) }}</span>
+              <span class="kpi-sub">Qualified Talent</span>
+            </div>
           </div>
-          <div class="stat-box highlight-rejected">
-            <span class="stat-number">{{ rejectedCount() }}</span>
-            <span class="stat-label">Rejected</span>
+
+          <div
+            class="kpi-card highlight-rejected"
+            [class.active]="statusFilter() === 'Rejected'"
+            (click)="setStatusFilter('Rejected')"
+            role="button"
+            tabindex="0"
+            (keydown.enter)="setStatusFilter('Rejected')"
+            (keydown.space)="setStatusFilter('Rejected')"
+            aria-label="Filter rejected applicants"
+          >
+            <div class="kpi-signal">
+              <span class="kpi-beacon rejected"></span>
+              <span class="kpi-label">REJECTED</span>
+            </div>
+            <div class="kpi-value-row">
+              <span class="kpi-number">{{ padZero(rejectedCount()) }}</span>
+              <span class="kpi-sub">Archived</span>
+            </div>
+          </div>
+
+          <div
+            class="kpi-card highlight-withdrawn"
+            [class.active]="statusFilter() === 'Withdrawn'"
+            (click)="setStatusFilter('Withdrawn')"
+            role="button"
+            tabindex="0"
+            (keydown.enter)="setStatusFilter('Withdrawn')"
+            (keydown.space)="setStatusFilter('Withdrawn')"
+            aria-label="Filter withdrawn applicants"
+          >
+            <div class="kpi-signal">
+              <span class="kpi-beacon withdrawn"></span>
+              <span class="kpi-label">WITHDRAWN</span>
+            </div>
+            <div class="kpi-value-row">
+              <span class="kpi-number">{{ padZero(withdrawnCount()) }}</span>
+              <span class="kpi-sub">Self-Withdrawn</span>
+            </div>
           </div>
         </div>
       </section>
@@ -140,19 +229,19 @@
       </section>
     }
 
-    <!-- Modern Enterprise Applicant Filters -->
-    <section class="modern-filter-card applicants-filter-card" aria-label="Filter applicants">
-      <!-- Row 1: Search Input, Match % Select, Date Filter Drawer Toggle & Reset -->
-      <div class="modern-filter-toolbar">
-        <div class="filter-search-box">
-          <svg class="filter-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <!-- 3. Floating Command Search & Pipeline Filter Dock -->
+    <section class="command-filter-dock" aria-label="Filter applicants">
+      <!-- Row 1: Search Input, Match % Select, Date Filter Toggle & Reset -->
+      <div class="dock-top-row">
+        <div class="dock-search-box">
+          <svg class="dock-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
           <input
             type="text"
             id="applicant-name-search"
-            class="filter-search-input"
+            class="dock-search-input"
             [value]="searchNameQuery()"
             (input)="onNameSearchInput($event)"
             placeholder="Search by applicant name or headline..."
@@ -161,7 +250,7 @@
           @if (searchNameQuery()) {
             <button
               type="button"
-              class="filter-clear-btn"
+              class="dock-clear-btn"
               (click)="clearNameSearch()"
               aria-label="Clear applicant search"
             >
@@ -173,14 +262,15 @@
           }
         </div>
 
-        <div class="filter-quick-controls">
-          <div class="compact-select-wrap">
-            <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <div class="dock-quick-controls">
+          <!-- Match % Band Select -->
+          <div class="dock-select-wrap">
+            <svg class="dock-select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
             </svg>
             <select
               id="applicant-match-filter"
-              class="compact-select"
+              class="dock-select"
               [class.has-value]="matchRangeFilter() !== 'all'"
               [value]="matchRangeFilter()"
               (change)="onMatchRangeChange($event)"
@@ -194,12 +284,11 @@
               <option value="under50">Under 50%</option>
             </select>
           </div>
-        </div>
 
-        <div class="filter-toolbar-actions">
+          <!-- Application Date Drawer Toggle -->
           <button
             type="button"
-            class="btn-advanced-toggle"
+            class="btn-advanced-toggle dock-date-btn"
             [class.is-open]="showAdvancedFilters()"
             [class.has-active]="datePreset() !== 'all' || appliedFromDate() || appliedToDate()"
             (click)="toggleAdvancedFilters()"
@@ -230,77 +319,6 @@
               <span>Reset</span>
             </button>
           }
-        </div>
-      </div>
-
-      <!-- Row 2: Status Tabs & 100% Match Quick Toggle -->
-      <div class="filters-bar applicants-sub-toolbar">
-        <div class="filter-tabs" role="tablist" aria-label="Application status filter">
-          <button
-            type="button"
-            role="tab"
-            [attr.aria-selected]="statusFilter() === 'All'"
-            class="tab-btn"
-            [class.active]="statusFilter() === 'All'"
-            (click)="setStatusFilter('All')"
-          >
-            All Applicants
-          </button>
-          <button
-            type="button"
-            role="tab"
-            [attr.aria-selected]="statusFilter() === 'Received'"
-            class="tab-btn"
-            [class.active]="statusFilter() === 'Received'"
-            (click)="setStatusFilter('Received')"
-          >
-            Received
-          </button>
-          <button
-            type="button"
-            role="tab"
-            [attr.aria-selected]="statusFilter() === 'Shortlisted'"
-            class="tab-btn"
-            [class.active]="statusFilter() === 'Shortlisted'"
-            (click)="setStatusFilter('Shortlisted')"
-          >
-            Shortlisted
-          </button>
-          <button
-            type="button"
-            role="tab"
-            [attr.aria-selected]="statusFilter() === 'Rejected'"
-            class="tab-btn"
-            [class.active]="statusFilter() === 'Rejected'"
-            (click)="setStatusFilter('Rejected')"
-          >
-            Rejected
-          </button>
-          <button
-            type="button"
-            role="tab"
-            [attr.aria-selected]="statusFilter() === 'Withdrawn'"
-            class="tab-btn"
-            [class.active]="statusFilter() === 'Withdrawn'"
-            (click)="setStatusFilter('Withdrawn')"
-          >
-            Withdrawn
-          </button>
-        </div>
-
-        <div class="filter-toggles">
-          <button
-            type="button"
-            class="toggle-btn"
-            [class.active]="fullMatchOnly()"
-            (click)="toggleFullMatch()"
-            [attr.aria-pressed]="fullMatchOnly()"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span>100% Match Only</span>
-          </button>
         </div>
       </div>
 
@@ -435,7 +453,7 @@
         }
       </section>
     } @else if (!errorMessage()) {
-      <!-- Applicants List -->
+      <!-- 4. Cinematic Applicant Telemetry Cards List -->
       <section class="applicants-list" aria-label="Applicants for this job">
         @for (applicant of paginatedApplicants(); track applicant.applicationId) {
           <article class="applicant-card">
@@ -539,6 +557,7 @@
                 </div>
               }
 
+              <!-- Scoring Breakdown Micro-Telemetry Strip -->
               @if (applicant.match.breakdown; as b) {
                 <div class="applicant-breakdown-summary">
                   <span class="breakdown-tag">Required Skills: {{ b.requiredSkillsScore }}/{{ b.maxRequiredSkillsScore }} pts</span>
@@ -583,7 +602,7 @@
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
-                  <span>View Profile</span>
+                  <span>View Profile →</span>
                 </button>
 
                 <!-- CV Preview Button if attached -->
@@ -648,19 +667,22 @@
         }
       </section>
 
-      <app-pagination
-        [currentPage]="effectivePage()"
-        [totalItems]="filteredApplicants().length"
-        [pageSize]="pageSize()"
-        [pageSizeOptions]="[5, 10, 20, 50]"
-        itemLabel="applicants"
-        (pageChange)="onPageChange($event)"
-        (pageSizeChange)="onPageSizeChange($event)"
-      />
+      <!-- 5. Refined Pagination Footer -->
+      <div class="pagination-wrapper">
+        <app-pagination
+          [currentPage]="effectivePage()"
+          [totalItems]="filteredApplicants().length"
+          [pageSize]="pageSize()"
+          [pageSizeOptions]="[5, 10, 20, 50]"
+          itemLabel="applicants"
+          (pageChange)="onPageChange($event)"
+          (pageSizeChange)="onPageSizeChange($event)"
+        />
+      </div>
     }
   </div>
 
-  <!-- Candidate Full Profile Modal -->
+  <!-- Candidate Full Profile Slide-Over Drawer / Modal -->
   @if (showProfileModal()) {
     <div
       class="modal-backdrop"
@@ -790,18 +812,39 @@
                       }
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    class="btn-modal-download-cv btn-modal-preview-cv"
-                    (click)="openCvPreview(prof.applicationId, prof.cvOriginalFileName, prof.fullName)"
-                    title="Preview submitted CV document"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    <span>CV Preview</span>
-                  </button>
+                  <div class="cv-btn-group">
+                    <button
+                      type="button"
+                      class="btn-modal-preview-cv"
+                      (click)="openCvPreview(prof.applicationId, prof.cvOriginalFileName, prof.fullName)"
+                      title="Preview submitted CV document"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                      <span>CV Preview</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-modal-download-cv"
+                      [disabled]="downloadingCvApplicationId() === prof.applicationId"
+                      (click)="downloadCv(prof.applicationId, prof.cvOriginalFileName)"
+                      title="Download submitted CV document"
+                    >
+                      @if (downloadingCvApplicationId() === prof.applicationId) {
+                        <span class="spinner-small" aria-hidden="true"></span>
+                        <span>Downloading...</span>
+                      } @else {
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <polyline points="7 10 12 15 17 10"></polyline>
+                          <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Download</span>
+                      }
+                    </button>
+                  </div>
                 </div>
               } @else {
                 <p class="no-cv-text">No CV document was attached to this application.</p>
@@ -910,38 +953,36 @@
     </div>
   }
 
-  <!-- CV Preview Modal -->
+  <!-- CV Document Preview Modal -->
   @if (showCvPreviewModal()) {
-    <div
-      class="modal-backdrop cv-preview-backdrop"
-      (click)="closeCvPreview()"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="cv-preview-dialog-title"
-    >
-      <div class="cv-preview-dialog" (click)="$event.stopPropagation()">
-        <header class="cv-preview-header">
-          <div class="cv-preview-title-wrap">
-            <div class="cv-file-badge" [class.docx]="isDocxPreview()">
-              {{ isDocxPreview() ? 'DOCX' : 'PDF' }}
-            </div>
+    <div class="modal-backdrop cv-preview-backdrop" (click)="closeCvPreview()" role="dialog" aria-modal="true" aria-labelledby="cvPreviewModalTitle">
+      <div class="modal-card cv-preview-modal" (click)="$event.stopPropagation()">
+        <!-- Header -->
+        <header class="cv-modal-header">
+          <div class="cv-header-left">
+            <svg class="cv-file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
             <div>
-              <h2 id="cv-preview-dialog-title">
-                {{ cvPreviewCandidateName() ? cvPreviewCandidateName() + ' — CV Preview' : 'CV Document Preview' }}
+              <h2 id="cvPreviewModalTitle" class="cv-title">
+                {{ cvPreviewCandidateName() ? cvPreviewCandidateName() + ' — CV' : 'Candidate CV Document' }}
               </h2>
-              <span class="cv-preview-subtitle">{{ cvPreviewFileName() || 'Attached CV' }}</span>
+              <span class="cv-sub">{{ cvPreviewFileName() }}</span>
             </div>
           </div>
 
-          <div class="cv-preview-header-actions">
+          <div class="cv-header-actions">
             <button
               type="button"
               class="btn-preview-download"
               (click)="downloadCurrentPreviewCv()"
-              [disabled]="cvPreviewLoading() || !!cvPreviewError()"
-              title="Download CV file"
+              title="Download original CV document"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -951,11 +992,11 @@
 
             <button
               type="button"
-              class="btn-preview-close"
+              class="cv-modal-close-btn"
               (click)="closeCvPreview()"
-              aria-label="Close CV preview"
+              aria-label="Close CV document preview"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
@@ -963,67 +1004,53 @@
           </div>
         </header>
 
-        <div class="cv-preview-body">
+        <!-- Preview Content -->
+        <div class="cv-modal-body">
           @if (cvPreviewLoading()) {
-            <div class="cv-preview-loading" aria-live="polite">
-              <span class="spinner-large" aria-hidden="true"></span>
-              <p>Loading CV document preview...</p>
+            <div class="cv-loading-state">
+              <div class="spinner-large" aria-hidden="true"></div>
+              <p>Fetching and decrypting candidate CV...</p>
             </div>
           } @else if (cvPreviewError()) {
-            <div class="cv-preview-error" role="alert">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="error-icon" aria-hidden="true">
+            <div class="cv-error-state" role="alert">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" y1="8" x2="12" y2="12"></line>
                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
               </svg>
-              <h3>Unable to display CV</h3>
-              <p>{{ cvPreviewError() }}</p>
-              <div class="preview-error-actions">
-                <button type="button" class="btn-retry-preview" (click)="retryCvPreview()">Try Again</button>
-                <button type="button" class="btn-preview-download fallback" (click)="downloadCurrentPreviewCv()">
-                  Download Instead
-                </button>
-              </div>
+              <p class="error-msg">{{ cvPreviewError() }}</p>
+              <button type="button" class="btn-retry-cv" (click)="retryCvPreview()">Try again</button>
             </div>
           } @else if (isDocxPreview()) {
-            <div class="docx-preview-pane">
-              <div class="docx-card">
-                <div class="docx-icon-large" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                  </svg>
-                </div>
-                <h3>{{ cvPreviewFileName() }}</h3>
-                <span class="docx-format-pill">Word Document (.docx)</span>
-                <p class="docx-note">
-                  This candidate submitted a Microsoft Word document (.docx). Web browsers cannot directly render DOCX files inline. You can download the CV document below to open and review it.
-                </p>
-                <button
-                  type="button"
-                  class="btn-preview-download-prominent"
-                  (click)="downloadCurrentPreviewCv()"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                  <span>Download CV</span>
-                </button>
-              </div>
+            <div class="docx-info-state">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+              <h3>Microsoft Word Document</h3>
+              <p>
+                In-browser preview is optimized for PDF documents. You can download and open this DOCX CV in your desktop editor.
+              </p>
+              <button type="button" class="btn-download-docx" (click)="downloadCurrentPreviewCv()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Download {{ cvPreviewFileName() }}</span>
+              </button>
             </div>
           } @else if (cvPreviewSafeUrl()) {
             <iframe
               [src]="cvPreviewSafeUrl()"
-              class="cv-pdf-frame"
-              title="CV Document Viewer"
+              class="cv-document-frame"
+              title="Candidate Resume Document Preview"
             ></iframe>
           }
         </div>
       </div>
     </div>
   }
-</main>
+</div>

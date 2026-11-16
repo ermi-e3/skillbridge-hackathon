@@ -298,6 +298,7 @@ export class WalkthroughShowcaseComponent implements AfterViewInit, OnDestroy {
       }
     } else {
       this.scene.set(4);
+      this.stackState.set(t < 16.5 ? 'stack-in' : 'logo-show');
       this.outroFading.set(t >= 19.15);
     }
 

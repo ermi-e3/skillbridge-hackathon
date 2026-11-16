@@ -173,7 +173,7 @@ export const skillCountValidator = (min = 1, max = 10): ValidatorFn => {
 @Component({
   selector: 'app-candidate-skill-onboarding',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ThemeToggleComponent],
+  imports: [CommonModule, ReactiveFormsModule, ThemeToggleComponent, RouterLink],
   templateUrl: './candidate-skill-onboarding.component.html',
   styleUrl: './candidate-skill-onboarding.component.scss',
 })

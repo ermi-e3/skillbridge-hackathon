@@ -129,16 +129,12 @@ describe('EmployerJobApplicantsComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('marked as Shortlisted');
   });
 
-  it('changes filter when clicking filter tabs', () => {
+  it('changes filter when clicking filter cards', () => {
     fixture.detectChanges();
 
-    const tabs = fixture.nativeElement.querySelectorAll('.tab-btn');
-    const shortlistedTab = Array.from(tabs).find((el: any) =>
-      el.textContent.includes('Shortlisted')
-    ) as HTMLElement;
-
-    expect(shortlistedTab).toBeTruthy();
-    shortlistedTab.click();
+    const shortlistedCard = fixture.nativeElement.querySelector('.kpi-card.highlight-shortlisted') as HTMLElement;
+    expect(shortlistedCard).toBeTruthy();
+    shortlistedCard.click();
 
     expect(applicationsServiceSpy.getJobApplicants).toHaveBeenCalledWith(10, 'Shortlisted', false);
   });
@@ -146,9 +142,7 @@ describe('EmployerJobApplicantsComponent', () => {
   it('toggles full match only filter', () => {
     fixture.detectChanges();
 
-    const toggleBtn = fixture.nativeElement.querySelector('.toggle-btn');
-    expect(toggleBtn).toBeTruthy();
-    toggleBtn.click();
+    component.toggleFullMatch();
 
     expect(applicationsServiceSpy.getJobApplicants).toHaveBeenCalledWith(10, undefined, true);
   });

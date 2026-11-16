@@ -13,6 +13,8 @@ import { calculateCountdown, CountdownDetails } from '../../../../core/utils/cou
 import { extractErrorMessage } from '../../../../core/utils/error-formatter';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { UserProfileMenuComponent } from '../../../../shared/components/user-profile-menu/user-profile-menu.component';
+import { DEPARTMENT_OPTIONS, jobMatchesDepartment } from '../../../../shared/utils/job-department.util';
+import { extractSalaryFromJob } from '../../../../shared/utils/salary.util';
 
 @Component({
   selector: 'app-job-list',
@@ -38,14 +40,18 @@ export class JobListComponent implements OnInit {
   readonly showWelcomeBanner = signal<boolean>(false);
 
   readonly allSkills = signal<SkillDto[]>([]);
+  readonly candidateSkills = signal<SkillDto[]>([]);
   readonly selectedSkillIds = signal<number[]>([]);
   readonly skillFilterSearch = signal<string>('');
   readonly searchKeyword = signal<string>('');
   readonly activeDropdown = signal<string | null>(null);
+  readonly selectedDepartment = signal<string>('all');
+  readonly departmentOptions = DEPARTMENT_OPTIONS;
   readonly selectedWorkArrangement = signal<string>('All');
   readonly selectedJobType = signal<string>('All');
   readonly selectedExperienceLevel = signal<string>('All');
   readonly jobs = signal<JobDto[]>([]);
+  readonly sortHighestMatch = signal<boolean>(false);
 
   // Pagination signals
   readonly currentPage = signal<number>(1);
@@ -53,12 +59,38 @@ export class JobListComponent implements OnInit {
   readonly totalCount = signal<number>(0);
   readonly usedServerPagination = signal<boolean>(false);
 
+  readonly effectiveTotalCount = computed(() => {
+    if (this.selectedDepartment() !== 'all') {
+      return this.displayedJobs().length;
+    }
+    return this.totalCount();
+  });
+
+  readonly displayedJobs = computed(() => {
+    let list = [...this.jobs()];
+    const dept = this.selectedDepartment();
+    if (dept && dept !== 'all') {
+      list = list.filter((job) =>
+        jobMatchesDepartment(job.requiredSkills, job.preferredSkills, dept, job.category)
+      );
+    }
+    if (this.sortHighestMatch()) {
+      list.sort((a, b) => {
+        const matchA = this.getMatchPercent(a) ?? -1;
+        const matchB = this.getMatchPercent(b) ?? -1;
+        return matchB - matchA;
+      });
+    }
+    return list;
+  });
+
   readonly paginatedJobs = computed(() => {
-    if (this.usedServerPagination()) {
+    if (this.usedServerPagination() && !this.sortHighestMatch() && this.selectedDepartment() === 'all') {
       return this.jobs();
     }
+    const source = this.displayedJobs();
     const start = (this.currentPage() - 1) * this.pageSize();
-    return this.jobs().slice(start, start + this.pageSize());
+    return source.slice(start, start + this.pageSize());
   });
 
   // Filter skills for multi-select dropdown search
@@ -75,6 +107,7 @@ export class JobListComponent implements OnInit {
   readonly hasActiveFilters = computed(() => {
     return (
       this.selectedSkillIds().length > 0 ||
+      this.selectedDepartment() !== 'all' ||
       this.selectedWorkArrangement() !== 'All' ||
       this.selectedJobType() !== 'All' ||
       this.selectedExperienceLevel() !== 'All' ||
@@ -187,7 +220,9 @@ export class JobListComponent implements OnInit {
     if (this.authService.getRole() === 'Candidate') {
       this.profileService.getMyProfile().subscribe({
         next: (profile) => {
-          const count = (profile.skills?.length ?? 0) || (profile.skillIds?.length ?? 0);
+          const skills = profile.skills ?? [];
+          this.candidateSkills.set(skills);
+          const count = skills.length || (profile.skillIds?.length ?? 0);
           this.hasSkillsRegistered.set(count > 0);
         },
         error: () => {
@@ -368,6 +403,17 @@ export class JobListComponent implements OnInit {
     }
   }
 
+  setDepartment(val: string): void {
+    this.selectedDepartment.set(val);
+    this.currentPage.set(1);
+    this.closeDropdowns();
+  }
+
+  getDepartmentName(id: string): string {
+    const found = this.departmentOptions.find((d) => d.id === id);
+    return found ? found.name : id;
+  }
+
   setWorkArrangement(val: string): void {
     this.selectedWorkArrangement.set(val);
     this.currentPage.set(1);
@@ -391,6 +437,7 @@ export class JobListComponent implements OnInit {
 
   clearAllFilters(): void {
     this.selectedSkillIds.set([]);
+    this.selectedDepartment.set('all');
     this.selectedWorkArrangement.set('All');
     this.selectedJobType.set('All');
     this.selectedExperienceLevel.set('All');
@@ -475,5 +522,34 @@ export class JobListComponent implements OnInit {
       return 'match-mid';
     }
     return 'match-low';
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onWindowKeyDown(event: KeyboardEvent): void {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      const input = document.getElementById('mainJobSearchInput') as HTMLInputElement | null;
+      input?.focus();
+    }
+  }
+
+  toggleSortHighestMatch(): void {
+    this.sortHighestMatch.update((v) => !v);
+    this.currentPage.set(1);
+  }
+
+  isJobMatchedSkill(skillId: number, job: JobDto): boolean {
+    if (job.match?.matchedSkills && job.match.matchedSkills.length > 0) {
+      return job.match.matchedSkills.some((s) => s.id === skillId);
+    }
+    return this.candidateSkills().some((s) => s.id === skillId);
+  }
+
+  getJobSalary(job: JobDto): string {
+    return extractSalaryFromJob(job).displayText;
+  }
+
+  isJobSalaryNegotiable(job: JobDto): boolean {
+    return extractSalaryFromJob(job).isNegotiable;
   }
 }

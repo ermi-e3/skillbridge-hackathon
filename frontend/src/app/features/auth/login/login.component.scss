@@ -33,6 +33,7 @@ $slate-900: #0f172a;
 
 .auth-page {
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -47,6 +48,10 @@ $slate-900: #0f172a;
   font-family: var(--font, 'Inter', system-ui, sans-serif);
   position: relative;
   box-sizing: border-box;
+
+  @media (max-width: 640px) {
+    background-size: 100% 100%, 100% 100%, 24px 24px, 24px 24px;
+  }
 }
 
 // ----------------------------------------------------
@@ -75,17 +80,21 @@ $slate-900: #0f172a;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 0.75rem;
 
     @media (max-width: 640px) {
       padding: 0.75rem 1rem;
+    }
+
+    @media (max-width: 380px) {
+      padding: 0.625rem 0.75rem;
     }
   }
 
   .brand-link {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.625rem;
     text-decoration: none;
     color: inherit;
 
@@ -100,6 +109,7 @@ $slate-900: #0f172a;
       background: var(--surface, #ffffff);
       border: 1px solid var(--line, rgba(30, 41, 59, 0.1));
       box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+      flex-shrink: 0;
 
       .brand-logo-img {
         width: 1.5rem;
@@ -114,42 +124,50 @@ $slate-900: #0f172a;
       font-size: 1.15rem;
       letter-spacing: -0.025em;
       color: var(--ink-strong, #1e293b);
+
+      @media (max-width: 380px) {
+        font-size: 1rem;
+      }
     }
   }
 
   .header-actions {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
+    gap: 1rem;
 
-    @media (max-width: 640px) {
-      gap: 0.875rem;
+    @media (max-width: 480px) {
+      gap: 0.5rem;
     }
 
     .back-link {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
-      font-size: 0.875rem;
+      gap: 0.35rem;
+      font-size: 0.8125rem;
       font-weight: 500;
       color: var(--ink-muted, #64748b);
       text-decoration: none;
-      transition: color 0.15s ease, transform 0.15s ease;
+      padding: 0.35rem 0.65rem;
+      border-radius: 9999px;
+      transition: all 0.15s ease;
 
       .back-arrow {
-        width: 1rem;
-        height: 1rem;
+        width: 0.95rem;
+        height: 0.95rem;
         transition: transform 0.15s ease;
       }
 
       .back-text {
         @media (max-width: 480px) {
-          display: none; // Icon only on extra-narrow viewports
+          display: none; // Icon only on mobile viewports
         }
       }
 
       &:hover {
         color: $orange-500;
+        background: rgba(249, 115, 22, 0.08);
+
         .back-arrow {
           transform: translateX(-3px);
         }
@@ -164,39 +182,40 @@ $slate-900: #0f172a;
 }
 
 // ----------------------------------------------------
-// 2. Asymmetric 2-Column Editorial Split Layout
+// 2. Focused Single-Column Tactile Auth Layout
 // ----------------------------------------------------
 .auth-main-layout {
   flex: 1;
-  max-width: 1360px;
   width: 100%;
+  max-width: 520px;
   margin: 0 auto;
   padding: 2.5rem 1.5rem 3.5rem;
   box-sizing: border-box;
-  display: grid;
-  grid-template-columns: minmax(0, 500px) minmax(0, 1fr);
-  gap: 2.75rem;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 
-  @media (max-width: 1024px) {
-    display: flex;
-    justify-content: center;
-    padding: 2rem 1.25rem 3rem;
+  @media (max-width: 640px) {
+    padding: 1.5rem 1rem 2.5rem;
   }
 
-  @media (max-width: 480px) {
-    padding: 1.25rem 0.875rem 2.5rem;
+  @media (max-width: 380px) {
+    padding: 1rem 0.625rem 2rem;
   }
 }
 
 // ----------------------------------------------------
-// Left Column: The Elevated Tactile Form Card
+// Elevated Tactile Form Card
 // ----------------------------------------------------
 .form-column {
   width: 100%;
-  max-width: 500px;
+  display: flex;
+  justify-content: center;
 
   .auth-card {
+    width: 100%;
+    max-width: 480px;
     background: var(--surface, #ffffff);
     border: 1px solid var(--line, rgba(30, 41, 59, 0.12));
     border-radius: 20px;
@@ -211,15 +230,24 @@ $slate-900: #0f172a;
       box-shadow: 0 20px 48px -12px rgba(0, 0, 0, 0.5);
     }
 
-    @media (max-width: 540px) {
+    @media (max-width: 640px) {
       padding: 1.75rem 1.25rem 1.5rem;
       border-radius: 16px;
+    }
+
+    @media (max-width: 380px) {
+      padding: 1.25rem 0.875rem 1.15rem;
+      border-radius: 14px;
     }
   }
 }
 
 .auth-header {
   margin-bottom: 1.75rem;
+
+  @media (max-width: 380px) {
+    margin-bottom: 1.25rem;
+  }
 
   .brand-badge {
     display: inline-flex;
@@ -249,27 +277,19 @@ $slate-900: #0f172a;
 
   .auth-title {
     font-family: 'Space Grotesk', var(--font, sans-serif);
-    font-size: 1.75rem;
+    font-size: clamp(1.4rem, 4vw, 1.75rem);
     font-weight: 700;
     letter-spacing: -0.03em;
     color: var(--ink-strong, #1e293b);
     margin: 0 0 0.4rem;
     line-height: 1.2;
-
-    @media (max-width: 480px) {
-      font-size: 1.5rem;
-    }
   }
 
   .auth-subtitle {
-    font-size: 0.9375rem;
+    font-size: clamp(0.8125rem, 2.5vw, 0.9375rem);
     color: var(--ink-muted, #64748b);
-    line-height: 1.5;
+    line-height: 1.45;
     margin: 0;
-
-    @media (max-width: 480px) {
-      font-size: 0.875rem;
-    }
   }
 }
 
@@ -365,9 +385,11 @@ $slate-900: #0f172a;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.25rem;
 
     .forgot-link {
-      font-size: 0.775rem;
+      font-size: 0.8125rem;
       font-weight: 500;
       color: $teal-600;
       text-decoration: none;
@@ -390,7 +412,7 @@ $slate-900: #0f172a;
   border: 1px solid var(--line, #e2e8f0);
   border-radius: 10px;
   transition: all 0.2s ease;
-  min-height: 44px;
+  min-height: 46px;
 
   :host-context([data-theme='dark']) & {
     background: var(--surface-muted, #0f172a);
@@ -433,13 +455,19 @@ $slate-900: #0f172a;
   .form-input {
     width: 100%;
     padding: 0.75rem 0.875rem 0.75rem 2.625rem;
-    font-size: 0.9375rem;
+    font-size: 1rem; // Prevents iOS Safari auto-zoom
     font-family: inherit;
     color: var(--ink, #0f172a);
     background: transparent;
     border: none;
     outline: none;
     box-sizing: border-box;
+
+    @media (max-width: 400px) {
+      padding-left: 2.35rem;
+      padding-right: 0.75rem;
+      font-size: 0.9375rem;
+    }
 
     &::placeholder {
       color: var(--ink-faint, #94a3b8);
@@ -452,6 +480,8 @@ $slate-900: #0f172a;
     border: none;
     cursor: pointer;
     padding: 0.625rem 0.875rem;
+    min-width: 44px;
+    min-height: 44px;
     color: var(--ink-muted, #64748b);
     display: flex;
     align-items: center;
@@ -579,11 +609,11 @@ $slate-900: #0f172a;
 .social-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.875rem;
+  gap: 0.75rem;
 
-  @media (max-width: 380px) {
+  @media (max-width: 400px) {
     grid-template-columns: 1fr;
-    gap: 0.6rem;
+    gap: 0.55rem;
   }
 
   .social-btn {
@@ -657,324 +687,6 @@ $slate-900: #0f172a;
   }
 }
 
-// ----------------------------------------------------
-// 3. Right Column: Cinematic Showcase Panel (Slate-800)
-// ----------------------------------------------------
-.showcase-column {
-  width: 100%;
-  position: sticky;
-  top: 5.5rem;
 
-  @media (max-width: 1024px) {
-    display: none; // Tactile single-column card on mobile/tablet
-  }
-}
 
-.showcase-panel {
-  background: $slate-800;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  padding: 2.25rem;
-  box-sizing: border-box;
-  box-shadow:
-    0 24px 60px -15px rgba(15, 23, 42, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  position: relative;
-  overflow: hidden;
 
-  // Micro-grid texture on dark surface
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-      radial-gradient(circle at 80% 20%, rgba(13, 148, 136, 0.18) 0%, transparent 50%),
-      radial-gradient(circle at 20% 80%, rgba(249, 115, 22, 0.12) 0%, transparent 45%),
-      linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-    background-size: 100% 100%, 100% 100%, 28px 28px, 28px 28px;
-    pointer-events: none;
-  }
-}
-
-.telemetry-header {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-
-  .telemetry-status {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-
-    .live-pulse {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: $teal-500;
-      box-shadow: 0 0 10px $teal-500;
-      animation: pulseTeal 1.8s infinite ease-in-out;
-    }
-
-    .telemetry-mono {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      color: #94a3b8;
-    }
-  }
-
-  .telemetry-metric {
-    .metric-mono {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: $teal-500;
-      letter-spacing: 0.04em;
-    }
-  }
-}
-
-// Telemetry Stage
-.telemetry-stage {
-  position: relative;
-  z-index: 2;
-  display: grid;
-  grid-template-columns: 165px 75px 1fr;
-  align-items: center;
-  padding: 2.25rem 0;
-  gap: 0.5rem;
-}
-
-.telemetry-nodes {
-  display: flex;
-  flex-direction: column;
-  gap: 1.15rem;
-
-  .telemetry-node {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.45rem 0.85rem;
-    border-radius: 9999px;
-    background: rgba(15, 23, 42, 0.8);
-    border: 1px solid rgba(13, 148, 136, 0.4);
-    box-shadow: 0 0 12px rgba(13, 148, 136, 0.15);
-    backdrop-filter: blur(8px);
-    transition: transform 0.3s ease;
-
-    .node-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: $teal-500;
-      box-shadow: 0 0 6px $teal-500;
-    }
-
-    .node-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: #e2e8f0;
-      white-space: nowrap;
-    }
-
-    &:hover {
-      transform: translateX(4px);
-      border-color: $teal-500;
-    }
-  }
-}
-
-.telemetry-connector {
-  width: 100%;
-  height: 220px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  .connector-svg {
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-  }
-}
-
-// Glassmorphic Matched Role Preview Card
-.telemetry-card {
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid rgba(13, 148, 136, 0.35);
-  border-radius: 16px;
-  padding: 1.5rem;
-  backdrop-filter: blur(16px);
-  box-shadow:
-    0 16px 36px -8px rgba(0, 0, 0, 0.5),
-    0 0 24px rgba(13, 148, 136, 0.15);
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-
-  .match-card-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.1rem;
-
-    .match-badge {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      padding: 0.25rem 0.6rem;
-      border-radius: 9999px;
-      background: rgba(13, 148, 136, 0.15);
-      border: 1px solid rgba(13, 148, 136, 0.4);
-      color: $teal-500;
-    }
-
-    .match-score-pill {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-
-      .score-num {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.95rem;
-        font-weight: 800;
-        color: $teal-500;
-        line-height: 1;
-      }
-
-      .score-txt {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.55rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        color: #94a3b8;
-      }
-    }
-  }
-
-  .role-headline {
-    font-family: 'Space Grotesk', var(--font, sans-serif);
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #f8fafc;
-    margin: 0 0 0.35rem;
-    letter-spacing: -0.02em;
-  }
-
-  .role-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.775rem;
-    color: #94a3b8;
-    margin-bottom: 1.15rem;
-
-    .meta-dot {
-      opacity: 0.5;
-    }
-  }
-
-  // Bento Metric Row
-  .bento-metric-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-    margin-bottom: 1.25rem;
-
-    .bento-box {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 8px;
-      padding: 0.5rem 0.4rem;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      gap: 0.15rem;
-
-      .bento-val {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.75rem;
-        font-weight: 800;
-        color: $teal-500;
-      }
-
-      .bento-lbl {
-        font-size: 0.65rem;
-        color: #94a3b8;
-        font-weight: 500;
-      }
-    }
-  }
-
-  .card-action-preview {
-    .action-btn-dummy {
-      width: 100%;
-      padding: 0.65rem 0.85rem;
-      border-radius: 8px;
-      background: rgba(249, 115, 22, 0.85);
-      color: #ffffff;
-      font-size: 0.825rem;
-      font-weight: 700;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
-      cursor: default;
-    }
-  }
-}
-
-// Telemetry Footer Strip
-.telemetry-footer {
-  position: relative;
-  z-index: 2;
-  padding-top: 1.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-
-  .status-indicator-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.4rem;
-
-    .pulse-emerald {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #10b981;
-      box-shadow: 0 0 8px #10b981;
-    }
-
-    .status-strong {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      color: #10b981;
-    }
-  }
-
-  .telemetry-caption {
-    font-size: 0.8125rem;
-    color: #94a3b8;
-    line-height: 1.45;
-    margin: 0;
-  }
-}
-
-@keyframes pulseTeal {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.4;
-    transform: scale(0.85);
-  }
-}

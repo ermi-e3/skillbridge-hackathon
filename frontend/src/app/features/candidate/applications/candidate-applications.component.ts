@@ -236,6 +236,15 @@ export class CandidateApplicationsComponent implements OnInit, OnDestroy {
     this.currentPage.set(1);
   }
 
+  filterByStatus(status: string): void {
+    if (this.statusFilter() === status && status !== 'All') {
+      this.statusFilter.set('All');
+    } else {
+      this.statusFilter.set(status);
+    }
+    this.currentPage.set(1);
+  }
+
   onCompanyFilterChange(event: Event): void {
     this.companyFilter.set((event.target as HTMLSelectElement).value);
     this.currentPage.set(1);

@@ -1,127 +1,443 @@
-<main class="employer-apps-page">
-  <div class="employer-apps-container">
-    <header class="page-header">
-      <div class="heading-copy">
-        <a routerLink="/employer/jobs" class="back-link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-            <path d="M19 12H5M12 19l-7-7 7-7"></path>
-          </svg>
-          <span>Back to My Jobs</span>
-        </a>
-        <h1>Application Management</h1>
-        <p>Select any of your posted openings to review applicants, preview CVs, and update hiring decisions.</p>
-      </div>
+<div class="employer-apps-page">
+  <!-- 1. Minimalist Translucent Sticky Top Bar -->
+  <header class="employer-apps-top-bar">
+    <div class="top-bar-inner">
+      <a routerLink="/employer/jobs" class="back-link" aria-label="Back to My Jobs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="back-arrow" aria-hidden="true">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Back to My Jobs</span>
+      </a>
 
-      <div class="header-actions">
-        <a class="primary-action" routerLink="/employer/jobs/new">
+      <div class="top-bar-right">
+        <a class="primary-post-cta" routerLink="/employer/jobs/new" aria-label="Post a new job opening">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-            <path d="M12 5v14M5 12h14"></path>
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
           <span>Post New Job</span>
         </a>
+
         <app-user-profile-menu />
+      </div>
+    </div>
+  </header>
+
+  <div class="employer-apps-container">
+    <!-- 2. Editorial Page Header -->
+    <header class="editorial-page-header">
+      <div class="header-copy">
+        <h1 class="page-title">Application Management</h1>
+        <p class="page-subtitle">
+          Select any of your posted openings to review applicants, preview CVs, and update hiring decisions.
+        </p>
       </div>
     </header>
 
-    <!-- Summary Stats -->
-    <section class="stats-grid" aria-label="Application pipeline totals">
-      <div class="stat-card">
-        <span class="stat-value">{{ totalApplications() }}</span>
-        <span class="stat-label">Total Applications</span>
-      </div>
-      <div class="stat-card received">
-        <span class="stat-value">{{ totalReceived() }}</span>
-        <span class="stat-label">Pending Review</span>
-      </div>
-      <div class="stat-card shortlisted">
-        <span class="stat-value">{{ totalShortlisted() }}</span>
-        <span class="stat-label">Shortlisted</span>
-      </div>
-    </section>
-
-    <!-- Search Bar -->
-    @if (!isLoading() && jobs().length > 0) {
-      <div class="search-bar-card">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <input
-          type="text"
-          [value]="searchQuery()"
-          (input)="onSearchInput($event)"
-          placeholder="Filter openings by job title..."
-          aria-label="Filter openings by job title"
-        />
-      </div>
-    }
-
+    <!-- Error Banner -->
     @if (errorMessage()) {
       <section class="error-banner" role="alert">
-        <div>
-          <strong>Unable to load applications</strong>
-          <p>{{ errorMessage() }}</p>
+        <div class="error-copy">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <div>
+            <strong>Unable to load applications</strong>
+            <p>{{ errorMessage() }}</p>
+          </div>
         </div>
         <button type="button" class="retry-button" (click)="loadEmployerJobs()">Try again</button>
       </section>
     }
 
+    <!-- 3. Interactive 3-Card Telemetry KPI Strip -->
+    @if (!isLoading()) {
+      <section class="telemetry-kpi-strip" aria-label="Application pipeline metrics">
+        <!-- Card 1: Total Applications -->
+        <div
+          class="kpi-card kpi-total"
+          [class.active]="statusFilter() === 'all'"
+          (click)="setStatusFilter('all')"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="setStatusFilter('all')"
+          (keydown.space)="setStatusFilter('all')"
+          aria-label="Filter all applications"
+        >
+          <div class="kpi-signal">
+            <span class="kpi-beacon total"></span>
+            <span class="kpi-label">TOTAL APPLICATIONS</span>
+          </div>
+          <div class="kpi-value-row">
+            <span class="kpi-number">{{ padZero(totalApplications()) }}</span>
+            <span class="kpi-sub">Across all openings</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Pending Review (High-Contrast Dark Slate-800 Feature Card) -->
+        <div
+          class="kpi-card kpi-pending dark-feature"
+          [class.active]="statusFilter() === 'pending'"
+          (click)="setStatusFilter('pending')"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="setStatusFilter('pending')"
+          (keydown.space)="setStatusFilter('pending')"
+          aria-label="Filter openings with pending reviews"
+        >
+          <div class="kpi-signal">
+            <span class="kpi-beacon glowing-orange"></span>
+            <span class="kpi-label">PENDING REVIEW</span>
+          </div>
+          <div class="kpi-value-row">
+            <span class="kpi-number orange-accent">{{ padZero(totalReceived()) }}</span>
+            <span class="kpi-sub">Awaiting review</span>
+          </div>
+        </div>
+
+        <!-- Card 3: Shortlisted -->
+        <div
+          class="kpi-card kpi-shortlisted"
+          [class.active]="statusFilter() === 'shortlisted'"
+          (click)="setStatusFilter('shortlisted')"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="setStatusFilter('shortlisted')"
+          (keydown.space)="setStatusFilter('shortlisted')"
+          aria-label="Filter openings with shortlisted talent"
+        >
+          <div class="kpi-signal">
+            <span class="kpi-beacon teal-beacon"></span>
+            <span class="kpi-label">SHORTLISTED</span>
+          </div>
+          <div class="kpi-value-row">
+            <span class="kpi-number teal-accent">{{ padZero(totalShortlisted()) }}</span>
+            <span class="kpi-sub">Qualified talent pool</span>
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- 4. Floating Command Search & Status Filter Dock -->
+    @if (!isLoading() && jobs().length > 0) {
+      <section class="command-filter-dock" aria-label="Filter job openings">
+        <div class="dock-search-box">
+          <svg class="dock-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="text"
+            id="filter-openings-input"
+            class="dock-search-input"
+            [value]="searchQuery()"
+            (input)="onSearchInput($event)"
+            placeholder="Filter openings by job title..."
+            aria-label="Filter openings by job title"
+          />
+          @if (searchQuery()) {
+            <button
+              type="button"
+              class="dock-clear-btn"
+              (click)="clearSearch()"
+              aria-label="Clear job search"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          }
+        </div>
+
+        <!-- Quick Filter Pills -->
+        <div class="dock-pills-group" role="tablist" aria-label="Status filters">
+          <button
+            type="button"
+            class="dock-pill"
+            [class.active]="statusFilter() === 'all'"
+            (click)="setStatusFilter('all')"
+            role="tab"
+            [attr.aria-selected]="statusFilter() === 'all'"
+          >
+            <span>All ({{ allCount() }})</span>
+          </button>
+
+          <button
+            type="button"
+            class="dock-pill"
+            [class.active]="statusFilter() === 'active'"
+            (click)="setStatusFilter('active')"
+            role="tab"
+            [attr.aria-selected]="statusFilter() === 'active'"
+          >
+            <span>Active ({{ activeCount() }})</span>
+          </button>
+
+          <button
+            type="button"
+            class="dock-pill"
+            [class.active]="statusFilter() === 'closed'"
+            (click)="setStatusFilter('closed')"
+            role="tab"
+            [attr.aria-selected]="statusFilter() === 'closed'"
+          >
+            <span>Closed ({{ closedCount() }})</span>
+          </button>
+
+          <button
+            type="button"
+            class="dock-pill"
+            [class.active]="statusFilter() === 'has_applicants'"
+            (click)="setStatusFilter('has_applicants')"
+            role="tab"
+            [attr.aria-selected]="statusFilter() === 'has_applicants'"
+          >
+            <span>Has Applicants</span>
+          </button>
+
+          @if (hasActiveFilter()) {
+            <button
+              type="button"
+              class="btn-reset-filters"
+              (click)="resetFilters()"
+              aria-label="Reset all filters"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+              </svg>
+              <span>Reset</span>
+            </button>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Loading Skeleton -->
     @if (isLoading()) {
-      <div class="pipeline-list" aria-busy="true" aria-label="Loading job applicant summaries">
-        @for (item of [1, 2, 3]; track item) {
-          <div class="pipeline-card skeleton-card">
-            <div class="skel-line skel-title"></div>
-            <div class="skel-line skel-meta"></div>
+      <section class="pipeline-list skeleton-list" aria-busy="true" aria-label="Loading job applicant summaries">
+        @for (item of [1, 2, 3, 4]; track item) {
+          <div class="bento-row skeleton-row">
+            <div class="skeleton-left">
+              <div class="skeleton skeleton-title"></div>
+              <div class="skeleton skeleton-meta"></div>
+            </div>
+            <div class="skeleton-middle">
+              <div class="skeleton skeleton-chips"></div>
+            </div>
+            <div class="skeleton-right">
+              <div class="skeleton skeleton-btn"></div>
+            </div>
           </div>
         }
-      </div>
+      </section>
     } @else if (filteredJobs().length === 0) {
-      <section class="empty-state">
-        <h2>No job openings found</h2>
-        <p>Post a job opening to start receiving candidate applications.</p>
-        <a routerLink="/employer/jobs/new" class="primary-action">Post Your First Job</a>
+      <!-- Empty State -->
+      <section class="empty-state-card" aria-label="No openings found">
+        <div class="empty-icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+        </div>
+        <h2 class="empty-title">No job openings found</h2>
+        <p class="empty-subtitle">
+          @if (hasActiveFilter()) {
+            No openings match your current search query or active filter.
+          } @else {
+            Post a job opening to start receiving candidate applications.
+          }
+        </p>
+
+        @if (hasActiveFilter()) {
+          <button type="button" class="btn-clear-empty" (click)="resetFilters()">
+            Clear Filters &amp; View All
+          </button>
+        } @else {
+          <a routerLink="/employer/jobs/new" class="primary-post-cta empty-cta">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Post Your First Job</span>
+          </a>
+        }
       </section>
     } @else {
-      <section class="pipeline-list" aria-label="Job openings and applicant counts">
-        @for (job of filteredJobs(); track job.id) {
-          <article class="pipeline-card">
-            <div class="card-main">
-              <div class="card-title-row">
-                <h2>{{ job.title }}</h2>
+      <!-- 5. Cinematic Opening Pipeline List -->
+      <section class="pipeline-list" aria-label="Job openings and applicant pipeline counts">
+        @for (job of paginatedJobs(); track job.id) {
+          <article class="bento-row" [class.is-closed]="!job.isOpen">
+            <!-- Left Column: Role Identity & Metadata -->
+            <div class="row-left">
+              <div class="role-title-row">
+                <h2 class="role-title">{{ job.title }}</h2>
+
                 <span class="status-pill" [class.closed]="!job.isOpen">
-                  {{ job.isOpen ? 'Active' : 'Closed' }}
+                  <span class="status-dot"></span>
+                  <span>{{ job.isOpen ? 'Active' : 'Closed' }}</span>
                 </span>
+
                 @if (job.category) {
-                  <span class="category-pill">{{ job.category }}</span>
+                  <span class="category-tag">{{ job.category }}</span>
                 }
               </div>
-              <p class="card-meta">
-                Posted {{ job.createdAt | date: 'MMM d, y' }}
-                @if (job.location) {
-                  &middot; {{ job.location }}
-                }
-              </p>
 
-              <div class="counts-row">
-                <span class="count-chip total"><strong>{{ job.applicantCounts.total }}</strong> Total</span>
-                <span class="count-chip received"><strong>{{ job.applicantCounts.received }}</strong> Received</span>
-                <span class="count-chip shortlisted"><strong>{{ job.applicantCounts.shortlisted }}</strong> Shortlisted</span>
-                <span class="count-chip rejected"><strong>{{ job.applicantCounts.rejected }}</strong> Rejected</span>
+              <div class="role-meta-line">
+                <span class="meta-item date-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="meta-icon" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  <span>Posted {{ job.createdAt | date: 'mediumDate' }}</span>
+                </span>
+
+                @if (job.location) {
+                  <span class="meta-separator" aria-hidden="true">•</span>
+                  <span class="meta-item location-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="meta-icon" aria-hidden="true">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                      <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span>{{ job.location }}</span>
+                  </span>
+                }
               </div>
             </div>
 
-            <div class="card-action">
-              <a class="manage-btn" [routerLink]="['/employer/jobs', job.id, 'applicants']">
+            <!-- Middle / Telemetry Strip -->
+            <div class="row-middle">
+              <div class="pipeline-counters-wrap">
+                <span class="telemetry-chip total-chip">
+                  <span class="chip-number">{{ job.applicantCounts.total }}</span>
+                  <span class="chip-label">Total</span>
+                </span>
+
+                <span
+                  class="telemetry-chip received-chip"
+                  [class.has-active]="job.applicantCounts.received > 0"
+                >
+                  <span class="chip-number">{{ job.applicantCounts.received }}</span>
+                  <span class="chip-label">Received</span>
+                </span>
+
+                <span
+                  class="telemetry-chip shortlisted-chip"
+                  [class.has-active]="job.applicantCounts.shortlisted > 0"
+                >
+                  <span class="chip-number">{{ job.applicantCounts.shortlisted }}</span>
+                  <span class="chip-label">Shortlisted</span>
+                </span>
+
+                <span class="telemetry-chip rejected-chip">
+                  <span class="chip-number">{{ job.applicantCounts.rejected }}</span>
+                  <span class="chip-label">Rejected</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Right Column: Smart Review Action Trigger -->
+            <div class="row-right">
+              <a
+                class="review-action-btn"
+                [class.has-candidates]="job.applicantCounts.total > 0"
+                [routerLink]="['/employer/jobs', job.id, 'applicants']"
+                [attr.aria-label]="'Review applicants for ' + job.title"
+              >
                 <span>Review Applicants</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <path d="M5 12h14M12 5l7 7-7 7"></path>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="arrow-icon" aria-hidden="true">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
                 </svg>
               </a>
             </div>
           </article>
         }
       </section>
+
+      <!-- 6. Refined Monospace Pagination Footer -->
+      @if (filteredJobs().length > 0) {
+        <nav class="pagination-footer-dock" aria-label="Openings list pagination">
+          <!-- Left: Monospace Status Counter -->
+          <div class="pagination-status-counter">
+            <span>
+              Showing <strong class="mono-num">{{ showingRange().start }}&ndash;{{ showingRange().end }}</strong> of
+              <strong class="mono-num">{{ showingRange().total }}</strong> openings
+            </span>
+          </div>
+
+          <!-- Center: Tactile Page Navigation Buttons -->
+          <div class="pagination-pills-nav" role="group" aria-label="Page navigation controls">
+            <button
+              type="button"
+              class="nav-step-btn prev-btn"
+              [disabled]="currentPage() <= 1"
+              (click)="prevPage()"
+              aria-label="Previous page"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="nav-arrow" aria-hidden="true">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+              <span>Prev</span>
+            </button>
+
+            <div class="page-pills-group">
+              @for (page of pagesArray(); track page) {
+                <button
+                  type="button"
+                  class="page-number-pill"
+                  [class.active]="page === currentPage()"
+                  [attr.aria-current]="page === currentPage() ? 'page' : null"
+                  [attr.aria-label]="'Go to page ' + page"
+                  (click)="goToPage(page)"
+                >
+                  {{ page }}
+                </button>
+              }
+            </div>
+
+            <button
+              type="button"
+              class="nav-step-btn next-btn"
+              [disabled]="currentPage() >= totalPages()"
+              (click)="nextPage()"
+              aria-label="Next page"
+            >
+              <span>Next</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="nav-arrow" aria-hidden="true">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Right: Compact Per Page Selector Dropdown -->
+          <div class="page-size-selector-wrap">
+            <label for="apps-per-page-select" class="per-page-label">Per page</label>
+            <div class="select-container">
+              <select
+                id="apps-per-page-select"
+                class="per-page-select"
+                [value]="pageSize()"
+                (change)="onPageSizeChange($event)"
+                aria-label="Openings per page"
+              >
+                @for (size of pageSizeOptions; track size) {
+                  <option [value]="size" [selected]="size === pageSize()">{{ size }}</option>
+                }
+              </select>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="select-chevron" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+        </nav>
+      }
     }
   </div>
-</main>
-
+</div>
