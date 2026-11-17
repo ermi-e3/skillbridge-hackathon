@@ -341,10 +341,49 @@ describe('JobListComponent', () => {
     fixture.detectChanges();
 
     expect(component.selectedSkillIds()).toEqual([]);
+    expect(component.selectedDepartment()).toBe('all');
     expect(component.selectedWorkArrangement()).toBe('All');
     expect(component.selectedJobType()).toBe('All');
     expect(component.selectedExperienceLevel()).toBe('All');
     expect(component.searchKeyword()).toBe('');
+    expect(component.hasActiveFilters()).toBe(false);
+  });
+
+  it('should filter jobs by department, render department tag, and omit redundant clear-all link button', () => {
+    // All 4 mock jobs have tech skills (ASP.NET Core, Angular, C#)
+    component.setDepartment('technology');
+    fixture.detectChanges();
+
+    expect(component.selectedDepartment()).toBe('technology');
+    expect(component.hasActiveFilters()).toBe(true);
+
+    const filtered = component.displayedJobs();
+    expect(filtered.length).toBe(4);
+
+    // Filtering by finance has 0 matching jobs among the tech-focused mock jobs
+    component.setDepartment('finance');
+    fixture.detectChanges();
+    expect(component.displayedJobs().length).toBe(0);
+
+    // Switch back to technology
+    component.setDepartment('technology');
+    fixture.detectChanges();
+
+    const tray = fixture.nativeElement.querySelector('.active-filters-tray');
+    expect(tray).toBeTruthy();
+    expect(tray.textContent).toContain('Technology & Software');
+
+    // Confirm redundant clear-all link button inside tray is removed (only Reset button is used)
+    const clearAllBtn = tray.querySelector('.clear-all-link-btn');
+    expect(clearAllBtn).toBeNull();
+
+    // Remove department filter via tag button
+    const removeDeptBtn = tray.querySelector('.active-filter-tag.department-tag .remove-tag-btn');
+    expect(removeDeptBtn).toBeTruthy();
+    removeDeptBtn.click();
+    fixture.detectChanges();
+
+    expect(component.selectedDepartment()).toBe('all');
     expect(component.hasActiveFilters()).toBe(false);
   });
 
@@ -363,5 +402,28 @@ describe('JobListComponent', () => {
     expect(component.paginatedJobs().length).toBe(2);
     expect(component.paginatedJobs()[0].id).toBe(103);
     expect(component.paginatedJobs()[1].id).toBe(104);
+  });
+
+  it('should toggle Highest Match First sort and reorder jobs by match percentage', () => {
+    expect(component.sortHighestMatch()).toBe(false);
+
+    // Toggle highest match first
+    component.toggleSortHighestMatch();
+    fixture.detectChanges();
+
+    expect(component.sortHighestMatch()).toBe(true);
+    // 85% (101), 70% (104), 60% (102), 33% (103)
+    const sorted = component.displayedJobs();
+    expect(sorted[0].id).toBe(101); // 85%
+    expect(sorted[1].id).toBe(104); // 70%
+    expect(sorted[2].id).toBe(102); // 60%
+    expect(sorted[3].id).toBe(103); // 33%
+  });
+
+  it('should verify candidate skill matching for job cards', () => {
+    // Candidate has skill 1 (ASP.NET Core) from profile
+    expect(component.isJobMatchedSkill(1, mockJobs[0])).toBe(true);
+    // Candidate does not have skill 3 (C#) in profile
+    expect(component.isJobMatchedSkill(3, mockJobs[0])).toBe(false);
   });
 });

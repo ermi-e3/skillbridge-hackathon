@@ -1,9 +1,9 @@
 <div class="job-detail-page">
   <div class="detail-container">
-    <!-- Top Bar Navigation -->
+    <!-- 1. Minimalist Translucent Top Bar -->
     <header class="detail-top-bar">
-      <a routerLink="/jobs" class="back-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="back-arrow">
+      <a routerLink="/jobs" class="back-link" aria-label="Back to Job Catalog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="back-arrow">
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
@@ -81,7 +81,7 @@
       </div>
     }
 
-    <!-- Error Alert Banner (Displays ProblemDetails.detail directly) -->
+    <!-- Error Alert Banner -->
     @if (errorMessage()) {
       <div class="alert-banner alert-error" role="alert" aria-live="assertive">
         <div class="alert-content">
@@ -123,121 +123,133 @@
         <div class="skel-line desc-skel"></div>
       </div>
     } @else if (job(); as j) {
+      <!-- 2. Asymmetric 2-Column Split Workspace (62% Left Brief / 38% Sticky Dock) -->
       <div class="detail-layout">
-        <!-- Main Job Content Card -->
+        <!-- Left Column: Editorial Job Brief -->
         <article class="detail-card main-card">
-          <!-- Header with Title, Company, Location, Date, Match % -->
+          <!-- Company & Title Header -->
           <header class="job-header">
-            <div class="header-content">
-              <div class="company-badge-row">
-                <span class="company-badge">
+            <div class="company-badge-row">
+              <span class="company-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="company-icon">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+                <span>{{ j.companyName }}</span>
+              </span>
+
+              <span class="status-pill" [class.closed]="j.isOpen === false">
+                <span class="status-dot"></span>
+                <span>{{ j.isOpen === false ? 'Closed' : 'Active' }}</span>
+              </span>
+
+              @if (applicationStatusState() === 'Withdrawn') {
+                <span class="status-pill withdrawn-pill" title="Application Withdrawn">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                  </svg>
+                  <span>Withdrawn</span>
+                </span>
+              } @else if (hasAppliedState()) {
+                <span class="applied-pill">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>Applied</span>
+                </span>
+              }
+            </div>
+
+            <h1 class="job-title">{{ j.title }}</h1>
+
+            <!-- Unified Metadata Strip -->
+            <div class="job-attributes-row">
+              @if (j.category) {
+                <span class="attr-chip category-chip">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <span>{{ j.category }}</span>
+                </span>
+              }
+              @if (j.workArrangement) {
+                <span class="attr-chip arrangement-chip">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                  </svg>
+                  <span>{{ j.workArrangement }}</span>
+                </span>
+              }
+              @if (j.jobType) {
+                <span class="attr-chip type-chip">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
                     <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
                     <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
                   </svg>
-                  <span>{{ j.companyName }}</span>
+                  <span>{{ j.jobType }}</span>
                 </span>
-
-                <span class="status-pill" [class.closed]="j.isOpen === false">
-                  <span class="status-dot"></span>
-                  {{ j.isOpen === false ? 'Closed' : 'Active' }}
-                </span>
-
-                @if (applicationStatusState() === 'Withdrawn') {
-                  <span class="status-pill withdrawn-pill" title="Application Withdrawn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="8" y1="12" x2="16" y2="12"></line>
-                    </svg>
-                    <span>Withdrawn</span>
-                  </span>
-                } @else if (hasAppliedState()) {
-                  <span class="applied-pill">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                    <span>Applied</span>
-                  </span>
-                }
-              </div>
-
-              <h1 class="job-title">{{ j.title }}</h1>
-
-              <!-- Attributes Badges Row -->
-              <div class="job-attributes-row">
-                @if (j.category) {
-                  <span class="attr-chip category-chip">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
-                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                    </svg>
-                    {{ j.category }}
-                  </span>
-                }
-                @if (j.workArrangement) {
-                  <span class="attr-chip arrangement-chip">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="2" y1="12" x2="22" y2="12"></line>
-                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-                    </svg>
-                    {{ j.workArrangement }}
-                  </span>
-                }
-                @if (j.jobType) {
-                  <span class="attr-chip type-chip">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
-                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                    </svg>
-                    {{ j.jobType }}
-                  </span>
-                }
-                @if (j.experienceLevel) {
-                  <span class="attr-chip exp-chip">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                    </svg>
-                    {{ j.experienceLevel }}
-                    @if (j.minExperienceYears && j.minExperienceYears > 0) {
-                      ({{ j.minExperienceYears }}+ yrs)
-                    }
-                  </span>
-                }
-              </div>
-
-              <div class="meta-row">
-                @if (j.location) {
-                  <div class="meta-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                      <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
-                    <span>{{ j.location }}</span>
-                  </div>
-                }
-
-                <div class="meta-item">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
+              }
+              @if (j.experienceLevel) {
+                <span class="attr-chip exp-chip">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                   </svg>
-                  <span>Posted {{ j.createdAt | date: 'mediumDate' }}</span>
-                </div>
-              </div>
+                  <span>{{ j.experienceLevel }}</span>
+                  @if (j.minExperienceYears && j.minExperienceYears > 0) {
+                    <span class="exp-years">({{ j.minExperienceYears }}+ yrs)</span>
+                  }
+                </span>
+              }
+              @if (j.location) {
+                <span class="attr-chip location-chip">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                  <span>{{ j.location }}</span>
+                </span>
+              }
+              <span class="attr-chip salary-chip" [class.is-negotiable]="isJobSalaryNegotiable(j)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                  <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                  <circle cx="12" cy="12" r="2"></circle>
+                  <path d="M6 12h.01M18 12h.01"></path>
+                </svg>
+                <span class="salary-text">{{ getJobSalary(j) }}</span>
+              </span>
+              <span class="attr-chip date-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chip-icon">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>Posted {{ j.createdAt | date: 'mediumDate' }}</span>
+              </span>
             </div>
+          </header>
 
-            <!-- Match Percentage Badge & Compact Deadline Counter -->
-            <div class="header-match-side">
+          <!-- Dark #1E293B Telemetry Strip (Match Score + Live Countdown) -->
+          <section class="telemetry-strip" aria-label="Match and Deadline Telemetry">
+            <!-- Left: Match Score Telemetry Gauge -->
+            <div class="telemetry-match-pane">
+              <span class="telemetry-pane-label">CANDIDATE FIT TELEMETRY</span>
               @if (getMatchPercent(j); as matchScore) {
                 <div
                   class="match-badge-box"
                   [ngClass]="getMatchClass(matchScore)"
                   [title]="'Your skills match ' + matchScore + '% of this job\'s requirements'"
                 >
-                  <span class="match-score-value">{{ matchScore }}%</span>
-                  <span class="match-score-label">Skill Match</span>
+                  <div class="match-score-ring">
+                    <span class="match-score-value">{{ matchScore }}%</span>
+                  </div>
+                  <div class="match-meta-text">
+                    <span class="match-score-label">Skill Match</span>
+                    <span class="match-algorithm-pill">ALGORITHMIC FIT</span>
+                  </div>
                 </div>
               } @else {
                 <div
@@ -246,8 +258,13 @@
                   role="note"
                   aria-label="Profile incomplete: complete your profile and skills to see your match score"
                 >
-                  <span class="match-score-value">--</span>
-                  <span class="match-score-label">Match N/A</span>
+                  <div class="match-score-ring">
+                    <span class="match-score-value">--%</span>
+                  </div>
+                  <div class="match-meta-text">
+                    <span class="match-score-label">Match N/A</span>
+                    <span class="match-algorithm-pill">PROFILE CALIBRATION</span>
+                  </div>
 
                   <!-- Hover information tooltip popover -->
                   <div class="match-na-popover">
@@ -260,16 +277,20 @@
                       <strong>Profile Incomplete</strong>
                     </div>
                     <p class="popover-message">
-                      Please complete your profile setup and add your skills to activate personalized job matching.
+                      Register your skills to activate personalized automated job match scoring.
                     </p>
-                    <a routerLink="/candidate/profile" class="popover-action">
-                      Complete Profile &amp; Skills &rarr;
+                    <a routerLink="/candidate/onboarding/skills" class="popover-action">
+                      Register Skills &rarr;
                     </a>
                   </div>
                 </div>
               }
+            </div>
 
-              <!-- Compact Application Deadline Real-Time Countdown Widget -->
+            <div class="telemetry-separator"></div>
+
+            <!-- Right: Live Real-Time Countdown Timer to Deadline -->
+            <div class="telemetry-countdown-pane">
               @if (j.deadline) {
                 @let cd = countdown();
                 <section class="deadline-countdown-card" [class.urgent]="cd?.isUrgent" [class.closed]="j.isOpen === false || cd?.isExpired">
@@ -282,9 +303,9 @@
                         </svg>
                       </div>
                       <div class="deadline-title-meta">
-                        <h3 class="countdown-heading">Deadline</h3>
+                        <span class="countdown-heading">Deadline</span>
                         <p class="deadline-target-time" [title]="j.deadline | date: 'medium'">
-                          {{ j.deadline | date: 'MMM d, y' }}
+                          {{ j.deadline | date: 'mediumDate' }}
                         </p>
                       </div>
                     </div>
@@ -308,7 +329,7 @@
                   </div>
 
                   @if (j.isOpen !== false && !cd?.isExpired && cd) {
-                    <!-- Compact countdown displaying Days, Hours, Minutes, Seconds -->
+                    <!-- Live Ticking Countdown displaying Days, Hours, Minutes, Seconds -->
                     <div class="countdown-timer-board" [class.urgent]="cd.isUrgent">
                       <div class="timer-segment">
                         <span class="timer-digit">{{ cd.formattedDays }}</span>
@@ -331,7 +352,6 @@
                       </div>
                     </div>
 
-                    <!-- Compact Warning when remaining time is 24 hours or less -->
                     @if (cd.isUrgent) {
                       <div class="urgent-alert-banner" role="alert">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="urgent-banner-icon">
@@ -358,11 +378,24 @@
                     </div>
                   }
                 </section>
+              } @else {
+                <div class="ongoing-recruitment-box">
+                  <div class="ongoing-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 14 14"></polyline>
+                    </svg>
+                  </div>
+                  <div>
+                    <span class="ongoing-label">ONGOING ROLLING RECRUITMENT</span>
+                    <p class="ongoing-sub">Open for applications until filled</p>
+                  </div>
+                </div>
               }
             </div>
-          </header>
+          </section>
 
-          <!-- Match Breakdown (Matched vs Missing Skills) if available -->
+          <!-- Candidate-Job Skill Fit Breakdown if available -->
           @if (j.match && (j.match.matchedSkills?.length || j.match.missingSkills?.length || j.match.matchedPreferredSkills?.length)) {
             <div class="match-breakdown-card">
               <div class="breakdown-title">
@@ -408,7 +441,7 @@
             </div>
           }
 
-          <!-- Required Skills Section -->
+          <!-- Required Skills & Qualifications Section -->
           <section class="detail-section">
             <h2 class="section-title">Required Skills &amp; Qualifications</h2>
             <div class="skills-pill-group">
@@ -418,7 +451,7 @@
             </div>
           </section>
 
-          <!-- Preferred Skills Section if any -->
+          <!-- Preferred Skills & Competencies Section -->
           @if (j.preferredSkills && j.preferredSkills.length > 0) {
             <section class="detail-section">
               <h2 class="section-title">Preferred Skills &amp; Competencies</h2>
@@ -439,7 +472,7 @@
           </section>
         </article>
 
-        <!-- Apply Section Sidebar / Card -->
+        <!-- Right Column: Sticky Application Dock -->
         <aside class="detail-card apply-card">
           <div class="apply-header">
             <div class="apply-icon-box">
@@ -457,7 +490,7 @@
             </div>
           </div>
 
-          <!-- If job is closed or deadline expired: Application Restricted -->
+          <!-- If job is closed or deadline expired -->
           @if (j.isOpen === false || (j.deadline && countdown()?.isExpired)) {
             <div class="already-applied-banner closed-banner" role="status">
               <div class="banner-top">
@@ -478,7 +511,7 @@
               class="apply-submit-btn already-applied-btn closed-btn"
               disabled
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon" aria-hidden="true">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="15" y1="9" x2="9" y2="15"></line>
                 <line x1="9" y1="9" x2="15" y2="15"></line>
@@ -504,14 +537,14 @@
               class="apply-submit-btn already-applied-btn withdrawn-btn"
               disabled
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon" aria-hidden="true">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="8" y1="12" x2="16" y2="12"></line>
               </svg>
               <span>Withdrawn</span>
             </button>
           } @else if (hasAppliedState()) {
-            <!-- If applied and not withdrawn -->
+            <!-- Already Applied State -->
             <div class="already-applied-banner" role="status">
               <div class="banner-top">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="banner-icon">
@@ -559,7 +592,7 @@
               class="apply-submit-btn already-applied-btn"
               disabled
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="btn-icon">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" class="btn-icon" aria-hidden="true">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
               <span>Applied</span>
@@ -607,6 +640,7 @@
                       (change)="setCvApplyOption('default')"
                       class="option-radio-input"
                     />
+                    <div class="option-radio-indicator"></div>
                     <div class="option-content">
                       <div class="option-title-row">
                         <span class="option-title">Use Default Profile CV</span>
@@ -633,6 +667,7 @@
                       (change)="setCvApplyOption('upload')"
                       class="option-radio-input"
                     />
+                    <div class="option-radio-indicator"></div>
                     <div class="option-content">
                       <div class="option-title-row">
                         <span class="option-title">Upload a Different CV</span>
@@ -733,7 +768,7 @@
                         </div>
                         <div class="dropzone-text">
                           <span class="dropzone-title">Upload CV for this job</span>
-                          <span class="dropzone-sub">Drag & drop or <span class="browse-link">browse file</span></span>
+                          <span class="dropzone-sub">Drag &amp; drop or <span class="browse-link">browse file</span></span>
                           <span class="dropzone-hint">PDF or DOCX, up to 5 MB</span>
                         </div>
                       </div>
@@ -774,9 +809,9 @@
                   </div>
                 }
 
-                <!-- Validation message if no valid CV attached -->
+                <!-- Dynamic CV Validation Banner -->
                 @if (!isCvValid()) {
-                  <div class="cv-requirement-alert">
+                  <div class="cv-requirement-alert" role="status">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <circle cx="12" cy="12" r="10"></circle>
                       <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -784,9 +819,17 @@
                     </svg>
                     <span>A valid CV must always be attached before an application can be submitted.</span>
                   </div>
+                } @else {
+                  <div class="cv-ready-alert" role="status">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>CV Attached &amp; Ready for Submission</span>
+                  </div>
                 }
               </div>
 
+              <!-- Cover Note (Optional) with Live 0/1000 Counter -->
               <div class="form-group">
                 <div class="label-row">
                   <label for="coverNote" class="form-label">
@@ -814,6 +857,7 @@
                 }
               </div>
 
+              <!-- Verification Note -->
               <div class="apply-notice">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <circle cx="12" cy="12" r="10"></circle>
@@ -823,7 +867,7 @@
                 <span>Your verified skills profile and contact details will be shared with the employer.</span>
               </div>
 
-              <!-- Submit Application Primary Button -->
+              <!-- Submit Application Primary Button in Vibrant Orange-500 -->
               <button
                 type="submit"
                 class="apply-submit-btn"
@@ -834,7 +878,7 @@
                   <span>Submitting Application...</span>
                 } @else {
                   <span>Submit Application</span>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="arrow-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="arrow-icon">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
                   </svg>

@@ -57,6 +57,18 @@ export class EmployerJobsComponent implements OnInit {
   readonly activeJobsCount = computed(() => this.jobs().filter((j) => j.isOpen).length);
   readonly closedJobsCount = computed(() => this.jobs().filter((j) => !j.isOpen).length);
 
+  readonly totalApplicantsCount = computed(() =>
+    this.jobs().reduce((acc, j) => acc + (j.applicantCounts?.total || 0), 0)
+  );
+
+  readonly totalShortlistedCount = computed(() =>
+    this.jobs().reduce((acc, j) => acc + (j.applicantCounts?.shortlisted || 0), 0)
+  );
+
+  padZero(val: number): string {
+    return val < 10 ? `0${val}` : `${val}`;
+  }
+
   readonly activeFilterCount = computed(() => {
     let count = 0;
     if (this.searchTitleQuery().trim()) count++;

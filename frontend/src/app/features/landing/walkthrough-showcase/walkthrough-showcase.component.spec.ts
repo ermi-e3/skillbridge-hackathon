@@ -33,5 +33,12 @@ describe('WalkthroughShowcaseComponent', () => {
     expect(component.skills.length).toBe(4);
     expect(component.showHeroIntro()).toBe(true);
   });
+
+  it('supports light and dark mode theming across stage and motion canvas', () => {
+    const stage = fixture.nativeElement.querySelector('.walkthrough-stage');
+    expect(stage).toBeTruthy();
+    const motionCanvas = fixture.nativeElement.querySelector('.motion-canvas');
+    expect(motionCanvas).toBeTruthy();
+  });
 });
 

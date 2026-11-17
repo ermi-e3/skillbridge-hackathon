@@ -113,29 +113,36 @@ $accent: var(--lp-accent);
   }
 }
 
-/* 1. Sticky Apple-Style Navbar (44px, Flush Above Walkthrough) */
+/* 1. Minimalist Floating Header */
 .floating-nav-wrap {
-  position: sticky;
-  top: 0;
-  z-index: 60;
+  position: fixed;
+  top: 1.15rem;
+  left: 0;
+  right: 0;
   width: 100%;
+  box-sizing: border-box;
+  z-index: 60;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: var(--lp-pill-bg);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border-bottom: 1px solid $border-subtle;
+  padding: 0 1.25rem;
+  pointer-events: none;
 }
 
 .floating-pill {
-  width: min(1160px, 100%);
-  height: 44px;
+  pointer-events: auto;
+  width: min(980px, 100%);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0 1.25rem;
+  padding: 0.55rem 0.65rem 0.55rem 1.15rem;
+  background: var(--lp-pill-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid $border-subtle;
+  border-radius: 9999px;
+  box-shadow: var(--lp-shadow);
 }
 
 .walkthrough-bleed {
@@ -1555,6 +1562,16 @@ main {
 }
 
 @media (max-width: 720px) {
+  .floating-nav-wrap {
+    top: 0.65rem;
+    padding: 0 0.85rem;
+  }
+
+  .floating-pill {
+    padding: 0.45rem 0.65rem 0.45rem 0.85rem;
+    gap: 0.65rem;
+  }
+
   .nav-anchors,
   .nav-signin {
     display: none;
@@ -1564,14 +1581,201 @@ main {
     display: inline-flex;
   }
 
+  .hero-section {
+    padding: 1.5rem 1rem 3.5rem;
+  }
+
+  .hero-cta-row {
+    gap: 0.65rem;
+    margin-bottom: 2rem;
+  }
+
+  .canvas-stage {
+    padding: 1.25rem 1rem;
+  }
+
+  .match-engine-canvas {
+    border-radius: 18px;
+  }
+
+  .sandbox-section {
+    padding: 3.5rem 1rem;
+  }
+
+  .sandbox-preview-card {
+    padding: 1.25rem 1rem;
+    border-radius: 16px;
+    gap: 1.25rem;
+  }
+
+  .preview-role {
+    font-size: 1.35rem;
+  }
+
+  .bento-section {
+    padding: 3.5rem 1rem;
+  }
+
+  .bento-grid {
+    gap: 1rem;
+  }
+
+  .bento-card {
+    padding: 1.35rem 1.05rem;
+    border-radius: 16px;
+
+    h3 {
+      font-size: 1.25rem;
+    }
+  }
+
+  .marquee-section {
+    padding: 2.5rem 0;
+
+    .marquee-track {
+      gap: 2.5rem;
+    }
+  }
+
+  .closing-section {
+    padding: 4.5rem 1rem 3.5rem;
+
+    .closing-title {
+      font-size: clamp(1.85rem, 6.5vw, 2.75rem);
+    }
+
+    .closing-subtitle {
+      margin-bottom: 1.75rem;
+      font-size: 0.94rem;
+    }
+  }
+
   .dropzone-bar {
     flex-direction: column;
     align-items: stretch;
+    padding: 0.65rem;
+    border-radius: 14px;
+    gap: 0.5rem;
+
+    .dropzone-input {
+      padding: 0.65rem 0.5rem;
+      font-size: 0.82rem;
+    }
 
     .upload-trigger,
     .launch-btn {
       justify-content: center;
+      width: 100%;
     }
+  }
+
+  .editorial-footer {
+    padding: 2rem 1rem;
+
+    .footer-inner {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1.25rem;
+    }
+
+    .footer-brand {
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+
+      .footer-copy {
+        margin-left: 0;
+        text-align: center;
+      }
+    }
+
+    .footer-links {
+      justify-content: center;
+      gap: 1rem;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .floating-nav-wrap {
+    top: 0.5rem;
+    padding: 0 0.5rem;
+  }
+
+  .floating-pill {
+    padding: 0.38rem 0.5rem 0.38rem 0.75rem;
+  }
+
+  .brand-lockup .brand-name {
+    font-size: 0.88rem;
+  }
+
+  .magnetic-cta {
+    padding: 0.32rem 0.65rem;
+    font-size: 0.75rem;
+  }
+
+  .hero-cta-row {
+    flex-direction: column;
+    width: 100%;
+    max-width: 300px;
+
+    .cta-primary-orange,
+    .cta-secondary-teal {
+      width: 100%;
+      text-align: center;
+      padding: 0.7rem 1rem;
+      font-size: 0.86rem;
+    }
+  }
+
+  .audience-pill {
+    padding: 0.25rem;
+  }
+
+  .audience-btn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.76rem;
+    gap: 0.35rem;
+  }
+
+  .opportunity-card {
+    padding: 1.15rem;
+
+    .opp-footer {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.65rem;
+    }
+
+    .accept-intro-btn {
+      justify-content: center;
+      width: 100%;
+    }
+  }
+
+  .telemetry-chart {
+    padding: 0.85rem;
+
+    .bar-row {
+      grid-template-columns: 72px 1fr 28px;
+      gap: 0.5rem;
+    }
+
+    .bar-label,
+    .bar-val {
+      font-size: 0.68rem;
+    }
+  }
+
+  .sandbox-pills {
+    gap: 0.5rem;
+  }
+
+  .sandbox-pill {
+    padding: 0.48rem 0.75rem;
+    font-size: 0.8rem;
   }
 }
 

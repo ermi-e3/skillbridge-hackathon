@@ -13,6 +13,7 @@ import { ProfileService } from '../../../../core/services/profile.service';
 import { RealtimeService } from '../../../../core/services/realtime.service';
 import { calculateCountdown, CountdownDetails } from '../../../../core/utils/countdown';
 import { extractErrorMessage } from '../../../../core/utils/error-formatter';
+import { extractSalaryFromJob } from '../../../../shared/utils/salary.util';
 import { UserProfileMenuComponent } from '../../../../shared/components/user-profile-menu/user-profile-menu.component';
 
 @Component({
@@ -569,5 +570,13 @@ export class JobDetailComponent implements OnInit, OnDestroy {
         this.errorMessage.set(msg);
       },
     });
+  }
+
+  getJobSalary(job: JobDto): string {
+    return extractSalaryFromJob(job).displayText;
+  }
+
+  isJobSalaryNegotiable(job: JobDto): boolean {
+    return extractSalaryFromJob(job).isNegotiable;
   }
 }
