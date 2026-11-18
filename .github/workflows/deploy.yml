@@ -58,9 +58,59 @@ jobs:
       - name: Publish ASP.NET Core
         run: dotnet publish backend/src/SkillBridge.Api/SkillBridge.Api.csproj -c Release -o "${{ github.workspace }}/publish"
 
-      - name: Deploy to SmarterASP
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: skillbridge-001-site1
-          publish-profile: ${{ secrets.WEBDEPLOY_PUBLISH_SETTINGS }}
-          package: ${{ github.workspace }}/publish
+      - name: Deploy to SmarterASP using Web Deploy
+        shell: pwsh
+        env:
+          WEBSITE_NAME: ${{ secrets.WEBSITE_NAME }}
+          SERVER_COMPUTER_NAME: ${{ secrets.SERVER_COMPUTER_NAME }}
+          SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
+          SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+
+        run: |
+          $required = @(
+            "WEBSITE_NAME",
+            "SERVER_COMPUTER_NAME",
+            "SERVER_USERNAME",
+            "SERVER_PASSWORD"
+          )
+
+          foreach ($name in $required) {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) {
+              throw "Required GitHub secret is missing: $name"
+            }
+          }
+
+          $msdeploy = @(
+            "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe",
+            "C:\Program Files (x86)\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+          if (-not $msdeploy) {
+            throw "msdeploy.exe was not found on the GitHub Actions runner."
+          }
+
+          $sourcePath = Join-Path $env:GITHUB_WORKSPACE "publish"
+
+          if (!(Test-Path $sourcePath)) {
+            throw "Published application directory not found: $sourcePath"
+          }
+
+          $arguments = @(
+            "-verb:sync",
+            "-source:contentPath=$sourcePath",
+            "-dest:contentPath=$env:WEBSITE_NAME,ComputerName=$env:SERVER_COMPUTER_NAME,UserName=$env:SERVER_USERNAME,Password=$env:SERVER_PASSWORD,AuthType=Basic,includeAcls=False",
+            "-allowUntrusted",
+            "-disableLink:AppPoolExtension",
+            "-disableLink:ContentExtension",
+            "-disableLink:CertificateExtension",
+            "-enableRule:AppOffline",
+            "-enableRule:DoNotDeleteRule"
+          )
+
+          & $msdeploy @arguments
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "SmarterASP Web Deploy failed with exit code $LASTEXITCODE"
+          }
+
+          Write-Host "Deployment completed successfully."
