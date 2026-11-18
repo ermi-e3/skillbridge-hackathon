@@ -1,0 +1,66 @@
+
+name: Deploy SkillBridge to SmarterASP
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install Angular dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build Angular
+        working-directory: frontend
+        run: npm run build -- --configuration production
+
+      - name: Copy Angular build to ASP.NET Core wwwroot
+        shell: pwsh
+        run: |
+          $source = "frontend/dist/frontend/browser"
+          $destination = "backend/src/SkillBridge.Api/wwwroot"
+
+          if (!(Test-Path $source)) {
+            throw "Angular build output not found: $source"
+          }
+
+          New-Item -ItemType Directory -Force -Path $destination | Out-Null
+
+          Get-ChildItem -Path $destination -Force |
+            Remove-Item -Recurse -Force
+
+          Copy-Item -Path "$source/*" -Destination $destination -Recurse -Force
+
+      - name: Restore .NET dependencies
+        run: dotnet restore backend/SkillBridge.sln
+
+      - name: Publish ASP.NET Core
+        run: dotnet publish backend/src/SkillBridge.Api/SkillBridge.Api.csproj -c Release -o "${{ github.workspace }}/publish"
+
+      - name: Deploy to SmarterASP
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: skillbridge-001-site1
+          publish-profile: ${{ secrets.WEBDEPLOY_PUBLISH_SETTINGS }}
+          package: ${{ github.workspace }}/publish

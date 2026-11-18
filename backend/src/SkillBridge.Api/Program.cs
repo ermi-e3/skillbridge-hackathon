@@ -204,6 +204,9 @@ await using (var scope = app.Services.CreateAsyncScope())
 
 app.UseExceptionHandler();
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.Use(async (context, next) =>
 {
     context.Response.OnStarting(() =>
@@ -233,6 +236,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<SkillBridgeHub>("/hubs/app");
+
+// Angular client-side routes, including /login.
+app.MapFallbackToFile("index.html").AllowAnonymous();
 
 app.Run();
 

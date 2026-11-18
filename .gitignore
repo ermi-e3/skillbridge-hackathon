@@ -1,3 +1,4 @@
+
 # ---------- OS / editors ----------
 .DS_Store
 Thumbs.db
@@ -5,33 +6,42 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 *.swp
+.vs/
 
-##
+# ---------- Temporary files ----------
 /frontend/nul
 /frontend/nul.map
 
-# ---------- environment ----------
+# ---------- Environment / secrets ----------
 .env
+.env.*
+!.env.example
 
 # ---------- .NET ----------
-bin/
-obj/
+**/bin/
+**/obj/
 *.user
 *.suo
-.vs/
 TestResults/
 *.trx
-appsettings.*.local.json
-appsettings.development.json
-appsettings.json
 
-# Ignore appsettings containing secrets
+# Ignore local/development-only configuration
+**/appsettings.*.local.json
 **/appsettings.Development.json
 **/appsettings.json
 
+# Do NOT globally ignore appsettings.json
+# Do NOT globally ignore appsettings.Production.json
+
 # ---------- Angular / Node ----------
-node_modules/
-dist/
-.angular/
-coverage/
+**/node_modules/
+**/dist/
+**/.angular/
+**/coverage/
 npm-debug.log*
+
+# ---------- Deployment output ----------
+/release/
+
+# Angular files copied into ASP.NET Core for deployment
+/backend/src/SkillBridge.Api/wwwroot/
