@@ -1,0 +1,111 @@
+
+name: Build and Deploy SkillBridge
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy to SmarterASP.NET
+    runs-on: windows-latest
+
+    steps:
+      # 1. Download source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Install .NET 10
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # 3. Install Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # 4. Install Angular dependencies
+      - name: Install Angular dependencies
+        working-directory: frontend
+        run: npm ci
+
+      # 5. Build Angular for production
+      - name: Build Angular
+        working-directory: frontend
+        run: npm run build -- --configuration production
+
+      # 6. Copy Angular output into ASP.NET Core wwwroot
+      - name: Copy Angular files to API wwwroot
+        shell: pwsh
+        run: |
+          $source = "frontend/dist/frontend/browser"
+          $destination = "backend/src/SkillBridge.Api/wwwroot"
+
+          if (!(Test-Path $source)) {
+              throw "Angular output directory not found: $source"
+          }
+
+          New-Item -ItemType Directory -Force -Path $destination | Out-Null
+
+          Get-ChildItem -Path $destination -Force |
+              Remove-Item -Recurse -Force
+
+          Copy-Item -Path "$source/*" -Destination $destination -Recurse -Force
+
+      # 7. Publish ASP.NET Core API
+      - name: Publish ASP.NET Core API
+        run: >
+          dotnet publish
+          backend/src/SkillBridge.Api/SkillBridge.Api.csproj
+          --configuration Release
+          --output ./release
+
+      # 8. Verify deployment tool exists
+      - name: Locate Web Deploy
+        shell: pwsh
+        run: |
+          $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+
+          if (!(Test-Path $msdeploy)) {
+              throw "Microsoft Web Deploy was not found on this runner."
+          }
+
+      # 9. Deploy to SmarterASP.NET
+      - name: Deploy to SmarterASP.NET
+        shell: pwsh
+        env:
+          WEBSITE_NAME: ${{ secrets.WEBSITE_NAME }}
+          SERVER_COMPUTER_NAME: ${{ secrets.SERVER_COMPUTER_NAME }}
+          SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
+          SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+        run: |
+          $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+
+          if ([string]::IsNullOrWhiteSpace($env:WEBSITE_NAME) -or
+              [string]::IsNullOrWhiteSpace($env:SERVER_COMPUTER_NAME) -or
+              [string]::IsNullOrWhiteSpace($env:SERVER_USERNAME) -or
+              [string]::IsNullOrWhiteSpace($env:SERVER_PASSWORD)) {
+              throw "One or more Web Deploy GitHub secrets are missing."
+          }
+
+          & $msdeploy `
+            -verb:sync `
+            "-source:contentPath=$((Get-Location).Path)\release" `
+            "-dest:contentPath=$env:WEBSITE_NAME,ComputerName=$env:SERVER_COMPUTER_NAME,UserName=$env:SERVER_USERNAME,Password=$env:SERVER_PASSWORD,AuthType=Basic" `
+            -allowUntrusted `
+            -enableRule:AppOffline `
+            -enableRule:DoNotDeleteRule
+
+          if ($LASTEXITCODE -ne 0) {
+              throw "Deployment to SmarterASP.NET failed with exit code $LASTEXITCODE."
+          }

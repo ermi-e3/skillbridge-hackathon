@@ -203,6 +203,10 @@ await using (var scope = app.Services.CreateAsyncScope())
 }
 
 app.UseExceptionHandler();
+app.UseHttpsRedirection();
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 app.Use(async (context, next) =>
 {
@@ -233,6 +237,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<SkillBridgeHub>("/hubs/app");
+
+app.MapFallbackToFile("index.html");
 
 app.Run();
 
