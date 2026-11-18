@@ -193,13 +193,34 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+// await using (var scope = app.Services.CreateAsyncScope())
+// {
+//     var dbContext = scope.ServiceProvider.GetRequiredService<SkillBridge.Infrastructure.Persistence.AppDbContext>();
+//     await dbContext.Database.MigrateAsync();
+
+//     var seedDemoUsers = app.Configuration.GetValue<bool?>("Seed:DemoUsers") ?? app.Environment.IsDevelopment();
+//     await scope.ServiceProvider.GetRequiredService<IdentitySeeder>().SeedAsync(seedDemoUsers);
+// }
+
 await using (var scope = app.Services.CreateAsyncScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<SkillBridge.Infrastructure.Persistence.AppDbContext>();
+
+    // Apply database migrations.
     await dbContext.Database.MigrateAsync();
 
-    var seedDemoUsers = app.Configuration.GetValue<bool?>("Seed:DemoUsers") ?? app.Environment.IsDevelopment();
-    await scope.ServiceProvider.GetRequiredService<IdentitySeeder>().SeedAsync(seedDemoUsers);
+    // Run initial seed data only when explicitly enabled.
+    var runInitialSeed = app.Configuration
+        .GetValue<bool>("Seed:RunInitialData");
+
+    if (runInitialSeed)
+    {
+        var seeder = scope.ServiceProvider
+            .GetRequiredService<IdentitySeeder>();
+
+        await seeder.SeedAsync(
+            seedDemoUsers: true);
+    }
 }
 
 app.UseExceptionHandler();
