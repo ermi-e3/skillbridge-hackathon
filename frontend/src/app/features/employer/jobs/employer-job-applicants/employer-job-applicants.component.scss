@@ -122,6 +122,21 @@ $orange-glow: rgba(249, 115, 22, 0.35);
       transition: transform 0.15s ease;
     }
 
+    @media (max-width: 640px) {
+      width: 2.25rem;
+      height: 2.25rem;
+      min-width: 2.25rem;
+      padding: 0;
+      border-radius: 50%;
+      justify-content: center;
+      flex-shrink: 0;
+
+      span,
+      .back-text {
+        display: none;
+      }
+    }
+
     &:hover {
       color: $orange-500;
       border-color: rgba(249, 115, 22, 0.3);
@@ -385,6 +400,15 @@ $orange-glow: rgba(249, 115, 22, 0.35);
   }
 
   @media (max-width: 480px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+
+    .kpi-card:last-child {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 360px) {
     grid-template-columns: 1fr;
   }
 
@@ -1225,6 +1249,18 @@ $orange-glow: rgba(249, 115, 22, 0.35);
       color: var(--ink-muted);
       strong { color: var(--ink-strong); }
     }
+
+    @media (max-width: 640px) {
+      width: 100%;
+
+      .view-profile-btn,
+      .preview-cv-btn,
+      .shortlist-btn,
+      .reject-btn {
+        min-height: 44px;
+        padding: 0.5rem 0.75rem;
+      }
+    }
   }
 }
 
@@ -1361,6 +1397,10 @@ $orange-glow: rgba(249, 115, 22, 0.35);
   justify-content: center;
   padding: 1.5rem;
   box-sizing: border-box;
+
+  @media (max-width: 640px) {
+    padding: 0.5rem;
+  }
 }
 
 .modal-card {
@@ -1376,11 +1416,21 @@ $orange-glow: rgba(249, 115, 22, 0.35);
   box-sizing: border-box;
   overflow: hidden;
 
+  @media (max-width: 640px) {
+    max-width: 100%;
+    max-height: 95vh;
+    border-radius: 16px;
+  }
+
   &.cv-preview-modal {
     max-width: 900px;
     height: 85vh;
+
+    @media (max-width: 640px) {
+      height: 92vh;
+    }
   }
-  }
+}
 
   .modal-header,
   .cv-modal-header {

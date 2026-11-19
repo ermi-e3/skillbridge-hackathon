@@ -7,7 +7,7 @@
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
-        <span>Back to My Jobs</span>
+        <span class="back-text">Back to My Jobs</span>
       </a>
 
       <div class="top-bar-right">
@@ -77,9 +77,9 @@
           </div>
         </div>
 
-        <!-- Card 2: Pending Review (High-Contrast Dark Slate-800 Feature Card) -->
+        <!-- Card 2: Pending Review -->
         <div
-          class="kpi-card kpi-pending dark-feature"
+          class="kpi-card kpi-pending"
           [class.active]="statusFilter() === 'pending'"
           (click)="setStatusFilter('pending')"
           role="button"

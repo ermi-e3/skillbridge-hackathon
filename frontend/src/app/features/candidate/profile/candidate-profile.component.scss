@@ -115,6 +115,21 @@ $success: #16a34a;
       transition: transform 0.18s ease;
     }
 
+    @media (max-width: 640px) {
+      width: 2.25rem;
+      height: 2.25rem;
+      min-width: 2.25rem;
+      padding: 0;
+      border-radius: 50%;
+      justify-content: center;
+      flex-shrink: 0;
+
+      span,
+      .back-text {
+        display: none;
+      }
+    }
+
     &:hover {
       background: var(--cp-surface);
       border-color: $teal-600;
@@ -817,6 +832,7 @@ $success: #16a34a;
     align-items: center;
     gap: 0.5rem;
     flex-shrink: 0;
+    flex-wrap: wrap;
 
     .btn-cv-action {
       display: inline-flex;
@@ -869,11 +885,46 @@ $success: #16a34a;
 
   @media (max-width: 640px) {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    padding: 1rem;
+    gap: 1rem;
+
+    .cv-file-details {
+      width: 100%;
+    }
 
     .cv-actions-group {
       width: 100%;
-      justify-content: flex-end;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      gap: 0.5rem;
+
+      .btn-cv-action {
+        flex: 1 1 auto;
+        justify-content: center;
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 0.85rem;
+
+    .cv-actions-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.45rem;
+
+      .btn-cv-preview {
+        grid-column: 1 / -1;
+        width: 100%;
+      }
+
+      .btn-cv-replace,
+      .btn-cv-delete {
+        width: 100%;
+        justify-content: center;
+      }
     }
   }
 }

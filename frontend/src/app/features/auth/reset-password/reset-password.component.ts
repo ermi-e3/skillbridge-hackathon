@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { extractErrorMessage } from '../../../core/utils/error-formatter';
 import { ThemeToggleComponent } from '../../../shared/components/theme-toggle/theme-toggle.component';
@@ -18,242 +18,8 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
   selector: 'app-reset-password',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink, ThemeToggleComponent],
-  template: `
-    <div class="auth-page">
-      <div class="auth-theme-corner">
-        <app-theme-toggle variant="icon" />
-      </div>
-      <div class="auth-card">
-        <header class="auth-header">
-          <div class="brand-badge">
-            <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"></path>
-              <path d="M18 8h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4"></path>
-              <circle cx="8" cy="12" r="2"></circle>
-            </svg>
-            <span class="brand-title">SkillBridge</span>
-          </div>
-          <h1 class="auth-title">Create new password</h1>
-          <p class="auth-subtitle">Choose a secure password for your account</p>
-        </header>
-
-        @if (isSuccess()) {
-          <div class="success-box">
-            <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-              <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-            <h3>Password reset successful!</h3>
-            <p>Your password has been updated. You can now sign in with your new credentials.</p>
-            <a routerLink="/login" class="submit-btn text-center" style="margin-top: 1.5rem; text-decoration: none;">
-              Sign In Now
-            </a>
-          </div>
-        } @else {
-          @if (errorMessage()) {
-            <div class="alert-banner" role="alert">
-              <span>{{ errorMessage() }}</span>
-            </div>
-          }
-
-          <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="auth-form">
-            <div class="form-group">
-              <label for="newPassword" class="form-label">New password</label>
-              <div class="input-wrapper">
-                <input
-                  id="newPassword"
-                  [type]="showPassword() ? 'text' : 'password'"
-                  formControlName="newPassword"
-                  placeholder="At least 8 chars, 1 uppercase, 1 digit"
-                  class="form-input"
-                />
-                <button type="button" class="toggle-btn" (click)="togglePassword()">
-                  {{ showPassword() ? 'Hide' : 'Show' }}
-                </button>
-              </div>
-              @if (newPasswordControl?.invalid && (newPasswordControl?.touched || newPasswordControl?.dirty)) {
-                <div class="inline-error">
-                  <span>Must be at least 8 characters with lowercase, uppercase, and a digit.</span>
-                </div>
-              }
-            </div>
-
-            <div class="form-group">
-              <label for="confirmPassword" class="form-label">Confirm new password</label>
-              <input
-                id="confirmPassword"
-                [type]="showPassword() ? 'text' : 'password'"
-                formControlName="confirmPassword"
-                placeholder="Confirm your password"
-                class="form-input"
-              />
-              @if (form.errors?.['passwordMismatch'] && (confirmPasswordControl?.touched || confirmPasswordControl?.dirty)) {
-                <div class="inline-error">
-                  <span>Passwords do not match.</span>
-                </div>
-              }
-            </div>
-
-            <button
-              type="submit"
-              class="submit-btn"
-              [disabled]="form.invalid || isSubmitting()"
-            >
-              {{ isSubmitting() ? 'Updating password...' : 'Update Password' }}
-            </button>
-          </form>
-
-          <footer class="auth-footer">
-            <a routerLink="/login" class="auth-link">Back to Sign In</a>
-          </footer>
-        }
-      </div>
-    </div>
-  `,
-  styles: [`
-    .auth-page {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: var(--bg);
-      padding: 1.5rem;
-    }
-    .auth-card {
-      width: 100%;
-      max-width: 440px;
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      box-shadow: var(--shadow-lg);
-      padding: 2.25rem;
-    }
-    .auth-header {
-      text-align: center;
-      margin-bottom: 1.75rem;
-    }
-    .brand-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
-    }
-    .brand-icon {
-      width: 24px;
-      height: 24px;
-      color: var(--primary);
-    }
-    .brand-title {
-      font-weight: 700;
-      font-size: 1.25rem;
-      color: var(--ink);
-    }
-    .auth-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--ink);
-      margin: 0 0 0.5rem;
-    }
-    .auth-subtitle {
-      font-size: 0.875rem;
-      color: var(--ink-muted);
-      margin: 0;
-    }
-    .form-group {
-      margin-bottom: 1.25rem;
-    }
-    .form-label {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--ink-strong);
-      margin-bottom: 0.5rem;
-    }
-    .input-wrapper {
-      position: relative;
-    }
-    .form-input {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      background: var(--surface-muted);
-      color: var(--ink);
-      border: 1px solid var(--line-strong);
-      border-radius: 8px;
-      box-sizing: border-box;
-      font-size: 0.95rem;
-    }
-    .toggle-btn {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--ink-muted);
-      cursor: pointer;
-    }
-    .inline-error {
-      color: var(--danger-text);
-      font-size: 0.85rem;
-      margin-top: 0.35rem;
-    }
-    .submit-btn {
-      display: block;
-      width: 100%;
-      padding: 0.75rem 1rem;
-      background: var(--primary-btn-bg);
-      color: var(--primary-btn-ink);
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    .submit-btn:hover:not(:disabled) {
-      background: var(--primary-btn-hover);
-    }
-    .submit-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    .success-box {
-      text-align: center;
-      padding: 1rem 0;
-      color: var(--ink-soft);
-    }
-    .success-box h3 {
-      color: var(--ink);
-    }
-    .success-icon {
-      width: 48px;
-      height: 48px;
-      color: var(--primary);
-      margin-bottom: 1rem;
-    }
-    .auth-footer {
-      text-align: center;
-      margin-top: 1.5rem;
-      padding-top: 1.25rem;
-      border-top: 1px solid var(--line-subtle);
-      font-size: 0.875rem;
-    }
-    .auth-link {
-      color: var(--primary);
-      font-weight: 600;
-      text-decoration: none;
-    }
-    .alert-banner {
-      background-color: var(--danger-soft);
-      border: 1px solid var(--danger-border);
-      color: var(--danger-text);
-      padding: 0.75rem;
-      border-radius: 8px;
-      font-size: 0.875rem;
-      margin-bottom: 1rem;
-    }
-  `]
+  templateUrl: './reset-password.component.html',
+  styleUrl: './reset-password.component.scss',
 })
 export class ResetPasswordComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -267,6 +33,8 @@ export class ResetPasswordComponent implements OnInit {
   readonly isSuccess = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
   readonly showPassword = signal<boolean>(false);
+  readonly isPasswordFocused = signal<boolean>(false);
+  readonly isConfirmFocused = signal<boolean>(false);
 
   readonly form: FormGroup = this.fb.group(
     {
@@ -291,6 +59,34 @@ export class ResetPasswordComponent implements OnInit {
     return this.form.get('confirmPassword');
   }
 
+  // Live rule checklist evaluations
+  hasMinLength(): boolean {
+    const val = this.newPasswordControl?.value || '';
+    return val.length >= 8;
+  }
+
+  hasUppercase(): boolean {
+    const val = this.newPasswordControl?.value || '';
+    return /[A-Z]/.test(val);
+  }
+
+  hasDigit(): boolean {
+    const val = this.newPasswordControl?.value || '';
+    return /\d/.test(val);
+  }
+
+  isMatching(): boolean {
+    const p1 = this.newPasswordControl?.value || '';
+    const p2 = this.confirmPasswordControl?.value || '';
+    return Boolean(p1 && p2 && p1 === p2);
+  }
+
+  isMismatch(): boolean {
+    const p1 = this.newPasswordControl?.value || '';
+    const p2 = this.confirmPasswordControl?.value || '';
+    return Boolean(p2 && p1 !== p2);
+  }
+
   ngOnInit(): void {
     this.email = this.route.snapshot.queryParamMap.get('email') || '';
     this.token = this.route.snapshot.queryParamMap.get('token') || '';
@@ -302,6 +98,10 @@ export class ResetPasswordComponent implements OnInit {
 
   togglePassword(): void {
     this.showPassword.update((v) => !v);
+  }
+
+  dismissAlert(): void {
+    this.errorMessage.set(null);
   }
 
   onSubmit(): void {
@@ -328,4 +128,3 @@ export class ResetPasswordComponent implements OnInit {
     });
   }
 }
-

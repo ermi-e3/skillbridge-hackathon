@@ -79,11 +79,8 @@ export class UserProfileMenuComponent {
       const meaningful = rawWords.filter((w) => !TITLE_PREFIXES.has(w.toLowerCase()));
       const words = meaningful.length > 0 ? meaningful : rawWords;
 
-      if (words.length >= 2) {
-        return (words[0][0] + words[words.length - 1][0]).toUpperCase();
-      }
-      if (words.length === 1) {
-        return words[0].slice(0, 2).toUpperCase();
+      if (words.length >= 1 && words[0].length > 0) {
+        return words[0][0].toUpperCase();
       }
     }
 

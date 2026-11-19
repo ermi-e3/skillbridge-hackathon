@@ -197,6 +197,7 @@ html.theme-transition *::after {
 html {
   font-size: 100%;
   background: var(--bg);
+  overflow-x: clip;
 }
 
 body {
@@ -207,6 +208,7 @@ body {
   background: var(--bg);
   color: var(--ink-strong);
   -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
 }
 
 h1 {

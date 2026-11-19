@@ -7,7 +7,7 @@
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
-        <span>Back to My Jobs</span>
+        <span class="back-text">Back to My Jobs</span>
       </a>
 
       <div class="top-bar-right">
@@ -453,7 +453,7 @@
           </section>
 
           <!-- MODULE 2: Required Skills (1-20) -->
-          <section class="form-card module-card">
+          <section class="form-card module-card" [class.has-open-dropdown]="isCoreDropdownOpen()">
             <div class="card-header">
               <div class="header-icon-box teal-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -730,7 +730,7 @@
           </section>
 
           <!-- MODULE 3: Preferred Skills (Optional, 0-15) -->
-          <section class="form-card module-card">
+          <section class="form-card module-card" [class.has-open-dropdown]="isPreferredDropdownOpen()">
             <div class="card-header">
               <div class="header-icon-box orange-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">

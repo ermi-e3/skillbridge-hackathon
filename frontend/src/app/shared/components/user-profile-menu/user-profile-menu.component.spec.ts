@@ -61,19 +61,19 @@ describe('UserProfileMenuComponent', () => {
   });
 
   it('computes dynamic initials for standard, single-word, titled, and email-only users', () => {
-    expect(component.initials()).toBe('AB');
+    expect(component.initials()).toBe('A');
 
     currentUserSignal.set(
       makeAuthUser({ userId: 'u2', email: 'almaz@example.com', fullName: 'Dr. Almaz Belay' })
     );
     fixture.detectChanges();
-    expect(component.initials()).toBe('AB');
+    expect(component.initials()).toBe('A');
 
     currentUserSignal.set(
       makeAuthUser({ userId: 'u3', email: 'mononym@example.com', fullName: 'Tewodros' })
     );
     fixture.detectChanges();
-    expect(component.initials()).toBe('TE');
+    expect(component.initials()).toBe('T');
 
     currentUserSignal.set(
       makeAuthUser({ userId: 'u4', email: 'zara@example.com', fullName: '' })
@@ -84,7 +84,7 @@ describe('UserProfileMenuComponent', () => {
 
   it('displays dynamic candidate full name, email, and candidate navigation links when opened', () => {
     const trigger = fixture.nativeElement.querySelector('.user-avatar-trigger') as HTMLButtonElement;
-    expect(trigger.textContent).toContain('AB');
+    expect(trigger.textContent).toContain('A');
     expect(trigger.querySelector('.user-trigger-name')?.textContent?.trim()).toBe('Abebe Bikila');
     expect(fixture.nativeElement.querySelector('.profile-dropdown-panel')).toBeNull();
 
