@@ -1,0 +1,145 @@
+<div class="auth-page">
+  <!-- Minimalist Floating Header -->
+  <header class="floating-header">
+    <div class="header-inner">
+      <!-- Left: Brand Logo & Title -->
+      <a routerLink="/" class="brand-link" aria-label="SkillBridge Home">
+        <div class="brand-logo-wrap">
+          <img src="/logo.png" alt="SkillBridge Logo" class="brand-logo-img" />
+        </div>
+        <span class="brand-name">SkillBridge</span>
+      </a>
+
+      <!-- Center: Security Status Pill -->
+      <div class="security-status-pill">
+        <span class="pulse-dot"></span>
+        <span class="pill-mono">RESTRICTED ACCESS GATEWAY</span>
+      </div>
+
+      <!-- Right: Return to Home + Theme Toggle -->
+      <div class="header-actions">
+        <a routerLink="/" class="back-link" aria-label="Return to Home">
+          <svg class="back-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span class="back-text">Return to Home</span>
+        </a>
+        <div class="header-theme-toggle">
+          <app-theme-toggle variant="icon" />
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Centered Responsive Auth Container -->
+  <main class="auth-main-layout">
+    <div class="auth-card-wrapper">
+      <div class="auth-card">
+        <!-- Telemetry Corner Accent -->
+        <div class="card-telemetry-corner" aria-hidden="true">
+          <span class="corner-hash">SEC // 403-DENY</span>
+        </div>
+
+        <!-- Visual Focal Point: Refined Crimson-and-Slate Security Lock Emblem with Concentric Architectural Rings -->
+        <div class="lock-emblem-stage">
+          <div class="concentric-ring-outer"></div>
+          <div class="concentric-ring-middle"></div>
+          <div class="lock-circle-core">
+            <svg
+              class="lock-svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- JetBrains Mono Error Eyebrow Pill -->
+        <div class="error-eyebrow-pill">
+          <span class="eyebrow-dot"></span>
+          <span class="eyebrow-text">ERROR 403 // RESTRICTED</span>
+        </div>
+
+        <!-- Editorial Copy -->
+        <h1 class="auth-title">Access Denied</h1>
+        <p class="auth-subtitle">
+          You do not have permission to view or manage this page. This section requires elevated or role-specific privileges.
+        </p>
+
+        <!-- Contextual User Pill (if authenticated) -->
+        @if (authService.isAuthenticated()) {
+          <div class="user-session-banner">
+            <div class="session-avatar-dot"></div>
+            <div class="session-details">
+              <span class="session-label">Signed in as:</span>
+              <span class="session-email">{{ authService.currentUser()?.email }}</span>
+              <span class="session-role-badge">{{ authService.getRole() || 'No Role' }}</span>
+            </div>
+          </div>
+        }
+
+        <!-- Actions -->
+        <div class="card-actions">
+          @if (authService.getRole() === 'Employer') {
+            <a routerLink="/employer/jobs" class="action-btn-primary full-width text-center">
+              <span>Go to Employer Portal</span>
+              <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+          } @else if (authService.getRole() === 'Candidate') {
+            <a routerLink="/jobs" class="action-btn-primary full-width text-center">
+              <span>Go to Candidate Portal</span>
+              <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+          } @else {
+            <a routerLink="/login" class="action-btn-primary full-width text-center">
+              <span>Sign In</span>
+              <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+          }
+
+          @if (authService.isAuthenticated()) {
+            <button type="button" (click)="switchAccount()" class="action-btn-secondary full-width">
+              <svg class="switch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              <span>Sign In as Different User</span>
+            </button>
+          }
+        </div>
+
+        <!-- Divider & Subtle Home Link -->
+        <div class="card-divider"></div>
+
+        <footer class="card-footer">
+          <a routerLink="/" class="secondary-nav-link">
+            <svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <span>Return to Home</span>
+          </a>
+        </footer>
+      </div>
+    </div>
+  </main>
+</div>
+

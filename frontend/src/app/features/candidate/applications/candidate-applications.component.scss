@@ -114,6 +114,21 @@ $danger: #ef4444;
       transition: transform 0.18s ease;
     }
 
+    @media (max-width: 640px) {
+      width: 2.25rem;
+      height: 2.25rem;
+      min-width: 2.25rem;
+      padding: 0;
+      border-radius: 50%;
+      justify-content: center;
+      flex-shrink: 0;
+
+      span,
+      .back-text {
+        display: none;
+      }
+    }
+
     &:hover {
       background: var(--ca-surface);
       border-color: $teal-600;
@@ -176,6 +191,15 @@ $danger: #ef4444;
 
   @media (max-width: 640px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+
+    .kpi-card:last-child {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 360px) {
+    grid-template-columns: 1fr;
   }
 
   .kpi-card {
@@ -301,6 +325,36 @@ $danger: #ef4444;
     align-items: center;
     gap: 0.75rem;
     flex-wrap: wrap;
+
+    @media (max-width: 640px) {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.65rem;
+
+      .filter-search-box {
+        min-width: 100%;
+        width: 100%;
+      }
+
+      .filter-quick-controls {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+
+        .compact-select-wrap {
+          width: 100%;
+          .compact-select {
+            width: 100%;
+          }
+        }
+      }
+
+      .filter-toolbar-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
 
     .filter-search-box {
       flex: 1;
@@ -592,6 +646,7 @@ $danger: #ef4444;
 .table-responsive {
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .applications-table {
@@ -1225,6 +1280,12 @@ $danger: #ef4444;
   flex-direction: column;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
   overflow: hidden;
+
+  @media (max-width: 640px) {
+    max-width: calc(100vw - 1rem);
+    max-height: 94vh;
+    border-radius: 16px;
+  }
 
   .cv-preview-header {
     display: flex;

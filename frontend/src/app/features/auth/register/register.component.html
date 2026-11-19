@@ -12,8 +12,8 @@
 
       <!-- Right: Back to Landing + Theme Toggle -->
       <div class="header-actions">
-        <a routerLink="/" class="back-link">
-          <svg class="back-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <a routerLink="/" class="back-link" aria-label="Back to Landing">
+          <svg class="back-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <line x1="19" y1="12" x2="5" y2="12"></line>
             <polyline points="12 19 5 12 12 5"></polyline>
           </svg>
@@ -251,7 +251,7 @@
                 id="password"
                 [type]="showPassword() ? 'text' : 'password'"
                 formControlName="password"
-                placeholder="Min 8 chars (1 upper, 1 lower, 1 digit)"
+                placeholder="Enter Your Password"
                 autocomplete="new-password"
                 class="form-input"
                 [attr.aria-invalid]="passwordControl?.invalid && passwordControl?.touched"

@@ -95,8 +95,8 @@ $danger-bg: rgba(239, 68, 68, 0.08);
       color: #f1f5f9;
     }
 
-    @media (max-width: 480px) {
-      max-width: 90px;
+    @media (max-width: 640px) {
+      display: none;
     }
   }
 
