@@ -44,7 +44,7 @@ export interface CandidateApplicantSummary {
   fullName: string;
   email: string;
   headline?: string | null;
-  gitHubUrl?: string | null;
+  linkedInUrl?: string | null;
   skills: SkillDto[];
 }
 
@@ -77,12 +77,13 @@ export interface ApplicantProfileDto {
   email: string;
   headline?: string | null;
   bio?: string | null;
-  gitHubUrl?: string | null;
+  linkedInUrl?: string | null;
   location?: string | null;
   experienceLevel?: string | null;
   yearsOfExperience?: number | null;
   preferredWorkArrangement?: string | null;
   preferredJobType?: string | null;
+  preferredJobTypes?: string[] | null;
   skills: CandidateProfileSkillItem[];
   experienceHistory: import('./profile.models').CandidateExperienceDto[];
   applicationId: number;

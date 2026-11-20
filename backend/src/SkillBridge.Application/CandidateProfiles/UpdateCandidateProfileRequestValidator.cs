@@ -30,15 +30,19 @@ public sealed class UpdateCandidateProfileRequestValidator : AbstractValidator<U
             .IsInEnum()
             .When(r => r.PreferredJobType.HasValue);
 
+        RuleForEach(request => request.PreferredJobTypes)
+            .IsInEnum()
+            .When(r => r.PreferredJobTypes != null);
+
         RuleFor(request => request.ExperienceLevel)
             .IsInEnum()
             .When(r => r.ExperienceLevel.HasValue);
 
-        RuleFor(request => request.GitHubUrl)
+        RuleFor(request => request.LinkedInUrl)
             .Cascade(CascadeMode.Stop)
             .MaximumLength(300)
-            .Must(BeAbsoluteHttpUrl)
-            .WithMessage("GitHub URL must be an absolute HTTP or HTTPS URL.");
+            .Must(BeValidLinkedInUrl)
+            .WithMessage("LinkedIn URL must start with https:// and be a linkedin.com address.");
 
         RuleFor(request => request.SkillIds)
             .Cascade(CascadeMode.Stop)
@@ -61,8 +65,22 @@ public sealed class UpdateCandidateProfileRequestValidator : AbstractValidator<U
             .When(request => request.PreferredSkillIds != null);
     }
 
-    private static bool BeAbsoluteHttpUrl(string? value) =>
-        value is null ||
-        (Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
-         (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps));
+    private static bool BeValidLinkedInUrl(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return true;
+
+        var trimmed = value.Trim();
+        if (!trimmed.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (!Uri.TryCreate(trimmed, UriKind.Absolute, out var uri))
+            return false;
+
+        if (uri.Scheme != Uri.UriSchemeHttps)
+            return false;
+
+        var host = uri.Host.ToLowerInvariant();
+        return host == "linkedin.com" || host.EndsWith(".linkedin.com");
+    }
 }

@@ -305,14 +305,16 @@ public sealed class JobMatchingService : IJobMatchingService
 
     private static (int Score, string Label) EvaluateJobType(JobMatchCriteria job, CandidateMatchProfile candidate)
     {
-        if (!candidate.PreferredJobType.HasValue)
+        var preferredTypes = candidate.PreferredJobTypes is { Count: > 0 }
+            ? candidate.PreferredJobTypes
+            : (candidate.PreferredJobType.HasValue ? new[] { candidate.PreferredJobType.Value } : Array.Empty<JobType>());
+
+        if (preferredTypes.Count == 0)
         {
             return (0, "Job Type Not Set");
         }
 
-        var pref = candidate.PreferredJobType.Value;
-
-        if (job.JobType == pref)
+        if (preferredTypes.Contains(job.JobType))
         {
             return (5, "Matches Preference");
         }
@@ -322,8 +324,8 @@ public sealed class JobMatchingService : IJobMatchingService
             return (5, "Ideal for Entry-Level");
         }
 
-        if ((job.JobType == JobType.Contract && pref == JobType.Freelance) ||
-            (job.JobType == JobType.Freelance && pref == JobType.Contract))
+        if ((job.JobType == JobType.Contract && preferredTypes.Contains(JobType.Freelance)) ||
+            (job.JobType == JobType.Freelance && preferredTypes.Contains(JobType.Contract)))
         {
             return (4, "Flexible Terms");
         }

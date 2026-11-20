@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using SkillBridge.Application.Auth;
@@ -982,15 +982,33 @@ public sealed class IdentitySeeder(
                 .Include(p => p.Skills)
                 .FirstOrDefaultAsync(p => p.UserId == candidateUser.Id, cancellationToken);
 
-            if (profile is not null && !profile.HasSkills)
+            if (profile is not null)
             {
-                profile.Update(
-                    "Project Coordinator & Operations Specialist",
-                    "Results-oriented professional with experience in project planning, operational workflow optimization, cross-functional collaboration, and business analysis.",
-                    "https://github.com/demo-candidate",
-                    [105, 101, 103, 164], // Project Management, Operations Management, Business Analysis, Microsoft Excel
-                    DateTime.UtcNow);
-                await dbContext.SaveChangesAsync(cancellationToken);
+                if (!profile.HasSkills)
+                {
+                    profile.Update(
+                        "Project Coordinator & Operations Specialist",
+                        "Results-oriented professional with experience in project planning, operational workflow optimization, cross-functional collaboration, and business analysis.",
+                        "https://www.linkedin.com/in/demo-candidate",
+                        [105, 101, 103, 164], // Project Management, Operations Management, Business Analysis, Microsoft Excel
+                        DateTime.UtcNow);
+                    await dbContext.SaveChangesAsync(cancellationToken);
+                }
+                else if (string.IsNullOrWhiteSpace(profile.LinkedInUrl))
+                {
+                    profile.Update(
+                        profile.Headline ?? "Backend developer",
+                        profile.Bio,
+                        "https://www.linkedin.com/in/demo-candidate",
+                        profile.Skills.Select(s => s.SkillId),
+                        profile.Location,
+                        profile.ExperienceLevel,
+                        profile.YearsOfExperience,
+                        profile.PreferredWorkArrangement,
+                        profile.PreferredJobType,
+                        DateTime.UtcNow);
+                    await dbContext.SaveChangesAsync(cancellationToken);
+                }
             }
         }
     }

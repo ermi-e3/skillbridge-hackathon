@@ -18,7 +18,7 @@ public sealed record CandidateSummaryDto(
     string FullName,
     string Email,
     string? Headline,
-    string? GitHubUrl,
+    string? LinkedInUrl,
     IReadOnlyList<SkillDto> Skills);
 
 public sealed record JobApplicantItemDto(

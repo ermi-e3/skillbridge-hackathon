@@ -54,7 +54,7 @@ public sealed class AuthIntegrationTests(AuthFixture fixture)
                 var profile = await database.CandidateProfiles.SingleAsync(p => p.UserId == registered.UserId);
                 Assert.True(string.IsNullOrEmpty(profile.Headline));
                 Assert.Null(profile.Bio);
-                Assert.Null(profile.GitHubUrl);
+                Assert.Null(profile.LinkedInUrl);
                 Assert.Empty(profile.Skills);
             }
         }

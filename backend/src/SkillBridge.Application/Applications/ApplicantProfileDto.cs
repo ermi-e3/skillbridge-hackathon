@@ -10,7 +10,7 @@ public sealed record ApplicantProfileDto(
     string Email,
     string? Headline,
     string? Bio,
-    string? GitHubUrl,
+    string? LinkedInUrl,
     string? Location,
     ExperienceLevel? ExperienceLevel,
     int? YearsOfExperience,
@@ -28,5 +28,6 @@ public sealed record ApplicantProfileDto(
     string? CvOriginalFileName,
     long? CvFileSizeBytes,
     DateTime? CvUploadedAt,
-    string? CvDownloadUrl);
+    string? CvDownloadUrl,
+    IReadOnlyList<JobType>? PreferredJobTypes = null);
 

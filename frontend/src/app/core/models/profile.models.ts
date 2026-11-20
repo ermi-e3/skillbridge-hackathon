@@ -28,12 +28,13 @@ export interface CandidateProfileDto {
   email?: string;
   headline: string;
   bio?: string | null;
-  gitHubUrl?: string | null;
+  linkedInUrl?: string | null;
   location?: string | null;
   experienceLevel?: string | null;
   yearsOfExperience?: number | null;
   preferredWorkArrangement?: string | null;
   preferredJobType?: string | null;
+  preferredJobTypes?: string[] | null;
   skills?: SkillDto[];
   preferredSkills?: SkillDto[];
   skillIds?: number[];
@@ -50,12 +51,13 @@ export interface CandidateProfileDto {
 export interface UpdateCandidateProfileRequest {
   headline: string;
   bio?: string | null;
-  gitHubUrl?: string | null;
+  linkedInUrl?: string | null;
   location?: string | null;
   experienceLevel?: string | null;
   yearsOfExperience?: number | null;
   preferredWorkArrangement?: string | null;
   preferredJobType?: string | null;
+  preferredJobTypes?: string[] | null;
   skillIds: number[];
   preferredSkillIds?: number[];
   skillDetails?: CandidateSkillDetailDto[];

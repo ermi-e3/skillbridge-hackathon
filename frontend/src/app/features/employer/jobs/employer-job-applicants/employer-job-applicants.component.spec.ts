@@ -28,7 +28,7 @@ describe('EmployerJobApplicantsComponent', () => {
       fullName: 'Abebe Bikila',
       email: 'abebe@example.com',
       headline: 'Passionate C# & Angular Engineer',
-      gitHubUrl: 'https://github.com/abebe',
+      linkedInUrl: 'https://www.linkedin.com/in/abebe',
       skills: [
         { id: 1, name: 'C#' },
         { id: 2, name: 'ASP.NET Core' },
@@ -104,6 +104,13 @@ describe('EmployerJobApplicantsComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('100% Match');
     expect(fixture.nativeElement.textContent).toContain('Passionate C# & Angular Engineer');
     expect(fixture.nativeElement.textContent).toContain('abebe@example.com');
+
+    const linkedInLink = fixture.nativeElement.querySelector('.contact-link-linkedin');
+    expect(linkedInLink).toBeTruthy();
+    expect(linkedInLink.getAttribute('href')).toBe('https://www.linkedin.com/in/abebe');
+    expect(linkedInLink.getAttribute('target')).toBe('_blank');
+    expect(linkedInLink.getAttribute('rel')).toContain('noopener');
+    expect(linkedInLink.textContent.trim()).toBe('LinkedIn');
   });
 
   it('updates application status to Shortlisted', () => {
@@ -214,6 +221,7 @@ describe('EmployerJobApplicantsComponent', () => {
       email: 'abebe@example.com',
       headline: 'Passionate C# & Angular Engineer',
       bio: 'Full stack developer for 4 years.',
+      linkedInUrl: 'https://www.linkedin.com/in/abebe',
       skills: [
         { id: 1, name: 'C#', proficiency: 'Expert', yearsOfExperience: 4, isPreferred: false },
       ],
@@ -252,6 +260,12 @@ describe('EmployerJobApplicantsComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Fintech Hub');
     expect(fixture.nativeElement.textContent).toContain('Submitted Resume / CV');
     expect(fixture.nativeElement.textContent).toContain('abebe-cv.pdf');
+
+    const linkedInBtn = fixture.nativeElement.querySelector('.btn-linkedin-dossier');
+    expect(linkedInBtn).toBeTruthy();
+    expect(linkedInBtn.getAttribute('href')).toBe('https://www.linkedin.com/in/abebe');
+    expect(linkedInBtn.getAttribute('target')).toBe('_blank');
+    expect(linkedInBtn.textContent).toContain('View LinkedIn Profile');
   });
 
   it('opens CV Preview when clicking CV Preview button and allows downloading the CV', () => {
@@ -342,5 +356,12 @@ describe('EmployerJobApplicantsComponent', () => {
     component.onPageChange(2);
     expect(component.paginatedApplicants().length).toBe(1);
     expect(component.paginatedApplicants()[0].applicationId).toBe(44);
+  });
+
+  it('formats single and multiple preferred job types accurately', () => {
+    expect(component.formatJobType('FullTime')).toBe('Full-time');
+    expect(component.formatJobType('PartTime')).toBe('Part-time');
+    expect(component.formatJobTypes(['FullTime', 'Contract'])).toBe('Full-time, Contract');
+    expect(component.formatJobTypes([])).toBe('');
   });
 });

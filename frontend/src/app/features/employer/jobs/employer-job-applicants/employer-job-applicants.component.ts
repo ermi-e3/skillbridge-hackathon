@@ -514,6 +514,23 @@ export class EmployerJobApplicantsComponent implements OnInit, OnDestroy {
     return `${startStr} - ${endStr}`;
   }
 
+  formatJobType(val?: string | null): string {
+    if (!val) return '';
+    const map: Record<string, string> = {
+      FullTime: 'Full-time',
+      PartTime: 'Part-time',
+      Contract: 'Contract',
+      Internship: 'Internship',
+      Freelance: 'Freelance',
+    };
+    return map[val] || val;
+  }
+
+  formatJobTypes(list?: string[] | null): string {
+    if (!list || list.length === 0) return '';
+    return list.map((item) => this.formatJobType(item)).join(', ');
+  }
+
   openCvPreview(applicationId: number, originalFileName?: string | null, candidateName?: string): void {
     if (this.cvPreviewObjectUrl) {
       window.URL.revokeObjectURL(this.cvPreviewObjectUrl);

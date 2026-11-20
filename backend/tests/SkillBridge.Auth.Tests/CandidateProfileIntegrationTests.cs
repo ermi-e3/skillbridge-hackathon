@@ -45,7 +45,7 @@ public sealed class CandidateProfileIntegrationTests(AuthFixture fixture)
         Assert.Equal(candidate.UserId, profile.UserId);
         Assert.Null(profile.Headline);
         Assert.Null(profile.Bio);
-        Assert.Null(profile.GitHubUrl);
+        Assert.Null(profile.LinkedInUrl);
         Assert.Null(profile.UpdatedAt);
         Assert.Empty(profile.Skills);
     }
@@ -56,13 +56,13 @@ public sealed class CandidateProfileIntegrationTests(AuthFixture fixture)
         var candidate = await RegisterAsync();
         var before = DateTimeOffset.UtcNow;
         using var response = await SendAsync("PUT", candidate.AccessToken, new ProfileInput(
-            "  Backend developer  ", "  Builds APIs  ", "  https://github.com/test-candidate  ", [3, 1, 2]));
+            "  Backend developer  ", "  Builds APIs  ", "  https://www.linkedin.com/in/test-candidate  ", [3, 1, 2]));
         var profile = await ReadProfileAsync(response);
 
         Assert.Equal(candidate.UserId, profile.UserId);
         Assert.Equal("Backend developer", profile.Headline);
         Assert.Equal("Builds APIs", profile.Bio);
-        Assert.Equal("https://github.com/test-candidate", profile.GitHubUrl);
+        Assert.Equal("https://www.linkedin.com/in/test-candidate", profile.LinkedInUrl);
         Assert.NotNull(profile.UpdatedAt);
         Assert.Equal(TimeSpan.Zero, profile.UpdatedAt.Value.Offset);
         Assert.InRange(profile.UpdatedAt.Value, before.AddSeconds(-1), DateTimeOffset.UtcNow.AddSeconds(1));
@@ -99,7 +99,7 @@ public sealed class CandidateProfileIntegrationTests(AuthFixture fixture)
     {
         var candidate = await RegisterAsync();
         using var response = await SendAsync("PUT", candidate.AccessToken, new ProfileInput(
-            "Full Stack Developer", "Loves coding", "https://github.com/developer", [1, 2], [3, 4]));
+            "Full Stack Developer", "Loves coding", "https://www.linkedin.com/in/developer", [1, 2], [3, 4]));
         var profile = await ReadProfileAsync(response);
 
         Assert.Equal(4, profile.Skills.Length);
@@ -117,7 +117,7 @@ public sealed class CandidateProfileIntegrationTests(AuthFixture fixture)
         using var response = await SendAsync("PUT", candidate.AccessToken, new ProfileInput(
             "Senior Backend Engineer",
             "Specialized in distributed systems",
-            "https://github.com/senior-eng",
+            "https://www.linkedin.com/in/senior-eng",
             [1, 2],
             Location: "Addis Ababa, Ethiopia",
             ExperienceLevel: ExperienceLevel.Senior,
@@ -140,10 +140,12 @@ public sealed class CandidateProfileIntegrationTests(AuthFixture fixture)
         yield return [valid with { Headline = "   " }, "headline"];
         yield return [valid with { Headline = new string('h', 121) }, "headline"];
         yield return [valid with { Bio = new string('b', 2001) }, "bio"];
-        yield return [valid with { GitHubUrl = "https://example.com/" + new string('x', 282) }, "gitHubUrl"];
-        yield return [valid with { GitHubUrl = "/relative/profile" }, "gitHubUrl"];
-        yield return [valid with { GitHubUrl = "ftp://example.com/profile" }, "gitHubUrl"];
-        yield return [valid with { GitHubUrl = "javascript:alert(1)" }, "gitHubUrl"];
+        yield return [valid with { LinkedInUrl = "https://www.linkedin.com/in/" + new string('x', 280) }, "linkedInUrl"];
+        yield return [valid with { LinkedInUrl = "/relative/profile" }, "linkedInUrl"];
+        yield return [valid with { LinkedInUrl = "ftp://linkedin.com/in/profile" }, "linkedInUrl"];
+        yield return [valid with { LinkedInUrl = "http://www.linkedin.com/in/profile" }, "linkedInUrl"];
+        yield return [valid with { LinkedInUrl = "https://github.com/profile" }, "linkedInUrl"];
+        yield return [valid with { LinkedInUrl = "javascript:alert(1)" }, "linkedInUrl"];
         yield return [valid with { SkillIds = null }, "skillIds"];
         yield return [valid with { SkillIds = [] }, "skillIds"];
         yield return [valid with { SkillIds = Enumerable.Range(1, 31).ToArray() }, "skillIds"];
@@ -177,7 +179,7 @@ public sealed class CandidateProfileIntegrationTests(AuthFixture fixture)
         var body = new Dictionary<string, object?>
         {
             ["headline"] = "Backend developer", ["bio"] = null,
-            ["gitHubUrl"] = null, ["skillIds"] = new[] { 1 }
+            ["linkedInUrl"] = null, ["skillIds"] = new[] { 1 }
         };
         body.Remove(field);
         using var response = await SendAsync("PUT", candidate.AccessToken, body);
@@ -193,10 +195,10 @@ public sealed class CandidateProfileIntegrationTests(AuthFixture fixture)
     {
         var candidate = await RegisterAsync();
         using var response = await SendAsync("PUT", candidate.AccessToken,
-            ValidInput() with { Bio = "  \t\r\n ", GitHubUrl = "  " });
+            ValidInput() with { Bio = "  \t\r\n ", LinkedInUrl = "  " });
         var profile = await ReadProfileAsync(response);
         Assert.Null(profile.Bio);
-        Assert.Null(profile.GitHubUrl);
+        Assert.Null(profile.LinkedInUrl);
         await AssertPersistedAsync(profile);
     }
 
@@ -205,27 +207,28 @@ public sealed class CandidateProfileIntegrationTests(AuthFixture fixture)
     {
         var candidate = await RegisterAsync();
         var input = new ProfileInput(new string('h', 120), new string('b', 2000),
-            "https://example.com/" + new string('x', 280), Enumerable.Range(1, 30).Reverse().ToArray());
-        Assert.Equal(300, input.GitHubUrl!.Length);
+            "https://www.linkedin.com/in/" + new string('x', 272), Enumerable.Range(1, 30).Reverse().ToArray());
+        Assert.Equal(300, input.LinkedInUrl!.Length);
         using var response = await SendAsync("PUT", candidate.AccessToken, input);
         var profile = await ReadProfileAsync(response);
         Assert.Equal(input.Headline, profile.Headline);
         Assert.Equal(input.Bio, profile.Bio);
-        Assert.Equal(input.GitHubUrl, profile.GitHubUrl);
+        Assert.Equal(input.LinkedInUrl, profile.LinkedInUrl);
         Assert.Equal(Enumerable.Range(1, 30), profile.Skills.Select(skill => skill.Id));
         Assert.All(profile.Skills, skill => Assert.False(string.IsNullOrWhiteSpace(skill.Name)));
         await AssertPersistedAsync(profile);
     }
 
     [Theory]
-    [InlineData("http://example.com/portfolio")]
-    [InlineData("https://example.com/portfolio")]
-    public async Task Profile_URL_accepts_absolute_HTTP_and_HTTPS_without_requiring_a_GitHub_host(string url)
+    [InlineData("https://linkedin.com/in/portfolio")]
+    [InlineData("https://www.linkedin.com/in/portfolio")]
+    [InlineData("https://et.linkedin.com/in/portfolio")]
+    public async Task Profile_URL_accepts_valid_https_linkedin_address(string url)
     {
         var candidate = await RegisterAsync();
-        using var response = await SendAsync("PUT", candidate.AccessToken, ValidInput() with { GitHubUrl = url });
+        using var response = await SendAsync("PUT", candidate.AccessToken, ValidInput() with { LinkedInUrl = url });
         var profile = await ReadProfileAsync(response);
-        Assert.Equal(url, profile.GitHubUrl);
+        Assert.Equal(url, profile.LinkedInUrl);
         await AssertPersistedAsync(profile);
     }
 
@@ -340,7 +343,7 @@ public sealed class CandidateProfileIntegrationTests(AuthFixture fixture)
         var json = await response.Content.ReadAsStringAsync();
         Assert.True(response.StatusCode == HttpStatusCode.OK, $"Profile returned {(int)response.StatusCode}: {json}");
         using var document = JsonDocument.Parse(json);
-        foreach (var field in new[] { "userId", "headline", "bio", "gitHubUrl", "updatedAt", "skills" })
+        foreach (var field in new[] { "userId", "headline", "bio", "linkedInUrl", "updatedAt", "skills" })
             Assert.True(document.RootElement.TryGetProperty(field, out _), $"Profile is missing {field}.");
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         options.Converters.Add(new JsonStringEnumConverter());
@@ -359,7 +362,7 @@ public sealed class CandidateProfileIntegrationTests(AuthFixture fixture)
             .SingleAsync(p => p.UserId == expected.UserId);
         Assert.Equal(expected.Headline, actual.Headline);
         Assert.Equal(expected.Bio, actual.Bio);
-        Assert.Equal(expected.GitHubUrl, actual.GitHubUrl);
+        Assert.Equal(expected.LinkedInUrl, actual.LinkedInUrl);
         AssertSameTimestamp(expected.UpdatedAt,
             actual.UpdatedAt is null ? null : new DateTimeOffset(actual.UpdatedAt.Value));
         if (actual.UpdatedAt is not null)
@@ -375,7 +378,7 @@ public sealed class CandidateProfileIntegrationTests(AuthFixture fixture)
         Assert.Equal(expected.UserId, actual.UserId);
         Assert.Equal(expected.Headline, actual.Headline);
         Assert.Equal(expected.Bio, actual.Bio);
-        Assert.Equal(expected.GitHubUrl, actual.GitHubUrl);
+        Assert.Equal(expected.LinkedInUrl, actual.LinkedInUrl);
         AssertSameTimestamp(expected.UpdatedAt, actual.UpdatedAt);
         Assert.Equal(expected.Skills.Select(skill => skill.Id), actual.Skills.Select(skill => skill.Id));
         Assert.Equal(expected.Skills.Select(skill => skill.Name), actual.Skills.Select(skill => skill.Name));
@@ -414,7 +417,7 @@ public sealed class CandidateProfileIntegrationTests(AuthFixture fixture)
     public sealed record ProfileInput(
         string? Headline,
         string? Bio,
-        string? GitHubUrl,
+        string? LinkedInUrl,
         int[]? SkillIds,
         int[]? PreferredSkillIds = null,
         string? Location = null,
@@ -427,7 +430,7 @@ public sealed class CandidateProfileIntegrationTests(AuthFixture fixture)
         string UserId,
         string? Headline,
         string? Bio,
-        string? GitHubUrl,
+        string? LinkedInUrl,
         DateTimeOffset? UpdatedAt,
         SkillResponse[] Skills,
         SkillResponse[]? PreferredSkills = null,
