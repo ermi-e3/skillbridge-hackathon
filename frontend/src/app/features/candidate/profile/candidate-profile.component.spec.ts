@@ -39,7 +39,7 @@ describe('CandidateProfileComponent', () => {
     email: 'hana@example.com',
     headline: 'Junior .NET Developer',
     bio: 'Passionate about building scalable backend services.',
-    gitHubUrl: 'https://github.com/hana',
+    linkedInUrl: 'https://www.linkedin.com/in/hana',
     skills: [
       { id: 1, name: 'ASP.NET Core' },
       { id: 3, name: 'C#' },
@@ -102,7 +102,7 @@ describe('CandidateProfileComponent', () => {
     expect(component.isLoading()).toBe(false);
     expect(component.allSkills()).toEqual(mockSkills);
     expect(component.headlineControl?.value).toBe('Junior .NET Developer');
-    expect(component.gitHubUrlControl?.value).toBe('https://github.com/hana');
+    expect(component.linkedInUrlControl?.value).toBe('https://www.linkedin.com/in/hana');
     expect(component.bioControl?.value).toBe('Passionate about building scalable backend services.');
     expect(component.selectedSkillIds()).toEqual([1, 3]);
     expect(component.skillIdsControl?.value).toEqual([1, 3]);
@@ -120,18 +120,27 @@ describe('CandidateProfileComponent', () => {
     expect(hl?.valid).toBe(true);
   });
 
-  it('should validate gitHubUrl format', () => {
-    const gh = component.gitHubUrlControl;
+  it('should validate linkedInUrl format', () => {
+    const li = component.linkedInUrlControl;
 
-    gh?.setValue('not-a-valid-url');
-    expect(gh?.hasError('invalidUrl')).toBe(true);
+    li?.setValue('not-a-valid-url');
+    expect(li?.hasError('invalidLinkedInUrl')).toBe(true);
 
-    gh?.setValue('https://github.com/valid-user');
-    expect(gh?.valid).toBe(true);
+    li?.setValue('http://www.linkedin.com/in/valid-user');
+    expect(li?.hasError('invalidLinkedInUrl')).toBe(true);
+
+    li?.setValue('https://github.com/valid-user');
+    expect(li?.hasError('invalidLinkedInUrl')).toBe(true);
+
+    li?.setValue('https://www.linkedin.com/in/valid-user');
+    expect(li?.valid).toBe(true);
+
+    li?.setValue('https://linkedin.com/in/valid-user');
+    expect(li?.valid).toBe(true);
 
     // Optional field: empty string is valid
-    gh?.setValue('');
-    expect(gh?.valid).toBe(true);
+    li?.setValue('');
+    expect(li?.valid).toBe(true);
   });
 
   it('should toggle skill chips on click and enforce 1 to 30 skills', () => {
@@ -171,7 +180,7 @@ describe('CandidateProfileComponent', () => {
 
     component.profileForm.patchValue({
       headline: 'Senior Full Stack Specialist',
-      gitHubUrl: 'https://github.com/hana-dev',
+      linkedInUrl: 'https://www.linkedin.com/in/hana-dev',
       bio: 'Updated bio description',
       skillIds: [1, 2, 4],
     });
@@ -181,7 +190,7 @@ describe('CandidateProfileComponent', () => {
     expect(profileServiceSpy.updateMyProfile).toHaveBeenCalledWith(
       expect.objectContaining({
         headline: 'Senior Full Stack Specialist',
-        gitHubUrl: 'https://github.com/hana-dev',
+        linkedInUrl: 'https://www.linkedin.com/in/hana-dev',
         bio: 'Updated bio description',
         skillIds: [1, 2, 4],
         preferredSkillIds: [],
@@ -345,5 +354,47 @@ describe('CandidateProfileComponent', () => {
     fixture.detectChanges();
 
     expect(component.experienceLevelControl?.value).toBe('MidLevel');
+  });
+
+  it('should allow toggling multiple job type preferences with checkboxes', () => {
+    component.selectedJobTypes.set([]);
+    component.toggleJobType('FullTime');
+    expect(component.selectedJobTypes()).toEqual(['FullTime']);
+    expect(component.isJobTypeSelected('FullTime')).toBe(true);
+    expect(component.isJobTypeSelected('PartTime')).toBe(false);
+
+    // Add second job type preference
+    component.toggleJobType('PartTime');
+    expect(component.selectedJobTypes()).toEqual(['FullTime', 'PartTime']);
+    expect(component.isJobTypeSelected('FullTime')).toBe(true);
+    expect(component.isJobTypeSelected('PartTime')).toBe(true);
+    expect(component.selectedJobTypesSummary()).toBe('Full-time, Part-time');
+
+    // Deselect one
+    component.toggleJobType('FullTime');
+    expect(component.selectedJobTypes()).toEqual(['PartTime']);
+    expect(component.isJobTypeSelected('FullTime')).toBe(false);
+    expect(component.isJobTypeSelected('PartTime')).toBe(true);
+
+    // Clear all
+    component.clearAllJobTypes();
+    expect(component.selectedJobTypes()).toEqual([]);
+    expect(component.selectedJobTypesSummary()).toBe('Select job type');
+  });
+
+  it('should toggle job type dropdown open and closed and render checkbox options', () => {
+    expect(component.isJobTypeDropdownOpen()).toBe(false);
+    component.toggleJobTypeDropdown();
+    expect(component.isJobTypeDropdownOpen()).toBe(true);
+    fixture.detectChanges();
+
+    const dropdownMenu = fixture.nativeElement.querySelector('.job-type-dropdown-menu');
+    expect(dropdownMenu).toBeTruthy();
+
+    const rows = dropdownMenu.querySelectorAll('.dropdown-option-row');
+    expect(rows.length).toBe(5);
+
+    component.closeJobTypeDropdown();
+    expect(component.isJobTypeDropdownOpen()).toBe(false);
   });
 });

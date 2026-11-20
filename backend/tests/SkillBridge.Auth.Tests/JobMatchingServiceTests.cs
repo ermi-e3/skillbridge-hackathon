@@ -241,4 +241,41 @@ public sealed class JobMatchingServiceTests
         Assert.Equal(0, result.Percent);
         Assert.Equal("Profile Incomplete", result.Breakdown?.ExperienceCompatibility);
     }
+
+    [Fact]
+    public void CalculateMatch_MultipleJobTypePreferences_MatchesWhenJobMatchesAnyPreference()
+    {
+        var jobCriteria = new JobMatchCriteria(
+            JobId: 10,
+            Title: "Part-time Specialist",
+            Location: "Remote",
+            JobType: JobType.PartTime,
+            WorkArrangement: WorkArrangement.Remote,
+            ExperienceLevel: ExperienceLevel.MidLevel,
+            MinExperienceYears: 2,
+            Skills: new List<JobSkillRequirement>
+            {
+                new(1, "C#", IsRequired: true, MinProficiency: SkillProficiency.Intermediate)
+            });
+
+        var candidate = new CandidateMatchProfile(
+            UserId: "cand-multi-pref",
+            Location: "Remote",
+            ExperienceLevel: ExperienceLevel.MidLevel,
+            YearsOfExperience: 3,
+            PreferredWorkArrangement: WorkArrangement.Remote,
+            PreferredJobType: JobType.Contract,
+            Skills: new List<CandidateSkillProfile>
+            {
+                new(1, "C#", SkillProficiency.Advanced, 3)
+            },
+            PreferredJobTypes: new List<JobType> { JobType.Contract, JobType.PartTime });
+
+        var result = _sut.CalculateMatch(jobCriteria, candidate);
+
+        Assert.NotNull(result);
+        Assert.NotNull(result.Breakdown);
+        Assert.Equal("Matches Preference", result.Breakdown.JobTypeCompatibility);
+        Assert.Equal(5, result.Breakdown.JobTypeScore);
+    }
 }

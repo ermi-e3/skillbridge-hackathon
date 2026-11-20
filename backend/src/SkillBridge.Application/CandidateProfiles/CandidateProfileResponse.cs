@@ -6,7 +6,7 @@ public sealed record CandidateProfileResponse(
     string UserId,
     string? Headline,
     string? Bio,
-    string? GitHubUrl,
+    string? LinkedInUrl,
     DateTime? UpdatedAt,
     IReadOnlyList<CandidateProfileSkillResponse> Skills,
     string? Location = null,
@@ -19,7 +19,8 @@ public sealed record CandidateProfileResponse(
     bool HasDefaultCv = false,
     string? DefaultCvOriginalFileName = null,
     long? DefaultCvFileSizeBytes = null,
-    DateTime? DefaultCvUploadedAt = null);
+    DateTime? DefaultCvUploadedAt = null,
+    IReadOnlyList<JobType>? PreferredJobTypes = null);
 
 public sealed record CandidateProfileSkillResponse(
     int Id,

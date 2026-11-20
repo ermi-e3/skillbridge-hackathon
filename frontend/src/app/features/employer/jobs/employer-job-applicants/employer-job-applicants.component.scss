@@ -930,6 +930,11 @@ $orange-glow: rgba(249, 115, 22, 0.35);
         color: $teal-600;
         svg { color: $teal-600; }
       }
+
+      &.contact-link-linkedin:hover {
+        color: #0a66c2;
+        svg { color: #0a66c2; }
+      }
     }
   }
 
@@ -1543,6 +1548,42 @@ $orange-glow: rgba(249, 115, 22, 0.35);
           color: $teal-600;
           text-decoration: none;
           &:hover { text-decoration: underline; }
+        }
+      }
+
+      .btn-linkedin-dossier {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.4rem 0.8rem;
+        margin-top: 0.15rem;
+        border-radius: 8px;
+        background: rgba(10, 102, 194, 0.12);
+        border: 1px solid rgba(10, 102, 194, 0.3);
+        color: #0a66c2;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        width: fit-content;
+
+        svg {
+          width: 0.95rem;
+          height: 0.95rem;
+          flex-shrink: 0;
+        }
+
+        .external-icon {
+          width: 0.8rem;
+          height: 0.8rem;
+          opacity: 0.8;
+        }
+
+        &:hover {
+          background: #0a66c2;
+          color: #ffffff;
+          border-color: #0a66c2;
+          text-decoration: none;
         }
       }
     }

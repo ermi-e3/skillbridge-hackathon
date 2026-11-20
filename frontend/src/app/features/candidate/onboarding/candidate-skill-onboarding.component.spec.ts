@@ -37,7 +37,7 @@ describe('CandidateSkillOnboardingComponent', () => {
     email: 'yonas@example.com',
     headline: '',
     bio: '',
-    gitHubUrl: '',
+    linkedInUrl: '',
     skills: [],
     skillIds: [],
   };
@@ -139,7 +139,7 @@ describe('CandidateSkillOnboardingComponent', () => {
         skillIds: [1, 2],
         preferredSkillIds: [],
         bio: null,
-        gitHubUrl: null,
+        linkedInUrl: null,
       })
     );
     expect(router.navigate).toHaveBeenCalledWith(['/jobs'], { queryParams: { welcome: '1' } });
@@ -212,6 +212,23 @@ describe('CandidateSkillOnboardingComponent', () => {
     component.toggleTechnicalDropdown();
     component.onEscapeKey();
     expect(component.isTechnicalDropdownOpen()).toBe(false);
+  });
+
+  it('should support multiple job type preferences with checkboxes in onboarding', () => {
+    component.selectedJobTypes.set([]);
+    component.toggleJobType('FullTime');
+    component.toggleJobType('Contract');
+
+    expect(component.selectedJobTypes()).toEqual(['FullTime', 'Contract']);
+    expect(component.isJobTypeSelected('FullTime')).toBe(true);
+    expect(component.isJobTypeSelected('Contract')).toBe(true);
+    expect(component.isJobTypeSelected('PartTime')).toBe(false);
+
+    component.toggleJobTypeDropdown();
+    expect(component.isJobTypeDropdownOpen()).toBe(true);
+
+    component.clearAllJobTypes();
+    expect(component.selectedJobTypes()).toEqual([]);
   });
 
   it('should enforce 10 skills limit for technical skills catalog and 5 for nice-to-have skills', () => {

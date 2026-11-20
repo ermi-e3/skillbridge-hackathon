@@ -21,7 +21,7 @@ public sealed record CandidateExperienceDto(
 public sealed record UpdateCandidateProfileRequest(
     string Headline,
     string? Bio,
-    string? GitHubUrl,
+    string? LinkedInUrl,
     IReadOnlyList<int> SkillIds,
     string? Location = null,
     ExperienceLevel? ExperienceLevel = null,
@@ -30,4 +30,5 @@ public sealed record UpdateCandidateProfileRequest(
     JobType? PreferredJobType = null,
     IReadOnlyList<CandidateSkillDetailDto>? SkillDetails = null,
     IReadOnlyList<CandidateExperienceDto>? ExperienceHistory = null,
-    IReadOnlyList<int>? PreferredSkillIds = null);
+    IReadOnlyList<int>? PreferredSkillIds = null,
+    IReadOnlyList<JobType>? PreferredJobTypes = null);

@@ -47,6 +47,35 @@ export const urlValidator: ValidatorFn = (control: AbstractControl): ValidationE
 };
 
 /**
+ * Validates that an optional string is a valid LinkedIn profile URL:
+ * - Starts with https://
+ * - Is a linkedin.com address
+ */
+export const linkedInUrlValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const val = control.value;
+  if (!val || typeof val !== 'string' || val.trim() === '') {
+    return null;
+  }
+  const trimmed = val.trim();
+  if (!trimmed.toLowerCase().startsWith('https://')) {
+    return { invalidLinkedInUrl: true };
+  }
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== 'https:') {
+      return { invalidLinkedInUrl: true };
+    }
+    const host = parsed.hostname.toLowerCase();
+    if (host === 'linkedin.com' || host.endsWith('.linkedin.com')) {
+      return null;
+    }
+    return { invalidLinkedInUrl: true };
+  } catch {
+    return { invalidLinkedInUrl: true };
+  }
+};
+
+/**
  * Validates that selected skillIds are between min and max (1 to 20)
  */
 export const skillCountValidator = (min = 1, max = 20): ValidatorFn => {
@@ -93,6 +122,36 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
   // Dropdown Open State Signals
   readonly isCoreDropdownOpen = signal<boolean>(false);
   readonly isPreferredDropdownOpen = signal<boolean>(false);
+  readonly isJobTypeDropdownOpen = signal<boolean>(false);
+
+  // Job Type Preference Options & Multi-select State
+  readonly jobTypeOptions = [
+    { value: 'FullTime', label: 'Full-time' },
+    { value: 'PartTime', label: 'Part-time' },
+    { value: 'Contract', label: 'Contract' },
+    { value: 'Internship', label: 'Internship' },
+    { value: 'Freelance', label: 'Freelance' },
+  ] as const;
+  readonly selectedJobTypes = signal<string[]>([]);
+
+  readonly selectedJobTypesSummary = computed(() => {
+    const selected = this.selectedJobTypes();
+    if (selected.length === 0) return 'Select job type';
+    const labels = selected.map(
+      (val) => this.jobTypeOptions.find((opt) => opt.value === val)?.label || val
+    );
+    if (labels.length <= 2) {
+      return labels.join(', ');
+    }
+    return `${labels.slice(0, 2).join(', ')} (+${labels.length - 2})`;
+  });
+
+  readonly selectedJobTypesSummaryFull = computed(() => {
+    const selected = this.selectedJobTypes();
+    return selected
+      .map((val) => this.jobTypeOptions.find((opt) => opt.value === val)?.label || val)
+      .join(', ');
+  });
 
   // Default CV Signals
   readonly hasDefaultCv = signal<boolean>(false);
@@ -176,7 +235,7 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
   // Reactive Form
   readonly profileForm: FormGroup = this.fb.group({
     headline: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(120)]],
-    gitHubUrl: ['', [Validators.maxLength(300), urlValidator]],
+    linkedInUrl: ['', [Validators.maxLength(300), linkedInUrlValidator]],
     bio: ['', [Validators.maxLength(2000)]],
     location: ['', [Validators.maxLength(100)]],
     preferredWorkArrangement: [''],
@@ -189,6 +248,13 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
   private toastTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
+    this.profileForm.get('preferredJobType')?.valueChanges.subscribe((val) => {
+      if (val && !this.selectedJobTypes().includes(val)) {
+        this.selectedJobTypes.set([val]);
+      } else if (!val && this.selectedJobTypes().length === 1) {
+        this.selectedJobTypes.set([]);
+      }
+    });
     this.loadData();
   }
 
@@ -196,8 +262,8 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
     return this.profileForm.get('headline');
   }
 
-  get gitHubUrlControl() {
-    return this.profileForm.get('gitHubUrl');
+  get linkedInUrlControl() {
+    return this.profileForm.get('linkedInUrl');
   }
 
   get bioControl() {
@@ -282,14 +348,35 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
         this.defaultCvFileSizeBytes.set(profile.defaultCvFileSizeBytes ?? null);
         this.defaultCvUploadedAt.set(profile.defaultCvUploadedAt || null);
 
+        // Pre-populate preferred job type selection (supports multiple preferences)
+        let initialJobTypes: string[] = [];
+        try {
+          const savedJobTypes = localStorage.getItem('skillbridge_candidate_preferred_job_types');
+          if (savedJobTypes) {
+            const parsed = JSON.parse(savedJobTypes);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              initialJobTypes = parsed;
+            }
+          }
+        } catch {
+          // Ignore storage parse error
+        }
+
+        if (initialJobTypes.length === 0 && profile.preferredJobTypes && profile.preferredJobTypes.length > 0) {
+          initialJobTypes = [...profile.preferredJobTypes];
+        } else if (initialJobTypes.length === 0 && profile.preferredJobType) {
+          initialJobTypes = [profile.preferredJobType];
+        }
+        this.selectedJobTypes.set(initialJobTypes);
+
         // Pre-populate reactive form
         this.profileForm.patchValue({
           headline: profile.headline || '',
-          gitHubUrl: profile.gitHubUrl || '',
+          linkedInUrl: profile.linkedInUrl || '',
           bio: profile.bio || '',
           location: profile.location || '',
           preferredWorkArrangement: profile.preferredWorkArrangement || '',
-          preferredJobType: profile.preferredJobType || '',
+          preferredJobType: initialJobTypes[0] || profile.preferredJobType || '',
           experienceLevel: profile.experienceLevel || '',
           yearsOfExperience: profile.yearsOfExperience ?? null,
           skillIds: initialSkillIds,
@@ -411,6 +498,54 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
 
   // --- Dropdown Controls & Click-Outside ---
 
+  toggleJobTypeDropdown(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.isJobTypeDropdownOpen.update((v) => !v);
+    if (this.isJobTypeDropdownOpen()) {
+      this.isCoreDropdownOpen.set(false);
+      this.isPreferredDropdownOpen.set(false);
+    }
+  }
+
+  closeJobTypeDropdown(): void {
+    this.isJobTypeDropdownOpen.set(false);
+  }
+
+  toggleJobType(jobType: string): void {
+    const current = [...this.selectedJobTypes()];
+    const index = current.indexOf(jobType);
+    if (index > -1) {
+      current.splice(index, 1);
+    } else {
+      current.push(jobType);
+    }
+    this.selectedJobTypes.set(current);
+    try {
+      localStorage.setItem('skillbridge_candidate_preferred_job_types', JSON.stringify(current));
+    } catch {
+      // Ignore storage errors
+    }
+    this.profileForm.get('preferredJobType')?.setValue(current[0] || '', { emitEvent: false });
+    this.profileForm.markAsDirty();
+  }
+
+  isJobTypeSelected(jobType: string): boolean {
+    return this.selectedJobTypes().includes(jobType);
+  }
+
+  clearAllJobTypes(): void {
+    this.selectedJobTypes.set([]);
+    try {
+      localStorage.removeItem('skillbridge_candidate_preferred_job_types');
+    } catch {
+      // Ignore storage errors
+    }
+    this.profileForm.get('preferredJobType')?.setValue('', { emitEvent: false });
+    this.profileForm.markAsDirty();
+  }
+
   toggleCoreDropdown(event?: Event): void {
     if (event) {
       event.stopPropagation();
@@ -418,6 +553,7 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
     this.isCoreDropdownOpen.update((v) => !v);
     if (this.isCoreDropdownOpen()) {
       this.isPreferredDropdownOpen.set(false);
+      this.isJobTypeDropdownOpen.set(false);
     }
   }
 
@@ -428,6 +564,7 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
     this.isPreferredDropdownOpen.update((v) => !v);
     if (this.isPreferredDropdownOpen()) {
       this.isCoreDropdownOpen.set(false);
+      this.isJobTypeDropdownOpen.set(false);
     }
   }
 
@@ -466,6 +603,11 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
     if (!target) return;
+
+    const jobTypeWrapper = this.elementRef.nativeElement.querySelector('.job-type-dropdown-wrapper');
+    if (this.isJobTypeDropdownOpen() && jobTypeWrapper && !jobTypeWrapper.contains(target)) {
+      this.isJobTypeDropdownOpen.set(false);
+    }
 
     const coreWrapper = this.elementRef.nativeElement.querySelector('.core-dropdown-wrapper');
     if (this.isCoreDropdownOpen() && coreWrapper && !coreWrapper.contains(target)) {
@@ -704,13 +846,18 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
     this.isSaving.set(true);
 
     const formValue = this.profileForm.value;
+    const primaryJobType = this.selectedJobTypes().length > 0
+      ? this.selectedJobTypes()[0]
+      : (formValue.preferredJobType || null);
+
     const payload: UpdateCandidateProfileRequest = {
       headline: formValue.headline.trim(),
       bio: formValue.bio ? formValue.bio.trim() : null,
-      gitHubUrl: formValue.gitHubUrl ? formValue.gitHubUrl.trim() : null,
+      linkedInUrl: formValue.linkedInUrl ? formValue.linkedInUrl.trim() : null,
       location: formValue.location ? formValue.location.trim() : null,
       preferredWorkArrangement: formValue.preferredWorkArrangement || null,
-      preferredJobType: formValue.preferredJobType || null,
+      preferredJobType: primaryJobType,
+      preferredJobTypes: this.selectedJobTypes(),
       experienceLevel: formValue.experienceLevel || null,
       yearsOfExperience: formValue.yearsOfExperience !== null && formValue.yearsOfExperience !== undefined && formValue.yearsOfExperience !== '' ? Number(formValue.yearsOfExperience) : null,
       skillIds: formValue.skillIds as number[],
@@ -732,6 +879,10 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
             experienceLevel: updatedProfile.experienceLevel || '',
             yearsOfExperience: updatedProfile.yearsOfExperience ?? null,
           }, { emitEvent: false });
+        }
+
+        if (updatedProfile.preferredJobTypes && updatedProfile.preferredJobTypes.length > 0) {
+          this.selectedJobTypes.set(updatedProfile.preferredJobTypes);
         }
 
         // Update preferred skills

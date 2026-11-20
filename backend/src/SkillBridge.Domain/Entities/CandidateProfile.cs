@@ -24,7 +24,7 @@ public class CandidateProfile
     public string UserId { get; private set; } = null!;
     public string? Headline { get; private set; }
     public string? Bio { get; private set; }
-    public string? GitHubUrl { get; private set; }
+    public string? LinkedInUrl { get; private set; }
     public string? Location { get; private set; }
     public ExperienceLevel? ExperienceLevel { get; private set; }
     public int? YearsOfExperience { get; private set; }
@@ -84,14 +84,14 @@ public class CandidateProfile
     public void Update(
         string headline,
         string? bio,
-        string? gitHubUrl,
+        string? linkedInUrl,
         IEnumerable<int> skillIds,
         DateTime nowUtc)
     {
         Update(
             headline,
             bio,
-            gitHubUrl,
+            linkedInUrl,
             skillIds,
             Location,
             ExperienceLevel,
@@ -104,7 +104,7 @@ public class CandidateProfile
     public void Update(
         string headline,
         string? bio,
-        string? gitHubUrl,
+        string? linkedInUrl,
         IEnumerable<int> skillIds,
         string? location,
         ExperienceLevel? experienceLevel,
@@ -132,7 +132,7 @@ public class CandidateProfile
 
         Headline = headline.Trim();
         Bio = string.IsNullOrWhiteSpace(bio) ? null : bio.Trim();
-        GitHubUrl = string.IsNullOrWhiteSpace(gitHubUrl) ? null : gitHubUrl.Trim();
+        LinkedInUrl = string.IsNullOrWhiteSpace(linkedInUrl) ? null : linkedInUrl.Trim();
         Location = string.IsNullOrWhiteSpace(location) ? null : location.Trim();
         
         ExperienceLevel = experienceLevel;

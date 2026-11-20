@@ -38,5 +38,6 @@ public sealed record CandidateMatchProfile(
     WorkArrangement? PreferredWorkArrangement,
     JobType? PreferredJobType,
     IReadOnlyList<CandidateSkillProfile> Skills,
-    IReadOnlyList<CandidateExperienceSummary>? ExperienceHistory = null);
+    IReadOnlyList<CandidateExperienceSummary>? ExperienceHistory = null,
+    IReadOnlyList<JobType>? PreferredJobTypes = null);
 

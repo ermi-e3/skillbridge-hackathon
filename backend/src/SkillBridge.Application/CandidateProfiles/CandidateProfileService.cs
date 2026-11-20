@@ -44,13 +44,18 @@ public sealed class CandidateProfileService(
         UpdateCandidateProfileRequest request, CancellationToken cancellationToken = default)
     {
         var userId = GetCandidateUserId();
+        var primaryJobType = request.PreferredJobTypes is { Count: > 0 }
+            ? request.PreferredJobTypes[0]
+            : request.PreferredJobType;
+
         var normalized = request with
         {
             Headline = (request.Headline ?? string.Empty).Trim(),
             Bio = NormalizeOptional(request.Bio),
-            GitHubUrl = NormalizeOptional(request.GitHubUrl),
+            LinkedInUrl = NormalizeOptional(request.LinkedInUrl),
             Location = NormalizeOptional(request.Location),
-            SkillIds = request.SkillIds ?? []
+            SkillIds = request.SkillIds ?? [],
+            PreferredJobType = primaryJobType
         };
 
         var validation = await validator.ValidateAsync(normalized, cancellationToken);
@@ -114,7 +119,7 @@ public sealed class CandidateProfileService(
         profile.Update(
             normalized.Headline,
             normalized.Bio,
-            normalized.GitHubUrl,
+            normalized.LinkedInUrl,
             normalized.SkillIds,
             normalized.Location,
             normalized.ExperienceLevel,
@@ -265,11 +270,15 @@ public sealed class CandidateProfileService(
 
         var preferredSkills = skills.Where(s => s.IsPreferred).ToList();
 
+        var preferredJobTypes = profile.PreferredJobType.HasValue
+            ? new[] { profile.PreferredJobType.Value }
+            : Array.Empty<JobType>();
+
         return new(
             profile.UserId,
             profile.Headline,
             profile.Bio,
-            profile.GitHubUrl,
+            profile.LinkedInUrl,
             profile.UpdatedAt,
             skills,
             profile.Location,
@@ -282,6 +291,7 @@ public sealed class CandidateProfileService(
             profile.HasDefaultCv,
             profile.DefaultCvOriginalFileName,
             profile.DefaultCvFileSizeBytes,
-            profile.DefaultCvUploadedAt);
+            profile.DefaultCvUploadedAt,
+            preferredJobTypes);
     }
 }

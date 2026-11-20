@@ -186,7 +186,7 @@ public sealed class ApplicationsService(
                 candidateUser?.FullName ?? "Applicant",
                 candidateUser?.Email ?? string.Empty,
                 candidateProfile?.Headline,
-                candidateProfile?.GitHubUrl,
+                candidateProfile?.LinkedInUrl,
                 profileSkills);
 
             var applicantItem = new JobApplicantItemDto(
@@ -462,7 +462,7 @@ public sealed class ApplicationsService(
                 candidateUser?.FullName ?? "Unknown",
                 candidateUser?.Email ?? string.Empty,
                 profile?.Headline,
-                profile?.GitHubUrl,
+                profile?.LinkedInUrl,
                 candidateSkills);
 
             applicantItems.Add(new JobApplicantItemDto(
@@ -720,7 +720,7 @@ public sealed class ApplicationsService(
             Email: candidateUser?.Email ?? string.Empty,
             Headline: candidateProfile?.Headline,
             Bio: candidateProfile?.Bio,
-            GitHubUrl: candidateProfile?.GitHubUrl,
+            LinkedInUrl: candidateProfile?.LinkedInUrl,
             Location: candidateProfile?.Location,
             ExperienceLevel: candidateProfile?.ExperienceLevel,
             YearsOfExperience: candidateProfile?.YearsOfExperience,
@@ -738,7 +738,10 @@ public sealed class ApplicationsService(
             CvOriginalFileName: application.CvOriginalFileName,
             CvFileSizeBytes: application.CvFileSizeBytes,
             CvUploadedAt: application.CvUploadedAt,
-            CvDownloadUrl: !string.IsNullOrEmpty(application.CvFileName) ? $"/api/applications/{application.Id}/cv" : null);
+            CvDownloadUrl: !string.IsNullOrEmpty(application.CvFileName) ? $"/api/applications/{application.Id}/cv" : null,
+            PreferredJobTypes: candidateProfile?.PreferredJobType.HasValue == true
+                ? new[] { candidateProfile.PreferredJobType.Value }
+                : Array.Empty<JobType>());
     }
 
     public async Task<ApplicantProfileDto> GetApplicantProfileByApplicationIdAsync(

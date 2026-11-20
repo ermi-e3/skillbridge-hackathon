@@ -15,7 +15,7 @@ public class CandidateProfileConfiguration : IEntityTypeConfiguration<CandidateP
 
         builder.Property(p => p.Headline).HasMaxLength(120);
         builder.Property(p => p.Bio).HasMaxLength(2000);
-        builder.Property(p => p.GitHubUrl).HasMaxLength(300);
+        builder.Property(p => p.LinkedInUrl).HasMaxLength(300);
         builder.Property(p => p.Location).HasMaxLength(100);
         builder.Property(p => p.ExperienceLevel).IsRequired(false);
         builder.Property(p => p.YearsOfExperience).IsRequired(false);

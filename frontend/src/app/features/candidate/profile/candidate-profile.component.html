@@ -162,40 +162,42 @@
               }
             </div>
 
-            <!-- GitHub URL Field (Optional, URL format) -->
+            <!-- LinkedIn URL Field (Optional, URL format) -->
             <div class="form-group">
               <div class="label-row">
-                <label for="gitHubUrl" class="form-label">
-                  GitHub Profile URL
+                <label for="linkedInUrl" class="form-label">
+                  LinkedIn Profile
                 </label>
                 <span class="optional-badge">Optional</span>
               </div>
               <div
                 class="input-wrapper"
-                [class.has-error]="gitHubUrlControl?.invalid && (gitHubUrlControl?.touched || gitHubUrlControl?.dirty)"
+                [class.has-error]="linkedInUrlControl?.invalid && (linkedInUrlControl?.touched || linkedInUrlControl?.dirty)"
               >
-                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                  <rect x="2" y="9" width="4" height="12"></rect>
+                  <circle cx="4" cy="4" r="2"></circle>
                 </svg>
                 <input
-                  id="gitHubUrl"
+                  id="linkedInUrl"
                   type="url"
-                  formControlName="gitHubUrl"
-                  placeholder="https://github.com/your-username"
+                  formControlName="linkedInUrl"
+                  placeholder="https://www.linkedin.com/in/your-username"
                   class="form-input"
-                  [attr.aria-invalid]="gitHubUrlControl?.invalid && gitHubUrlControl?.touched"
-                  aria-describedby="github-error"
+                  [attr.aria-invalid]="linkedInUrlControl?.invalid && linkedInUrlControl?.touched"
+                  aria-describedby="linkedin-error"
                 />
               </div>
 
-              @if (gitHubUrlControl?.invalid && (gitHubUrlControl?.touched || gitHubUrlControl?.dirty)) {
-                <div id="github-error" class="inline-error" role="alert">
+              @if (linkedInUrlControl?.invalid && (linkedInUrlControl?.touched || linkedInUrlControl?.dirty)) {
+                <div id="linkedin-error" class="inline-error" role="alert">
                   <svg class="error-dot" viewBox="0 0 24 24" fill="currentColor">
                     <circle cx="12" cy="12" r="10"></circle>
                   </svg>
-                  @if (gitHubUrlControl?.errors?.['invalidUrl']) {
-                    <span>Please enter a valid URL (starting with http:// or https://).</span>
-                  } @else if (gitHubUrlControl?.errors?.['maxlength']) {
+                  @if (linkedInUrlControl?.errors?.['invalidLinkedInUrl']) {
+                    <span>Please enter a valid LinkedIn URL starting with https:// (e.g. https://www.linkedin.com/in/username).</span>
+                  } @else if (linkedInUrlControl?.errors?.['maxlength']) {
                     <span>URL cannot exceed 300 characters.</span>
                   }
                 </div>
@@ -470,27 +472,83 @@
 
             <!-- Row 2: Job Type & Experience Level -->
             <div class="form-row-2col">
-              <div class="form-group">
-                <label for="preferredJobType" class="form-label">
+              <div class="form-group job-type-form-group">
+                <label class="form-label" (click)="toggleJobTypeDropdown($event)">
                   Job Type Preference
                 </label>
-                <div class="input-wrapper select-wrapper">
-                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                  </svg>
-                  <select
-                    id="preferredJobType"
-                    formControlName="preferredJobType"
-                    class="form-input form-select"
+                <div class="job-type-dropdown-wrapper" [class.is-open]="isJobTypeDropdownOpen()">
+                  <div
+                    class="custom-select-trigger"
+                    [class.active]="isJobTypeDropdownOpen()"
+                    [class.has-selection]="selectedJobTypes().length > 0"
+                    (click)="toggleJobTypeDropdown($event)"
+                    role="combobox"
+                    tabindex="0"
+                    [attr.aria-expanded]="isJobTypeDropdownOpen()"
+                    aria-haspopup="listbox"
+                    (keydown.enter)="toggleJobTypeDropdown($event)"
+                    (keydown.space)="toggleJobTypeDropdown($event); $event.preventDefault()"
                   >
-                    <option value="" disabled selected>Select job type</option>
-                    <option value="FullTime">Full-time</option>
-                    <option value="PartTime">Part-time</option>
-                    <option value="Contract">Contract</option>
-                    <option value="Internship">Internship</option>
-                    <option value="Freelance">Freelance</option>
-                  </select>
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                    <span
+                      class="trigger-label"
+                      [class.placeholder]="selectedJobTypes().length === 0"
+                      [title]="selectedJobTypesSummaryFull()"
+                    >
+                      {{ selectedJobTypesSummary() }}
+                    </span>
+                    <div class="trigger-meta">
+                      @if (selectedJobTypes().length > 0) {
+                        <span class="count-pill">{{ selectedJobTypes().length }}</span>
+                      }
+                      <svg class="chevron-icon" [class.rotated]="isJobTypeDropdownOpen()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </div>
+                  </div>
+
+                  @if (isJobTypeDropdownOpen()) {
+                    <div class="job-type-dropdown-menu" role="listbox" (click)="$event.stopPropagation()">
+                      <div class="options-list">
+                        @for (opt of jobTypeOptions; track opt.value) {
+                          <div
+                            class="dropdown-option-row"
+                            [class.is-selected]="isJobTypeSelected(opt.value)"
+                            (click)="toggleJobType(opt.value); $event.stopPropagation()"
+                            role="checkbox"
+                            [attr.aria-checked]="isJobTypeSelected(opt.value)"
+                            tabindex="0"
+                            (keydown.enter)="toggleJobType(opt.value)"
+                            (keydown.space)="toggleJobType(opt.value); $event.preventDefault()"
+                          >
+                            <div class="item-checkbox" [class.checked]="isJobTypeSelected(opt.value)">
+                              @if (isJobTypeSelected(opt.value)) {
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                  <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                              }
+                            </div>
+                            <span class="option-label">{{ opt.label }}</span>
+                          </div>
+                        }
+                      </div>
+
+                      @if (selectedJobTypes().length > 0) {
+                        <div class="dropdown-menu-footer">
+                          <button
+                            type="button"
+                            class="btn-clear-selection"
+                            (click)="clearAllJobTypes(); $event.stopPropagation()"
+                          >
+                            Clear Selection
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  }
                 </div>
                 <span class="field-hint">Target employment type for recommendations.</span>
               </div>
