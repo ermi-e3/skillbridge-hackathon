@@ -166,15 +166,15 @@ graph TB
 
     UI --> AuthInt
     UI --> RTClient
-    AuthInt -->|HTTP / JSON ProblemDetails| MW
-    RTClient <-->|WebSockets (WSS)| Hub
+    AuthInt -->|"HTTP / JSON ProblemDetails"| MW
+    RTClient <-->|"WebSockets (WSS)"| Hub
     MW --> Controllers
     Controllers --> Services
     Services --> Validators
     Services --> Interfaces
     Services --> Entities
     Services --> Rules
-    Interfaces -.->|Implemented by| InfraLayer
+    Interfaces -.->|"Implemented by"| InfraLayer
     DbContext --> Postgres
     Identity --> DbContext
     Storage --> Disk
