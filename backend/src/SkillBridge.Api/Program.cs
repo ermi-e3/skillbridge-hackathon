@@ -209,9 +209,9 @@ await using (var scope = app.Services.CreateAsyncScope())
     // Apply database migrations.
     await dbContext.Database.MigrateAsync();
 
-    // Run initial seed data only when explicitly enabled.
-    var runInitialSeed = app.Configuration
-        .GetValue<bool>("Seed:RunInitialData");
+    // Run initial seed data when explicitly enabled or by default in Development environment.
+    var runInitialSeed = app.Configuration.GetValue<bool?>("Seed:RunInitialData")
+        ?? app.Environment.IsDevelopment();
 
     if (runInitialSeed)
     {
