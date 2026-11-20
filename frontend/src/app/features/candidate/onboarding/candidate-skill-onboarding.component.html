@@ -323,7 +323,7 @@
 
                         <div class="item-status-col">
                           @if (isPreferredSkillSelected(skill.id)) {
-                            <span class="other-group-badge" title="Click to move from Nice-to-Have to Core">In Nice-to-Have</span>
+                            <span class="other-group-badge" title="Click to move from Additional Skills to Core">In Additional</span>
                           } @else if (isSkillSelected(skill.id)) {
                             <span class="selected-text-badge">Selected</span>
                           }
@@ -357,7 +357,7 @@
             </div>
           </section>
 
-          <!-- Card 3: Nice-to-Have Skills (Optional) -->
+          <!-- Card 3: Additional Skills (Optional) -->
           <section class="studio-card card-nice-to-have">
             <div class="card-header-row">
               <div class="card-icon-box icon-orange">
@@ -367,17 +367,16 @@
               </div>
               <div class="card-title-group">
                 <div class="title-with-pill">
-                  <h2 class="card-title">Nice-to-Have Skills</h2>
-                  <span class="bonus-badge">Bonus Match Points</span>
+                  <h2 class="card-title">Additional Skills</h2>
                 </div>
-                <p class="card-desc">Select secondary tools or skills you are learning (up to 5). Employers mark these as nice-to-have to grant extra match score boost.</p>
+                <p class="card-desc">Select secondary tools or skills you are learning (up to 5). Employers mark these as additional skills to grant extra match score boost.</p>
               </div>
             </div>
 
-            <!-- Selected Nice-to-Have Skills Tray -->
+            <!-- Selected Additional Skills Tray -->
             <div class="selected-skills-tray tray-nice-to-have">
               <div class="tray-header-row">
-                <span class="tray-counter-label">NICE-TO-HAVE SKILLS ({{ selectedPreferredSkillsList().length }}/5)</span>
+                <span class="tray-counter-label">ADDITIONAL SKILLS ({{ selectedPreferredSkillsList().length }}/5)</span>
                 @if (selectedPreferredSkillsList().length > 0) {
                   <button type="button" class="btn-clear-tray" (click)="clearAllPreferredSkills()">Clear all</button>
                 }
@@ -408,14 +407,14 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                   </svg>
-                  <span>No nice-to-have skills selected yet (optional, up to 5). Use the searchable selector below.</span>
+                  <span>No additional skills selected yet (optional, up to 5). Use the searchable selector below.</span>
                 </div>
               }
             </div>
 
-            <!-- Searchable Multi-Select Dropdown (Nice-to-Have) -->
+            <!-- Searchable Multi-Select Dropdown (Additional Skills) -->
             <div class="multi-select-dropdown-wrapper preferred-dropdown-wrapper" [class.is-open]="isPreferredDropdownOpen()">
-              <label class="dropdown-field-label">Search &amp; Add Nice-to-Have Skills</label>
+              <label class="dropdown-field-label">Search &amp; Add Additional Skills</label>
 
               <!-- Dropdown Trigger Bar -->
               <div
@@ -435,9 +434,9 @@
                   </svg>
                   <span class="trigger-text">
                     @if (selectedPreferredSkillIds().length === 0) {
-                      Click to search &amp; select nice-to-have skills...
+                      Click to search &amp; select additional skills...
                     } @else if (selectedPreferredSkillIds().length >= 5) {
-                      Maximum 5 nice-to-have skills selected (click to edit)
+                      Maximum 5 additional skills selected (click to edit)
                     } @else {
                       Search &amp; add more skills ({{ 5 - selectedPreferredSkillIds().length }} remaining)...
                     }
@@ -466,7 +465,7 @@
                         type="text"
                         [value]="preferredSearchQuery()"
                         (input)="onPreferredSearchChange($event)"
-                        placeholder="Search nice-to-have skills..."
+                        placeholder="Search additional skills..."
                         class="dropdown-search-input"
                         autofocus
                       />
@@ -527,7 +526,7 @@
 
                         <div class="item-status-col">
                           @if (isSkillSelected(skill.id)) {
-                            <span class="other-group-badge" title="Click to move from Core to Nice-to-Have">In Core</span>
+                            <span class="other-group-badge" title="Click to move from Core to Additional Skills">In Core</span>
                           } @else if (isPreferredSkillSelected(skill.id)) {
                             <span class="selected-text-badge">Selected</span>
                           }
@@ -550,7 +549,7 @@
                   <!-- Dropdown Footer -->
                   <div class="dropdown-panel-footer">
                     <span class="footer-count-text">
-                      <strong>{{ selectedPreferredSkillIds().length }}</strong> of 5 nice-to-have skills registered
+                      <strong>{{ selectedPreferredSkillIds().length }}</strong> of 5 additional skills registered
                     </span>
                     <button type="button" class="btn-dropdown-done" (click)="closePreferredDropdown()">
                       Done

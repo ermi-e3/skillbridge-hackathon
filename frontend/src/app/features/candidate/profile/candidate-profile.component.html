@@ -811,10 +811,10 @@
                           <span class="item-category-tag">{{ getSkillCategoryName(skill.name) }}</span>
                         </div>
 
-                        <!-- Status Badge (e.g. In Nice-to-Have, Limit) -->
+                        <!-- Status Badge (e.g. In Additional, Limit) -->
                         <div class="item-status-col">
                           @if (isPreferredSkillSelected(skill.id)) {
-                            <span class="other-group-badge" title="Click to move from Nice-to-Have to Core">In Nice-to-Have</span>
+                            <span class="other-group-badge" title="Click to move from Additional Skills to Core">In Additional</span>
                           } @else if (isSkillSelected(skill.id)) {
                             <span class="selected-text-badge">Core Selected</span>
                           }
@@ -852,7 +852,7 @@
         </section>
 
         <!-- ============================================== -->
-        <!-- Card 5: Nice-to-Have Skills (Preferred, 0–15) -->
+        <!-- Card 5: Additional Skills (Preferred, 0–15) -->
         <!-- ============================================== -->
         <section class="card section-card preferred-skills-card">
           <div class="card-header skills-header-row preferred-header-row">
@@ -864,10 +864,9 @@
               </div>
               <div class="card-title-meta">
                 <div class="section-tag-row">
-                  <span class="section-step-tag">05 // NICE-TO-HAVE</span>
-                  <span class="bonus-badge">Bonus Match Points</span>
+                  <span class="section-step-tag">05 // ADDITIONAL SKILLS</span>
                 </div>
-                <h2 class="card-title">Nice-to-Have Skills (Preferred Competencies)</h2>
+                <h2 class="card-title">Additional Skills</h2>
               </div>
             </div>
 
@@ -885,7 +884,7 @@
             <!-- Selected Preferred Skills Chips Tray -->
             <div class="selected-skills-tray-container preferred-tray-container">
               <div class="tray-header-row">
-                <span class="tray-label">SELECTED NICE-TO-HAVE SKILLS ({{ selectedPreferredSkills().length }})</span>
+                <span class="tray-label">SELECTED ADDITIONAL SKILLS ({{ selectedPreferredSkills().length }})</span>
                 @if (selectedPreferredSkills().length > 0) {
                   <button type="button" class="btn-clear-tray" (click)="clearAllPreferredSkills()">Clear all</button>
                 }
@@ -915,14 +914,14 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                   </svg>
-                  <span>No nice-to-have skills selected yet (optional, up to 15). Select secondary skills in the dropdown below.</span>
+                  <span>No additional skills selected yet (optional, up to 15). Select secondary skills in the dropdown below.</span>
                 </div>
               }
             </div>
 
             <!-- Searchable Multi-Select Dropdown Component -->
             <div class="multi-select-dropdown-wrapper preferred-dropdown-wrapper" [class.is-open]="isPreferredDropdownOpen()">
-              <label class="dropdown-field-label">Add Nice-to-Have Skills</label>
+              <label class="dropdown-field-label">Add Additional Skills</label>
 
               <!-- Dropdown Trigger Button -->
               <div
@@ -943,9 +942,9 @@
                   </svg>
                   <span class="trigger-text">
                     @if (selectedPreferredSkillIds().length === 0) {
-                      Click to search & select nice-to-have skills...
+                      Click to search & select additional skills...
                     } @else if (selectedPreferredSkillIds().length >= 15) {
-                      Maximum 15 nice-to-have skills selected (click to edit)
+                      Maximum 15 additional skills selected (click to edit)
                     } @else {
                       Search & add secondary skills ({{ 15 - selectedPreferredSkillIds().length }} remaining)...
                     }
@@ -974,7 +973,7 @@
                         type="text"
                         [value]="preferredSkillSearchQuery()"
                         (input)="onPreferredSearchChange($event)"
-                        placeholder="Search nice-to-have skills (e.g. Redis, GraphQL, Docker, AWS)..."
+                        placeholder="Search additional skills (e.g. Redis, GraphQL, Docker, AWS)..."
                         class="dropdown-search-input"
                         autofocus
                       />
@@ -1038,9 +1037,9 @@
                         <!-- Status Badge (e.g. In Core, Limit) -->
                         <div class="item-status-col">
                           @if (isSkillSelected(skill.id)) {
-                            <span class="other-group-badge core-group-badge" title="Click to move from Core to Nice-to-Have">In Core Skills</span>
+                            <span class="other-group-badge core-group-badge" title="Click to move from Core to Additional Skills">In Core Skills</span>
                           } @else if (isPreferredSkillSelected(skill.id)) {
-                            <span class="selected-text-badge badge-preferred-text">Nice-to-Have Selected</span>
+                            <span class="selected-text-badge badge-preferred-text">Additional Skill Selected</span>
                           }
                         </div>
                       </div>
@@ -1063,7 +1062,7 @@
                   <!-- Dropdown Footer -->
                   <div class="dropdown-panel-footer">
                     <span class="footer-count-text">
-                      <strong>{{ selectedPreferredSkillIds().length }}</strong> of 15 nice-to-have skills selected
+                      <strong>{{ selectedPreferredSkillIds().length }}</strong> of 15 additional skills selected
                     </span>
                     <button type="button" class="btn-dropdown-done btn-done-preferred" (click)="closePreferredDropdown()">
                       Done

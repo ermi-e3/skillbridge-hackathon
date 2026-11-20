@@ -201,7 +201,7 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
     return skills;
   });
 
-  // Filtered preferred / nice-to-have skills
+  // Filtered preferred / additional skills
   readonly filteredPreferredSkills = computed(() => {
     const query = this.preferredSkillSearchQuery().trim().toLowerCase();
     const categoryId = this.activePreferredCategory();
@@ -434,7 +434,7 @@ export class CandidateProfileComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Toggle preferred / nice-to-have skill chip selection
+   * Toggle preferred / additional skill chip selection
    */
   togglePreferredSkill(skillId: number): void {
     const current = [...this.selectedPreferredSkillIds()];

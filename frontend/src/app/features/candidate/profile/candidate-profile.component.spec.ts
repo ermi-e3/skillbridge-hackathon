@@ -211,7 +211,7 @@ describe('CandidateProfileComponent', () => {
     vi.useRealTimers();
   });
 
-  it('should support selecting, toggling, and submitting preferred skills under nice-to-have category', () => {
+  it('should support selecting, toggling, and submitting preferred skills under additional skills category', () => {
     component.profileForm.patchValue({
       headline: 'Full Stack Engineer',
       skillIds: [1, 2],

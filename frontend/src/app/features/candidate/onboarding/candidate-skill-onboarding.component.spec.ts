@@ -231,7 +231,7 @@ describe('CandidateSkillOnboardingComponent', () => {
     expect(component.selectedJobTypes()).toEqual([]);
   });
 
-  it('should enforce 10 skills limit for technical skills catalog and 5 for nice-to-have skills', () => {
+  it('should enforce 10 skills limit for technical skills catalog and 5 for additional skills', () => {
     // Technical skills limit of 10
     for (let i = 1; i <= 10; i++) {
       component.selectedSkillIds.update((ids) => [...ids, i]);
