@@ -45,3 +45,4 @@ npm-debug.log*
 
 # Angular files copied into ASP.NET Core for deployment
 /backend/src/SkillBridge.Api/wwwroot/
+docs/

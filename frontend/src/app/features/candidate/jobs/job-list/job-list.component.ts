@@ -264,6 +264,7 @@ export class JobListComponent implements OnInit {
     const arrangement = this.selectedWorkArrangement() === 'All' ? undefined : this.selectedWorkArrangement();
     const type = this.selectedJobType() === 'All' ? undefined : this.selectedJobType();
     const exp = this.selectedExperienceLevel() === 'All' ? undefined : this.selectedExperienceLevel();
+    const fetchPageSize = this.selectedDepartment() !== 'all' ? 50 : this.pageSize();
 
     if (typeof this.jobsService.getJobsPaged === 'function') {
       this.jobsService
@@ -272,7 +273,7 @@ export class JobListComponent implements OnInit {
           search,
           'newest',
           this.currentPage(),
-          this.pageSize(),
+          fetchPageSize,
           type,
           arrangement,
           exp
@@ -407,6 +408,7 @@ export class JobListComponent implements OnInit {
     this.selectedDepartment.set(val);
     this.currentPage.set(1);
     this.closeDropdowns();
+    this.loadJobs();
   }
 
   getDepartmentName(id: string): string {
